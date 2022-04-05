@@ -138,6 +138,8 @@ class Program:
 
             self._record_log(last_update_time)
 
+        self._stop_pwm()
+
     def _record_log(self, time: float) -> None:
         if self._log_file is not None:
             self._log.append(
@@ -217,6 +219,15 @@ class Program:
                 self._gpio.set_PWM_dutycycle(
                     pin.pin, CENTER + (invert_mul * min(1, max(-1, target)) * ANGLE60)
                 )
+
+    def _stop_pwm(self) -> None:
+        if self._debug:
+            print(
+                "Turning off all pwm signals for pins that were used by this controller."
+            )
+        for pin in self._pins:
+            if not self._dry:
+                self._gpio.set_PWM_dutycycle(pin.pin, 0)
 
 
 def main() -> None:
