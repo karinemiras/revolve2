@@ -120,17 +120,19 @@ class Program:
                 target = 0.0
             else:
                 target = 1.0
-            controller = self._run_all()
             self._set_targets([target for _ in self._controller.get_dof_targets()])
-            print("Press enter to stop.\n")
+            input("Press enter to stop.\n")
         else:
-            controller = self._run_controller()
             self._set_targets(self._controller.get_dof_targets())
-            input("Press enter to start controller. Press enter again to stop.\n")
-
-        asyncio.get_event_loop().run_until_complete(
-            asyncio.gather(self._run_interface(), controller)
-        )
+            user = input(
+                "Press enter to start controller. Press enter again to stop.\nOR\nType Q to stop now.\n"
+            )
+            if user == "q" or user == "Q":
+                self._stop_pwm()
+            else:
+                asyncio.get_event_loop().run_until_complete(
+                    asyncio.gather(self._run_interface(), self._run_controller())
+                )
 
         if self._log_file is not None:
             with open(self._log_file, "w") as log_file:
@@ -157,12 +159,6 @@ class Program:
 
             self._record_log(last_update_time)
 
-        self._stop_pwm()
-
-    async def _run_all(self) -> None:
-        # do nothing. bit of a hack but okay.
-        while not self._stop:
-            await asyncio.sleep(self._control_period)
         self._stop_pwm()
 
     def _record_log(self, time: float) -> None:
