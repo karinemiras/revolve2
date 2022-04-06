@@ -94,6 +94,12 @@ class Program:
         parser.add_argument(
             "--log", help="If set, outputs controller log to this file.", type=str
         )
+        parser.add_argument(
+            "--all",
+            help="Set all outputs provided in the config file to the given value.",
+            type=str,
+            choices=["min", "center", "max"],
+        )
         args = parser.parse_args()
 
         self._debug = args.debug
@@ -107,10 +113,23 @@ class Program:
 
         self._load_controller(config)
 
-        input("Press enter to start controller. Press enter again to stop.\n")
+        if args.all is not None:
+            if args.all == "min":
+                target = -1.0
+            elif args.all == "center":
+                target = 0.0
+            else:
+                target = 1.0
+            controller = self._run_all()
+            self._set_targets([target for _ in self._controller.get_dof_targets()])
+            print("Press enter to stop.\n")
+        else:
+            controller = self._run_controller()
+            self._set_targets(self._controller.get_dof_targets())
+            input("Press enter to start controller. Press enter again to stop.\n")
 
         asyncio.get_event_loop().run_until_complete(
-            asyncio.gather(self._run_interface(), self._run_controller())
+            asyncio.gather(self._run_interface(), controller)
         )
 
         if self._log_file is not None:
@@ -138,6 +157,12 @@ class Program:
 
             self._record_log(last_update_time)
 
+        self._stop_pwm()
+
+    async def _run_all(self) -> None:
+        # do nothing. bit of a hack but okay.
+        while not self._stop:
+            await asyncio.sleep(self._control_period)
         self._stop_pwm()
 
     def _record_log(self, time: float) -> None:
@@ -196,8 +221,6 @@ class Program:
                     self._gpio.set_PWM_dutycycle(pin.pin, 0)
             except AttributeError as err:
                 raise RuntimeError("Could not initialize gpios.") from err
-
-        self._set_targets(targets)
 
     def _set_targets(self, targets: List[float]) -> None:
         if self._debug:
