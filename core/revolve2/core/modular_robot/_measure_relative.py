@@ -64,22 +64,27 @@ class MeasureRelative:
 
     # counts how many individuals of the current pop this individual dominates
     # an individual a dominates an individual b if a is better in at least one measure and not worse in any measure
-    # TODO: allow the use
+    # better=higher > maximization
     def _dominated_individuals(self):
 
         # TODO: make this a param in the exp manager
-        which_measures = ['symmetry',
-                          'proportion']
-        # print('>>>------')
-        # pprint.pprint(self._genotype_measures)
-        # print('------')
-        # for neighbour_measures in self._neighbours_measures:
-        #     pprint.pprint(neighbour_measures)
-        #     better = 0
-        #     worse = 0
-        #     for key in which_measures:
-        #         print(key, neighbour_measures[key], self._genotype_measures[key])
-        #
-        dominated_individuals = 0
+        which_measures = ['displacement_xy',
+                          'diversity']
+
+        print('----')
+        for neighbour_measures in self._neighbours_measures:
+            better = 0
+            worse = 0
+            dominated_individuals = 0
+            for key in which_measures:
+                print(key, neighbour_measures[key], self._genotype_measures[key])
+                if self._genotype_measures[key] > neighbour_measures[key]:
+                    better += 1
+                if self._genotype_measures[key] < neighbour_measures[key]:
+                    worse += 1
+            if better > 0 and worse == 0:
+                dominated_individuals += 1
+            print(better, worse)
+        print('dom',dominated_individuals)
         self._genotype_measures['dominated_individuals'] = dominated_individuals
         return self._genotype_measures

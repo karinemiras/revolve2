@@ -19,6 +19,7 @@ class DbEAOptimizer(DbBase):
     genotype_table = Column(String, nullable=False)
     measures_table = Column(String, nullable=False)
     states_table = Column(String, nullable=False)
+    fitness_measure = Column(String, nullable=False)
 
 
 class DbEAOptimizerState(DbBase):
@@ -38,6 +39,7 @@ class DbEAOptimizerGeneration(DbBase):
     individual_index = Column(Integer, nullable=False, primary_key=True)
     individual_id = Column(Integer, nullable=False)
     diversity = Column(Float, nullable=True)
+    dominated_individuals  = Column(Float, nullable=True)
 
 
 # all history of born individuals

@@ -31,8 +31,8 @@ async def main() -> None:
     SAMPLING_FREQUENCY = 5
     CONTROL_FREQUENCY = 5
 
-    POPULATION_SIZE = 10
-    OFFSPRING_SIZE = 10#100
+    POPULATION_SIZE = 3
+    OFFSPRING_SIZE = 3#100
     # actually means number of offspring generations
     NUM_GENERATIONS = 1#00
 
@@ -69,7 +69,6 @@ async def main() -> None:
         innov_db_brain=innov_db_brain,
         rng=rng,
         process_id_gen=process_id_gen,
-        fitness_measure=FITNESS_MEASURE,
     )
     if maybe_optimizer is not None:
         optimizer = maybe_optimizer

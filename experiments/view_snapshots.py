@@ -10,7 +10,7 @@ from opt_mod_1.genotype import GenotypeSerializer, develop
 async def main() -> None:
 
     experiment_name = 'default_experiment'
-    generation = 0
+    generation = 2
 
     db = open_async_database_sqlite(f'./data/{experiment_name}')
     async with AsyncSession(db) as session:
@@ -29,7 +29,7 @@ async def main() -> None:
                     session, [r.DbEAOptimizerIndividual.genotype_id]
                 )
             )[0]
-
+            print('test',r.DbEAOptimizerIndividual.genotype_id)
             phenotype = develop(genotype)
             render = Render()
             # TODO: fix experiment name

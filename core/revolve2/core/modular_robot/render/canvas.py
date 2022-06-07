@@ -13,10 +13,10 @@ class Canvas:
 	# EAST = 2 # Canvas.RIGHT
 	# WEST = 3 # Canvas.LEFT
 
-	BACK = 2
+	BACK = 3
 	FRONT = 0
 	RIGHT = 1
-	LEFT = 3
+	LEFT = 2
 	
 	# Orientation of robot
 	orientation = FRONT

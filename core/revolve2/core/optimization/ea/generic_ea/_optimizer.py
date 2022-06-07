@@ -183,6 +183,7 @@ class EAOptimizer(Process, Generic[Genotype, Measure]):
             genotype_table=self.__genotype_serializer.identifying_table(),
             measures_table=self.__measures_serializer.identifying_table(),
             states_table=self.__states_serializer.identifying_table(),
+            fitness_measure=self.__fitness_measure,
         )
         session.add(new_opt)
         await session.flush()
@@ -204,7 +205,6 @@ class EAOptimizer(Process, Generic[Genotype, Measure]):
         states_serializer: List[Tuple[float, State]],
         measures_type: Type[Measure],
         measures_serializer: Type[Serializer[Measure]],
-        fitness_measure: str,
     ) -> bool:
         self.__database = database
         self.__genotype_type = genotype_type
@@ -212,7 +212,6 @@ class EAOptimizer(Process, Generic[Genotype, Measure]):
         self.__states_serializer = states_serializer
         self.__measures_type = measures_type
         self.__measures_serializer = measures_serializer
-        self.__fitness_measure = fitness_measure
 
         try:
             eo_row = (
@@ -226,6 +225,7 @@ class EAOptimizer(Process, Generic[Genotype, Measure]):
                 .scalars()
                 .one()
             )
+
         except MultipleResultsFound as err:
             raise IncompatibleError() from err
         except (NoResultFound, OperationalError):
@@ -233,6 +233,7 @@ class EAOptimizer(Process, Generic[Genotype, Measure]):
 
         self.__ea_optimizer_id = eo_row.id
         self.__offspring_size = eo_row.offspring_size
+        self.__fitness_measure = eo_row.fitness_measure
 
         # TODO: this name 'state' conflicts a bit with the table of states (positions)...
         state_row = (
@@ -255,6 +256,7 @@ class EAOptimizer(Process, Generic[Genotype, Measure]):
         self.__generation_index = state_row.generation_index
         self.__process_id_gen = process_id_gen
         self.__process_id_gen.set_state(state_row.processid_state)
+
 
         gen_rows = (
             (
@@ -304,7 +306,6 @@ class EAOptimizer(Process, Generic[Genotype, Measure]):
                             DbEAOptimizerIndividual.ea_optimizer_id
                             == self.__ea_optimizer_id
                         )
-                        & (DbEAOptimizerIndividual.individual_id.in_(individual_ids))
                     )
                 )
             )
@@ -656,9 +657,10 @@ class EAOptimizer(Process, Generic[Genotype, Measure]):
             )
             if len(rows) != len(initial_population):
                 raise IncompatibleError()
-            print(len(rows),len(latest_relative_measures))
+
             for i, row in enumerate(rows):
                 row.diversity = latest_relative_measures[i]['diversity']
+                row.dominated_individuals = latest_relative_measures[i]['dominated_individuals']
 
         # save current optimizer state
         session.add(
@@ -734,15 +736,19 @@ class EAOptimizer(Process, Generic[Genotype, Measure]):
             #  the bizarre fact tht the initial pop gets saved before evaluated
             if latest_relative_measures is None:
                 diversity = None
+                dominated_individuals = None
             else:
                 diversity = latest_relative_measures[index]['diversity']
+                dominated_individuals = latest_relative_measures[index]['dominated_individuals']
+
             session.add(
                     DbEAOptimizerGeneration(
                         ea_optimizer_id=self.__ea_optimizer_id,
                         generation_index=self.__generation_index,
                         individual_index=index,
                         individual_id=individual.id,
-                        diversity=diversity
+                        diversity=diversity,
+                        dominated_individuals=dominated_individuals,
                     )
             )
 

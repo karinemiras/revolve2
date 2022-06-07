@@ -11,9 +11,9 @@ class Render:
         self.grid = Grid()
 
     FRONT = 0
-    BACK = 2
+    BACK = 3
     RIGHT = 1
-    LEFT = 3
+    LEFT = 2
 
     def parse_body_to_draw(self, canvas, module, slot):
         """

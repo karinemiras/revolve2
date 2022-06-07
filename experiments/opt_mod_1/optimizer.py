@@ -113,7 +113,6 @@ class Optimizer(EAOptimizer[Genotype, float]):
         rng: Random,
         innov_db_body: multineat.InnovationDatabase,
         innov_db_brain: multineat.InnovationDatabase,
-        fitness_measure: str,
     ) -> bool:
         if not await super().ainit_from_database(
             database=database,
@@ -125,7 +124,6 @@ class Optimizer(EAOptimizer[Genotype, float]):
             states_serializer=StatesSerializer,
             measures_type=float,
             measures_serializer=FloatSerializer,
-            fitness_measure=fitness_measure,
         ):
             return False
 
@@ -284,8 +282,6 @@ class Optimizer(EAOptimizer[Genotype, float]):
                 sampling_frequency=self._sampling_frequency,
                 control_frequency=self._control_frequency,
                 num_generations=self._num_generations,
-                # TODO: persist/recover this param
-              #  fitness_measure=self._fitness_measure,
             )
         )
 
@@ -311,5 +307,3 @@ class DbOptimizerState(DbBase):
     sampling_frequency = sqlalchemy.Column(sqlalchemy.Float, nullable=False)
     control_frequency = sqlalchemy.Column(sqlalchemy.Float, nullable=False)
     num_generations = sqlalchemy.Column(sqlalchemy.Integer, nullable=False)
-    # TODO: does not work...fix it...
-  #  fitness_measure = sqlalchemy.Column(sqlalchemy.String, nullable=False)

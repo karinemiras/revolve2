@@ -10,10 +10,10 @@ class Grid:
 		self.core_position = None
 		self.visited_coordinates = []
 
-	BACK = 2
+	BACK = 3
 	FRONT = 0
 	RIGHT = 1
-	LEFT = 3
+	LEFT = 2
 
 	# orientations from revolve1
 	# SOUTH = 0 # Canvas.BACK
