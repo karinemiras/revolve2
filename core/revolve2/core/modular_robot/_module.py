@@ -26,6 +26,20 @@ class Module:
     def children(self) -> List[Optional[Module]]:
         return self._children
 
+    def has_children(self) -> bool:
+        """
+        Check wheter module has children
+        :return: True if module has children
+        """
+        has_children = False
+        if self._children == {1: None}: return False
+
+        for i, child in enumerate(self._children):
+            if child is not None:
+                has_children = True
+
+        return has_children
+
     @property
     def rotation(self) -> float:
         return self._rotation

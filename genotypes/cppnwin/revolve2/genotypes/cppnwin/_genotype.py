@@ -12,6 +12,7 @@ from revolve2.core.database import IncompatibleError, Serializer
 from .genotype_schema import DbBase, DbGenotype
 
 
+
 @dataclass
 class Genotype:
     genotype: multineat.Genome
@@ -30,11 +31,14 @@ class GenotypeSerializer(Serializer[Genotype]):
     async def to_database(
         cls, session: AsyncSession, objects: List[Genotype]
     ) -> List[int]:
+       
         dbfitnesses = [
             DbGenotype(serialized_multineat_genome=o.genotype.Serialize())
             for o in objects
         ]
+      
         session.add_all(dbfitnesses)
+
         await session.flush()
         ids = [
             dbfitness.id for dbfitness in dbfitnesses if dbfitness.id is not None

@@ -50,16 +50,13 @@ def develop_v1(
     grid: Set[Tuple[int, int, int]] = set()
 
     body = Body()
-
     to_explore.put(__Module((0, 0, 0), (0, -1, 0), (0, 0, 1), 0, body.core))
     grid.add((0, 0, 0))
     part_count = 1
-
     while not to_explore.empty():
         module = to_explore.get()
 
-        children: List[Tuple[int, int]] = []  # child index, rotation
-
+        children: List[Tuple[int, int]] = []  # child index, rotation in increments of 90 degrees
         if isinstance(module.module_reference, Core):
             children.append((Core.FRONT, 0))
             children.append((Core.LEFT, 1))
@@ -106,7 +103,10 @@ def __evaluate_cppn(
 
     # get rotation from output probabilities
     rotation_probs = [outputs[3], outputs[4]]
-    rotation = rotation_probs.index(min(rotation_probs))
+
+    # TODO: make an allow_ratation param
+    # rotation = rotation_probs.index(min(rotation_probs))
+    rotation = 0
 
     return (module_type, rotation)
 
@@ -133,7 +133,6 @@ def ___add_child(
     if child_type is None:
         return None
     up = __rotate(module.up, forward, orientation)
-
     child = child_type(orientation * (math.pi / 2.0))
     module.module_reference.children[child_index] = child
 

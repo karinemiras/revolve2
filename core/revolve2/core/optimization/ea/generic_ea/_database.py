@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String
+from sqlalchemy import Column, Integer, String, Float
 from sqlalchemy.ext.declarative import declarative_base
 
 DbBase = declarative_base()
@@ -17,7 +17,8 @@ class DbEAOptimizer(DbBase):
     process_id = Column(Integer, nullable=False, unique=True)
     offspring_size = Column(Integer, nullable=False)
     genotype_table = Column(String, nullable=False)
-    fitness_table = Column(String, nullable=False)
+    measures_table = Column(String, nullable=False)
+    states_table = Column(String, nullable=False)
 
 
 class DbEAOptimizerState(DbBase):
@@ -28,6 +29,7 @@ class DbEAOptimizerState(DbBase):
     processid_state = Column(Integer, nullable=False)
 
 
+# snapshot of survivals in each generation
 class DbEAOptimizerGeneration(DbBase):
     __tablename__ = "ea_optimizer_generation"
 
@@ -35,15 +37,18 @@ class DbEAOptimizerGeneration(DbBase):
     generation_index = Column(Integer, nullable=False, primary_key=True)
     individual_index = Column(Integer, nullable=False, primary_key=True)
     individual_id = Column(Integer, nullable=False)
+    diversity = Column(Float, nullable=True)
 
 
+# all history of born individuals
 class DbEAOptimizerIndividual(DbBase):
     __tablename__ = "ea_optimizer_individual"
 
     ea_optimizer_id = Column(Integer, nullable=False, primary_key=True)
     individual_id = Column(Integer, nullable=False, primary_key=True)
     genotype_id = Column(Integer, nullable=False)
-    fitness_id = Column(Integer, nullable=True)
+    float_id = Column(Integer, nullable=True)
+    states_id = Column(Integer, nullable=True)
 
 
 class DbEAOptimizerParent(DbBase):
@@ -52,3 +57,5 @@ class DbEAOptimizerParent(DbBase):
     ea_optimizer_id = Column(Integer, nullable=False, primary_key=True)
     child_individual_id = Column(Integer, nullable=False, primary_key=True)
     parent_individual_id = Column(Integer, nullable=False, primary_key=True)
+
+

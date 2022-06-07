@@ -3,7 +3,7 @@ from ._database import (
     DbEAOptimizerGeneration,
     DbEAOptimizerIndividual,
     DbEAOptimizerParent,
-    DbEAOptimizerState,
+    DbEAOptimizerState
 )
 from ._optimizer import EAOptimizer
 
@@ -13,5 +13,5 @@ __all__ = [
     "DbEAOptimizerGeneration",
     "DbEAOptimizerIndividual",
     "DbEAOptimizerParent",
-    "DbEAOptimizerState",
+    "DbEAOptimizerState"
 ]
