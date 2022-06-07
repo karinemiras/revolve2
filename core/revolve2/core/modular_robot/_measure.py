@@ -6,7 +6,7 @@ import pprint
 from ._module import Module
 from .render.render import Render
 from revolve2.core.physics.running import (
-    State,
+    RunnerState,
     ActorState
 )
 
@@ -15,7 +15,7 @@ from revolve2.core.modular_robot import Core, ActiveHinge, Brick
 
 class Measure:
 
-    _states: List[Tuple[float, State]]
+    _states: List[Tuple[float, RunnerState]]
 
     def __init__(self, states=None, genotype_idx=-1, phenotype=None):
         self._states = states
@@ -54,8 +54,8 @@ class Measure:
 
         # TODO simulation can continue slightly passed the defined sim time.
 
-        begin_state = self._states[0][1].envs[self._genotype_idx].actor_states[0]
-        end_state = self._states[-1][1].envs[self._genotype_idx].actor_states[0]
+        begin_state = self._states[0].envs[self._genotype_idx].actor_states[0]
+        end_state = self._states[-1].envs[self._genotype_idx].actor_states[0]
 
         # distance traveled on the xy plane
         self._measures['displacement_xy'] = float(
@@ -68,7 +68,7 @@ class Measure:
 
     def _get_orientations(self):
         for idx_state in range(0, len(self._states)):
-            _orientations = self._states[idx_state][1].envs[self._genotype_idx].actor_states[0].serialize()['orientation']
+            _orientations = self._states[idx_state].envs[self._genotype_idx].actor_states[0].serialize()['orientation']
             # w, x, y, z
             qua = Quaternion(_orientations[0], _orientations[1], _orientations[2], _orientations[3])
             euler = qua.to_euler()

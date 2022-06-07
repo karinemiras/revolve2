@@ -31,8 +31,8 @@ async def main() -> None:
     SAMPLING_FREQUENCY = 5
     CONTROL_FREQUENCY = 5
 
-    POPULATION_SIZE = 3
-    OFFSPRING_SIZE = 3#100
+    POPULATION_SIZE = 10
+    OFFSPRING_SIZE = 10#100
     # actually means number of offspring generations
     NUM_GENERATIONS = 1#00
 

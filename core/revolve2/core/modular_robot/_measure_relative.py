@@ -6,7 +6,7 @@ import pprint
 
 from ._module import Module
 from revolve2.core.physics.running import (
-    State,
+    RunnerState,
     ActorState
 )
 
@@ -14,7 +14,7 @@ from revolve2.core.physics.running import (
 # relative measures (which depend on the rest on the pop to be calculated)
 class MeasureRelative:
 
-    _states: List[Tuple[float, State]]
+    _states: List[Tuple[float, RunnerState]]
 
     def __init__(self, genotype_measures=None, neighbours_measures=None):
         self._genotype_measures = genotype_measures

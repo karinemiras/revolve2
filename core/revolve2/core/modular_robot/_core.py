@@ -6,8 +6,8 @@ from ._module import Module
 class Core(Module):
     FRONT = 0
     RIGHT = 1
-    BACK = 2
-    LEFT = 3
+    BACK = 3#2
+    LEFT = 2#3
 
     def __init__(self, rotation: float):
         super().__init__(4, rotation)

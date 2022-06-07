@@ -244,6 +244,7 @@ class Optimizer(EAOptimizer[Genotype, float]):
                         ]
                     ),
                     Quaternion(),
+                    [0.0 for _ in controller.get_dof_targets()],
                 )
             )
             batch.environments.append(env)
@@ -259,10 +260,10 @@ class Optimizer(EAOptimizer[Genotype, float]):
 
         states_genotypes = []
         if len(states) > 0:
-            for idx_genotype in range(0, len(states[0][1].envs)):
+            for idx_genotype in range(0, len(states[0].envs)):
                 states_genotypes.append({})
                 for idx_state in range(0, len(states)):
-                    states_genotypes[-1][idx_state] = states[idx_state][1].envs[idx_genotype].actor_states[0].serialize()
+                    states_genotypes[-1][idx_state] = states[idx_state].envs[idx_genotype].actor_states[0].serialize()
 
         return measures_genotypes, states_genotypes
 
