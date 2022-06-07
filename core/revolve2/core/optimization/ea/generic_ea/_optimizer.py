@@ -3,15 +3,20 @@ from __future__ import annotations
 import logging
 from abc import abstractmethod
 from dataclasses import dataclass
-from typing import Generic, List, Optional, Tuple, Type, TypeVar
+from typing import Generic, List, Optional, Tuple, Type, TypeVar, Dict
 
 from revolve2.core.database import IncompatibleError, Serializer
-from revolve2.core.optimization import DbId, Process
+
 from sqlalchemy.exc import OperationalError
 from sqlalchemy.ext.asyncio import AsyncEngine
 from sqlalchemy.ext.asyncio.session import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy.orm.exc import MultipleResultsFound, NoResultFound
+
+from revolve2.core.database import IncompatibleError, Serializer
+from revolve2.core.modular_robot import MeasureRelative
+from revolve2.core.optimization import Process, ProcessIdGen
+
 
 from ._database import (
     DbBase,
@@ -22,51 +27,41 @@ from ._database import (
     DbEAOptimizerState,
 )
 
+import pprint
+
 Genotype = TypeVar("Genotype")
-Fitness = TypeVar("Fitness")
+Measure = TypeVar("Measure")
 
 
-class EAOptimizer(Process, Generic[Genotype, Fitness]):
-    """
-    A generic optimizer implementation for evolutionary algorithms.
-
-    Inherit from this class and implement its abstract methods.
-    See the `Process` parent class on how to make an instance of your implementation.
-    You can run the optimization process using the `run` function.
-
-    Results will be saved every generation in the provided database.
-    """
+class EAOptimizer(Process, Generic[Genotype, Measure]):
 
     @abstractmethod
     async def _evaluate_generation(
         self,
         genotypes: List[Genotype],
         database: AsyncEngine,
-        db_id: DbId,
-    ) -> List[Fitness]:
+        process_id: int,
+        process_id_gen: ProcessIdGen,
+    ) -> List[Measure]:
         """
-        Evaluate a list of genotypes.
+        Evaluate a genotype.
 
         :param genotypes: The genotypes to evaluate. Must not be altered.
-        :param database: Database that can be used to store anything you want to save from the evaluation.
-        :param db_id: Unique identifier in the completely program specifically made for this function call.
-        :returns: The fitness result.
+        :return: The Measure result.
         """
 
     @abstractmethod
     def _select_parents(
         self,
         population: List[Genotype],
-        fitnesses: List[Fitness],
+        measures: List[Measure],
         num_parent_groups: int,
     ) -> List[List[int]]:
         """
         Select groups of parents that will create offspring.
 
         :param population: The generation to select sets of parents from. Must not be altered.
-        :param fitnesses: Fitnesses of the population.
-        :param num_parent_groups: Number of groups to create.
-        :returns: The selected sets of parents, each integer representing a population index.
+        :return: The selected sets of parents, each integer representing a population index.
         """
 
     @abstractmethod
@@ -75,18 +70,15 @@ class EAOptimizer(Process, Generic[Genotype, Fitness]):
         old_individuals: List[Genotype],
         old_fitnesses: List[Fitness],
         new_individuals: List[Genotype],
-        new_fitnesses: List[Fitness],
+        new_measures: List[Measure],
         num_survivors: int,
     ) -> Tuple[List[int], List[int]]:
         """
-        Select survivors from the sets of old and new individuals, which will form the next generation.
+        Select survivors from a group of individuals. These will form the next generation.
 
-        :param old_individuals: Original individuals.
-        :param old_fitnesses: Fitnesses of the original individuals.
-        :param new_individuals: New individuals.
-        :param new_fitnesses: Fitnesses of the new individuals.
+        :param individuals: The individuals to choose from.
         :param num_survivors: How many individuals should be selected.
-        :returns: Indices of the old survivors and indices of the new survivors.
+        :return: Indices of the old survivors and indices of the new survivors.
         """
 
     @abstractmethod
@@ -95,7 +87,7 @@ class EAOptimizer(Process, Generic[Genotype, Fitness]):
         Combine a set of genotypes into a new genotype.
 
         :param parents: The set of genotypes to combine. Must not be altered.
-        :returns: The new genotype.
+        :return: The new genotype.
         """
 
     @abstractmethod
@@ -104,84 +96,76 @@ class EAOptimizer(Process, Generic[Genotype, Fitness]):
         Apply mutation to an genotype to create a new genotype.
 
         :param genotype: The original genotype. Must not be altered.
-        :returns: The new genotype.
+        :return: The new genotype.
         """
 
     @abstractmethod
     def _must_do_next_gen(self) -> bool:
         """
         Decide if the optimizer must do another generation.
-
-        :returns: True if it must.
+        :return: True if it must.
         """
 
     @abstractmethod
     def _on_generation_checkpoint(self, session: AsyncSession) -> None:
         """
-        Save the results of this generation to the database.
-
         This function is called after a generation is finished and results and state are saved to the database.
         Use it to store state and results of the optimizer.
         The session must not be committed, but it may be flushed.
-
-        :param session: The session to use for writing to the database. Must not be committed, but can be flushed.
         """
 
     __database: AsyncEngine
 
-    __db_id: DbId
     __ea_optimizer_id: int
 
     __genotype_type: Type[Genotype]
     __genotype_serializer: Type[Serializer[Genotype]]
-    __fitness_type: Type[Fitness]
-    __fitness_serializer: Type[Serializer[Fitness]]
+    __states_serializer: List[Tuple[float, State]]
+    __measures_type: Type[Measure]
+    __measures_serializer: Type[Serializer[Measure]]
 
     __offspring_size: int
+
+    __process_id_gen: ProcessIdGen
 
     __next_individual_id: int
 
     __latest_population: List[_Individual[Genotype]]
-    __latest_fitnesses: Optional[List[Fitness]]  # None only for the initial population
+    __latest_measures: Optional[List[Measure]]  # None only for the initial population
+    __latest_states: List[Tuple[float, State]]
     __generation_index: int
+    __fitness_measure: str
 
     async def ainit_new(
         self,
         database: AsyncEngine,
         session: AsyncSession,
-        db_id: DbId,
+        process_id: int,
+        process_id_gen: ProcessIdGen,
         genotype_type: Type[Genotype],
         genotype_serializer: Type[Serializer[Genotype]],
         fitness_type: Type[Fitness],
         fitness_serializer: Type[Serializer[Fitness]],
         offspring_size: int,
         initial_population: List[Genotype],
+        fitness_measure: str,
     ) -> None:
         """
-        Initialize this class async.
-
-        Called when creating an instance using `new`.
-
-        :param database: Database to use for this optimizer.
-        :param session: Session to use when saving data to the database during initialization.
-        :param db_id: Unique identifier in the completely program specifically made for this optimizer.
-        :param genotype_type: Type of the genotype generic parameter.
-        :param genotype_serializer: Serializer for serializing genotypes.
-        :param fitness_type: Type of the fitness generic parameter.
-        :param fitness_serializer: Serializer for serializing fitnesses.
-        :param offspring_size: Number of offspring made by the population each generation.
-        :param initial_population: List of genotypes forming generation 0.
+        :id: Unique id between all EAOptimizers in this database.
+        :offspring_size: Number of offspring made by the population each generation.
         """
         self.__database = database
-        self.__db_id = db_id
         self.__genotype_type = genotype_type
         self.__genotype_serializer = genotype_serializer
-        self.__fitness_type = fitness_type
-        self.__fitness_serializer = fitness_serializer
+        self.__measures_type = measures_type
+        self.__measures_serializer = measures_serializer
+        self.__states_serializer = states_serializer
         self.__offspring_size = offspring_size
+        self.__process_id_gen = process_id_gen
         self.__next_individual_id = 0
         self.__latest_fitnesses = None
         self.__generation_index = 0
+        self.__fitness_measure = fitness_measure
 
         self.__latest_population = [
             _Individual(self.__gen_next_individual_id(), g, [])
@@ -190,13 +174,15 @@ class EAOptimizer(Process, Generic[Genotype, Fitness]):
 
         await (await session.connection()).run_sync(DbBase.metadata.create_all)
         await self.__genotype_serializer.create_tables(session)
-        await self.__fitness_serializer.create_tables(session)
+        await self.__measures_serializer.create_tables(session)
+        await self.__states_serializer.create_tables(session)
 
         new_opt = DbEAOptimizer(
-            db_id=db_id.fullname,
+            process_id=process_id,
             offspring_size=self.__offspring_size,
             genotype_table=self.__genotype_serializer.identifying_table(),
-            fitness_table=self.__fitness_serializer.identifying_table(),
+            measures_table=self.__measures_serializer.identifying_table(),
+            states_table=self.__states_serializer.identifying_table(),
         )
         session.add(new_opt)
         await session.flush()
@@ -204,47 +190,36 @@ class EAOptimizer(Process, Generic[Genotype, Fitness]):
         self.__ea_optimizer_id = new_opt.id
 
         await self.__save_generation_using_session(
-            session, None, None, self.__latest_population, None
+            session, None, None, None, self.__latest_population, None, None, None
         )
 
     async def ainit_from_database(
         self,
         database: AsyncEngine,
         session: AsyncSession,
-        db_id: DbId,
+        process_id: int,
+        process_id_gen: ProcessIdGen,
         genotype_type: Type[Genotype],
         genotype_serializer: Type[Serializer[Genotype]],
-        fitness_type: Type[Fitness],
-        fitness_serializer: Type[Serializer[Fitness]],
+        states_serializer: List[Tuple[float, State]],
+        measures_type: Type[Measure],
+        measures_serializer: Type[Serializer[Measure]],
+        fitness_measure: str,
     ) -> bool:
-        """
-        Try to initialize this class async from a database.
-
-        Called when creating an instance using `from_database`.
-
-        :param database: Database to use for this optimizer.
-        :param session: Session to use when loading and saving data to the database during initialization.
-        :param db_id: Unique identifier in the completely program specifically made for this optimizer.
-        :param genotype_type: Type of the genotype generic parameter.
-        :param genotype_serializer: Serializer for serializing genotypes.
-        :param fitness_type: Type of the fitness generic parameter.
-        :param fitness_serializer: Serializer for serializing fitnesses.
-        :returns: True if this complete object could be deserialized from the database.
-        :raises IncompatibleError: In case the database is not compatible with this class.
-        """
         self.__database = database
-        self.__db_id = db_id
         self.__genotype_type = genotype_type
         self.__genotype_serializer = genotype_serializer
-        self.__fitness_type = fitness_type
-        self.__fitness_serializer = fitness_serializer
+        self.__states_serializer = states_serializer
+        self.__measures_type = measures_type
+        self.__measures_serializer = measures_serializer
+        self.__fitness_measure = fitness_measure
 
         try:
             eo_row = (
                 (
                     await session.execute(
                         select(DbEAOptimizer).filter(
-                            DbEAOptimizer.db_id == self.__db_id.fullname
+                            DbEAOptimizer.process_id == process_id
                         )
                     )
                 )
@@ -259,6 +234,7 @@ class EAOptimizer(Process, Generic[Genotype, Fitness]):
         self.__ea_optimizer_id = eo_row.id
         self.__offspring_size = eo_row.offspring_size
 
+        # TODO: this name 'state' conflicts a bit with the table of states (positions)...
         state_row = (
             (
                 await session.execute(
@@ -277,6 +253,8 @@ class EAOptimizer(Process, Generic[Genotype, Fitness]):
             raise IncompatibleError()  # not possible that there is no saved state but DbEAOptimizer row exists
 
         self.__generation_index = state_row.generation_index
+        self.__process_id_gen = process_id_gen
+        self.__process_id_gen.set_state(state_row.processid_state)
 
         gen_rows = (
             (
@@ -301,9 +279,6 @@ class EAOptimizer(Process, Generic[Genotype, Fitness]):
 
         individual_ids = [row.individual_id for row in gen_rows]
 
-        # the highest individual id in the latest generation is the highest id overall.
-        self.__next_individual_id = max(individual_ids) + 1
-
         individual_rows = (
             (
                 await session.execute(
@@ -324,7 +299,7 @@ class EAOptimizer(Process, Generic[Genotype, Fitness]):
         if not len(individual_ids) == len(individual_rows):
             raise IncompatibleError()
 
-        genotype_ids = [individual_map[id].genotype_id for id in individual_ids]
+        genotype_ids = [individual_map[id].float_id for id in individual_ids]
         genotypes = await self.__genotype_serializer.from_database(
             session, genotype_ids
         )
@@ -335,40 +310,54 @@ class EAOptimizer(Process, Generic[Genotype, Fitness]):
         ]
 
         if self.__generation_index == 0:
-            self.__latest_fitnesses = None
+            self.__latest_measures = None
+            self.__latest_states = None
         else:
-            fitness_ids = [individual_map[id].fitness_id for id in individual_ids]
-            fitnesses = await self.__fitness_serializer.from_database(
-                session, fitness_ids
+            measures_ids = [individual_map[id].float_id for id in individual_ids]
+            measures = await self.__measures_serializer.from_database(
+                session, measures_ids
             )
-            assert len(fitnesses) == len(fitness_ids)
-            self.__latest_fitnesses = fitnesses
+            assert len(measures) == len(measures_ids)
+            self.__latest_measures = measures
+
+            states_ids = [individual_map[id].states_id for id in individual_ids]
+            states = await self.__states_serializer.from_database(
+                session, states_ids
+            )
+            assert len(states) == len(states_ids)
+            self.__latest_states = states
 
         return True
 
+    def collect_key_value(self, dictionaries, key):
+        list = []
+        for d in dictionaries:
+            list.append(d[key])
+        return list
+
     async def run(self) -> None:
-        """Run the optimizer."""
         # evaluate initial population if required
-        if self.__latest_fitnesses is None:
-            self.__latest_fitnesses = await self.__safe_evaluate_generation(
+        if self.__latest_measures is None:
+            self.__latest_measures, self.__latest_states = await self.__safe_evaluate_generation(
                 [i.genotype for i in self.__latest_population],
                 self.__database,
-                self.__db_id.branch(f"evaluate{self.__generation_index}"),
+                self.__process_id_gen.gen(),
+                self.__process_id_gen,
             )
             initial_population = self.__latest_population
-            initial_fitnesses = self.__latest_fitnesses
-
-            self.__generation_index += 1
+            initial_measures = self.__latest_measures
+            initial_states = self.__latest_states
         else:
             initial_population = None
-            initial_fitnesses = None
+            initial_measures = None
+            initial_states = None
 
         while self.__safe_must_do_next_gen():
-
             # let user select parents
+            latest_fitnesses = self.collect_key_value(self.__latest_measures, self.__fitness_measure)
             parent_selections = self.__safe_select_parents(
                 [i.genotype for i in self.__latest_population],
-                self.__latest_fitnesses,
+                latest_fitnesses,
                 self.__offspring_size,
             )
 
@@ -383,10 +372,11 @@ class EAOptimizer(Process, Generic[Genotype, Fitness]):
             ]
 
             # let user evaluate offspring
-            new_fitnesses = await self.__safe_evaluate_generation(
+            new_measures, new_states = await self.__safe_evaluate_generation(
                 offspring,
                 self.__database,
-                self.__db_id.branch(f"evaluate{self.__generation_index}"),
+                self.__process_id_gen.gen(),
+                self.__process_id_gen,
             )
 
             # combine to create list of individuals
@@ -400,19 +390,22 @@ class EAOptimizer(Process, Generic[Genotype, Fitness]):
             ]
 
             # let user select survivors between old and new individuals
+            new_fitnesses = self.collect_key_value(new_measures, self.__fitness_measure)
             old_survivors, new_survivors = self.__safe_select_survivors(
                 [i.genotype for i in self.__latest_population],
-                self.__latest_fitnesses,
+                latest_fitnesses,
                 [i.genotype for i in new_individuals],
                 new_fitnesses,
                 len(self.__latest_population),
             )
 
             survived_new_individuals = [new_individuals[i] for i in new_survivors]
-            survived_new_fitnesses = [new_fitnesses[i] for i in new_survivors]
+            survived_new_measures = [new_measures[i] for i in new_survivors]
+            survived_new_states = [new_states[i] for i in new_survivors]
 
             # set ids for new individuals
-            for individual in survived_new_individuals:
+
+            for individual in new_individuals:
                 individual.id = self.__gen_next_individual_id()
 
             # combine old and new and store as the new generation
@@ -420,27 +413,50 @@ class EAOptimizer(Process, Generic[Genotype, Fitness]):
                 self.__latest_population[i] for i in old_survivors
             ] + survived_new_individuals
 
-            self.__latest_fitnesses = [
-                self.__latest_fitnesses[i] for i in old_survivors
-            ] + survived_new_fitnesses
+            self.__latest_measures = [
+                self.__latest_measures[i] for i in old_survivors
+            ] + survived_new_measures
+
+            self.__latest_states = [
+                self.__latest_states[i] for i in old_survivors
+            ] + survived_new_states
 
             self.__generation_index += 1
 
-            # save generation and possibly fitnesses of initial population
+            # calculates relative measures: it has to be sequential because they may depend on each other in pop level
+            for i in range(len(self.__latest_population)):
+                self.__latest_measures[i] = MeasureRelative(genotype_measures=self.__latest_measures[i],
+                                                            neighbours_measures=self.__latest_measures)._diversity()
+
+            for i in range(len(self.__latest_population)):
+                self.__latest_measures[i] = MeasureRelative(genotype_measures=self.__latest_measures[i],
+                                                            neighbours_measures=self.__latest_measures)._dominated_individuals()
+
+            latest_relative_measures = []
+            for i in range(len(self.__latest_population)):
+                latest_relative_measures.append(MeasureRelative(
+                    genotype_measures=self.__latest_measures[i])._return_only_relative())
+
+            # save generation and possibly measures of initial population
             # and let user save their state
             async with AsyncSession(self.__database) as session:
                 async with session.begin():
+                    # provide also initial diversity and update old gen table!
                     await self.__save_generation_using_session(
                         session,
                         initial_population,
-                        initial_fitnesses,
-                        survived_new_individuals,
-                        survived_new_fitnesses,
+                        initial_measures,
+                        initial_states,
+                        new_individuals,
+                        new_measures,
+                        new_states,
+                        latest_relative_measures,
                     )
                     self._on_generation_checkpoint(session)
             # in any case they should be none after saving once
             initial_population = None
-            initial_fitnesses = None
+            initial_measures = None
+            initial_states = None
 
             logging.info(f"Finished generation {self.__generation_index}.")
 
@@ -452,11 +468,9 @@ class EAOptimizer(Process, Generic[Genotype, Fitness]):
     def generation_index(self) -> Optional[int]:
         """
         Get the current generation.
-
         The initial generation is numbered 0.
-
-        :returns: The current generation.
         """
+
         return self.__generation_index
 
     def __gen_next_individual_id(self) -> int:
@@ -468,22 +482,26 @@ class EAOptimizer(Process, Generic[Genotype, Fitness]):
         self,
         genotypes: List[Genotype],
         database: AsyncEngine,
-        db_id: DbId,
-    ) -> List[Fitness]:
-        fitnesses = await self._evaluate_generation(
+        process_id: int,
+        process_id_gen: ProcessIdGen,
+    ) -> List[Measure]:
+        measures, states = await self._evaluate_generation(
             genotypes=genotypes,
             database=database,
-            db_id=db_id,
+            process_id=process_id,
+            process_id_gen=process_id_gen,
         )
-        assert type(fitnesses) == list
-        assert len(fitnesses) == len(genotypes)
-        assert all(type(e) == self.__fitness_type for e in fitnesses)
-        return fitnesses
+        assert type(measures) == list
+        assert len(measures) == len(genotypes)
+        assert len(states) == len(genotypes)
+        # TODO : adapt to new types
+        # assert all(type(e) == self.__measures_type for e in measures)
+        return measures, states
 
     def __safe_select_parents(
         self,
         population: List[Genotype],
-        fitnesses: List[Fitness],
+        fitnesses: List[Measure],
         num_parent_groups: int,
     ) -> List[List[int]]:
         parent_selections = self._select_parents(
@@ -513,18 +531,20 @@ class EAOptimizer(Process, Generic[Genotype, Fitness]):
     def __safe_select_survivors(
         self,
         old_individuals: List[Genotype],
-        old_fitnesses: List[Fitness],
+        old_measures: List[float],
         new_individuals: List[Genotype],
-        new_fitnesses: List[Fitness],
+        new_measures: List[float],
         num_survivors: int,
     ) -> Tuple[List[int], List[int]]:
+
         old_survivors, new_survivors = self._select_survivors(
             old_individuals,
-            old_fitnesses,
+            old_measures,
             new_individuals,
-            new_fitnesses,
+            new_measures,
             num_survivors,
         )
+
         assert type(old_survivors) == list
         assert type(new_survivors) == list
         assert len(old_survivors) + len(new_survivors) == len(self.__latest_population)
@@ -541,30 +561,38 @@ class EAOptimizer(Process, Generic[Genotype, Fitness]):
         self,
         session: AsyncSession,
         initial_population: Optional[List[_Individual[Genotype]]],
-        initial_fitnesses: Optional[List[Fitness]],
+        initial_measures: Optional[List[Measure]],
+        initial_states: List[Tuple[float, State]],
         new_individuals: List[_Individual[Genotype]],
-        new_fitnesses: Optional[List[Fitness]],
+        new_measures: Optional[List[Measure]],
+        new_states: List[Tuple[float, State]],
+        latest_relative_measures: Dict
     ) -> None:
         # TODO this function can probably be simplified as well as optimized.
         # but it works so I'll leave it for now.
 
-        # update fitnesses of initial population if provided
-        if initial_fitnesses is not None:
+        # update measures/states of initial population if provided
+        if initial_measures is not None:
             assert initial_population is not None
 
-            fitness_ids = await self.__fitness_serializer.to_database(
-                session, initial_fitnesses
+            measures_ids = await self.__measures_serializer.to_database(
+                session, initial_measures
             )
-            assert len(fitness_ids) == len(initial_fitnesses)
+            assert len(measures_ids) == len(initial_measures)
+
+            states_ids = await self.__states_serializer.to_database(
+                session, initial_states
+            )
+            assert len(states_ids) == len(initial_states)
 
             rows = (
                 (
                     await session.execute(
                         select(DbEAOptimizerIndividual)
-                        .filter(
+                            .filter(
                             (
-                                DbEAOptimizerIndividual.ea_optimizer_id
-                                == self.__ea_optimizer_id
+                                    DbEAOptimizerIndividual.ea_optimizer_id
+                                    == self.__ea_optimizer_id
                             )
                             & (
                                 DbEAOptimizerIndividual.individual_id.in_(
@@ -572,42 +600,84 @@ class EAOptimizer(Process, Generic[Genotype, Fitness]):
                                 )
                             )
                         )
-                        .order_by(DbEAOptimizerIndividual.individual_id)
+                            .order_by(DbEAOptimizerIndividual.individual_id)
                     )
                 )
-                .scalars()
-                .all()
+                    .scalars()
+                    .all()
             )
             if len(rows) != len(initial_population):
                 raise IncompatibleError()
 
             for i, row in enumerate(rows):
-                row.fitness_id = fitness_ids[i]
+                row.float_id = measures_ids[i]
+                row.states_id = states_ids[i]
+
+            rows = (
+                (
+                    await session.execute(
+                        select(DbEAOptimizerGeneration)
+                            .filter(
+                            (
+                                    DbEAOptimizerGeneration.ea_optimizer_id
+                                    == self.__ea_optimizer_id
+                            )
+                            & (
+                                DbEAOptimizerGeneration.individual_id.in_(
+                                    [i.id for i in initial_population]
+                                )
+                            )
+                        )
+                            .order_by(DbEAOptimizerGeneration.individual_id)
+                    )
+                )
+                    .scalars()
+                    .all()
+            )
+            if len(rows) != len(initial_population):
+                raise IncompatibleError()
+            print(len(rows),len(latest_relative_measures))
+            for i, row in enumerate(rows):
+                row.diversity = latest_relative_measures[i]['diversity']
 
         # save current optimizer state
         session.add(
             DbEAOptimizerState(
                 ea_optimizer_id=self.__ea_optimizer_id,
                 generation_index=self.__generation_index,
+                processid_state=self.__process_id_gen.get_state(),
             )
         )
 
         # save new individuals
         genotype_ids = await self.__genotype_serializer.to_database(
-            session, [i.genotype for i in new_individuals]
+            session, [g.genotype for g in new_individuals]
         )
         assert len(genotype_ids) == len(new_individuals)
-        fitness_ids2: List[Optional[int]]
-        if new_fitnesses is not None:
-            fitness_ids2 = [
-                f
-                for f in await self.__fitness_serializer.to_database(
-                    session, new_fitnesses
+
+        measures_ids2: List[Optional[int]]
+        if new_measures is not None:
+            measures_ids2 = [
+                m
+                for m in await self.__measures_serializer.to_database(
+                    session, new_measures
                 )
             ]  # this extra comprehension is useless but it stops mypy from complaining
-            assert len(fitness_ids2) == len(new_fitnesses)
+            assert len(measures_ids2) == len(new_measures)
         else:
-            fitness_ids2 = [None for _ in range(len(new_individuals))]
+            measures_ids2 = [None for _ in range(len(new_individuals))]
+
+        states_ids2:  List[Tuple[float, State]]
+        if new_states is not None:
+            states_ids2 = [
+                s
+                for s in await self.__states_serializer.to_database(
+                    session, new_states
+                )
+            ]  # this extra comprehension is useless but it stops mypy from complaining
+            assert len(states_ids2) == len(new_states)
+        else:
+            states_ids2 = [None for _ in range(len(new_individuals))]
 
         session.add_all(
             [
@@ -615,9 +685,10 @@ class EAOptimizer(Process, Generic[Genotype, Fitness]):
                     ea_optimizer_id=self.__ea_optimizer_id,
                     individual_id=i.id,
                     genotype_id=g_id,
-                    fitness_id=f_id,
+                    float_id=m_id,
+                    states_id=s_id,
                 )
-                for i, g_id, f_id in zip(new_individuals, genotype_ids, fitness_ids2)
+                for i, g_id, m_id, s_id  in zip(new_individuals, genotype_ids, measures_ids2, states_ids2 )
             ]
         )
 
@@ -638,17 +709,22 @@ class EAOptimizer(Process, Generic[Genotype, Fitness]):
         session.add_all(parents)
 
         # save current generation
-        session.add_all(
-            [
-                DbEAOptimizerGeneration(
-                    ea_optimizer_id=self.__ea_optimizer_id,
-                    generation_index=self.__generation_index,
-                    individual_index=index,
-                    individual_id=individual.id,
-                )
-                for index, individual in enumerate(self.__latest_population)
-            ]
-        )
+        for index, individual in enumerate(self.__latest_population):
+            # TODO: this could be better, but it has to adapt to
+            #  the bizarre fact tht the initial pop gets saved before evaluated
+            if latest_relative_measures is None:
+                diversity = None
+            else:
+                diversity = latest_relative_measures[index]['diversity']
+            session.add(
+                    DbEAOptimizerGeneration(
+                        ea_optimizer_id=self.__ea_optimizer_id,
+                        generation_index=self.__generation_index,
+                        individual_index=index,
+                        individual_id=individual.id,
+                        diversity=diversity
+                    )
+            )
 
 
 @dataclass

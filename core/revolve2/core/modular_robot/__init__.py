@@ -5,6 +5,8 @@ from ._body import Body
 from ._brain import Brain
 from ._brick import Brick
 from ._core import Core
+from ._measure import Measure
+from ._measure_relative import MeasureRelative
 from ._modular_robot import ModularRobot
 from ._module import Module
 from ._morphological_measures import MorphologicalMeasures
@@ -20,4 +22,6 @@ __all__ = [
     "Module",
     "MorphologicalMeasures",
     "NotFinalizedError",
+    "Measure",
+    "MeasureRelative"
 ]

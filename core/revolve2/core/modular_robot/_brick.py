@@ -8,7 +8,7 @@ class Brick(Module):
 
     FRONT = 0
     RIGHT = 1
-    LEFT = 2
+    LEFT = 3
 
     def __init__(self, rotation: float):
         """

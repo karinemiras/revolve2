@@ -441,6 +441,7 @@ class LocalRunner(Runner):
         result_queue: mp.Queue = mp.Queue()  # type: ignore # TODO
         process = mp.Process(
             target=self._run_batch_impl,
+
             args=(
                 result_queue,
                 batch,

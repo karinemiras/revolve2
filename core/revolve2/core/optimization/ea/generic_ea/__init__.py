@@ -1,19 +1,17 @@
-"""Everything for a generic evolutionary algorithm optimizer."""
-
 from ._database import (
     DbEAOptimizer,
     DbEAOptimizerGeneration,
     DbEAOptimizerIndividual,
     DbEAOptimizerParent,
-    DbEAOptimizerState,
+    DbEAOptimizerState
 )
 from ._optimizer import EAOptimizer
 
 __all__ = [
+    "EAOptimizer",
     "DbEAOptimizer",
     "DbEAOptimizerGeneration",
     "DbEAOptimizerIndividual",
     "DbEAOptimizerParent",
-    "DbEAOptimizerState",
-    "EAOptimizer",
+    "DbEAOptimizerState"
 ]
