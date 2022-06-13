@@ -31,12 +31,12 @@ async def main() -> None:
     SAMPLING_FREQUENCY = 5
     CONTROL_FREQUENCY = 5
 
-    POPULATION_SIZE = 3
-    OFFSPRING_SIZE = 3#100
+    POPULATION_SIZE = 5
+    OFFSPRING_SIZE = 5
     # actually means number of offspring generations
-    NUM_GENERATIONS = 1#00
+    NUM_GENERATIONS = 3
 
-    FITNESS_MEASURE = 'displacement_xy'
+    FITNESS_MEASURE = 'pool_dominated_individuals'
 
     logging.basicConfig(
         level=logging.INFO,

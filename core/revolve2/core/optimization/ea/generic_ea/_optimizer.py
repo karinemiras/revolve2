@@ -4,6 +4,7 @@ import logging
 from abc import abstractmethod
 from dataclasses import dataclass
 from typing import Generic, List, Optional, Tuple, Type, TypeVar, Dict
+import math
 
 from sqlalchemy.exc import OperationalError
 from sqlalchemy.ext.asyncio import AsyncEngine
@@ -410,6 +411,16 @@ class EAOptimizer(Process, Generic[Genotype, Measure]):
                 for parent_indices, genotype in zip(parent_selections, offspring)
             ]
 
+            # pool dependent calculations must be sequential
+            pool_individuals = self.__latest_population + new_individuals
+            pool_measures = self.__latest_measures + new_measures
+            for i in range(len(pool_individuals)):
+                pool_measures[i] = MeasureRelative(genotype_measures=pool_measures[i],
+                                                      neighbours_measures=pool_measures)._pool_dominated_individuals()
+            for i in range(len(pool_individuals)):
+                pool_measures[i] = MeasureRelative(genotype_measures=pool_measures[i],
+                                                 neighbours_measures=pool_measures)._diversity('pool')
+
             # let user select survivors between old and new individuals
             new_fitnesses = self.collect_key_value(new_measures, self.__fitness_measure)
             old_survivors, new_survivors = self.__safe_select_survivors(
@@ -425,7 +436,6 @@ class EAOptimizer(Process, Generic[Genotype, Measure]):
             survived_new_states = [new_states[i] for i in new_survivors]
 
             # set ids for new individuals
-
             for individual in new_individuals:
                 individual.id = self.__gen_next_individual_id()
 
@@ -444,14 +454,13 @@ class EAOptimizer(Process, Generic[Genotype, Measure]):
 
             self.__generation_index += 1
 
-            # calculates relative measures: it has to be sequential because they may depend on each other in pop level
+            # calculates measures relative to pop
+            # pop dependent calculations must be sequential
             for i in range(len(self.__latest_population)):
-                self.__latest_measures[i] = MeasureRelative(genotype_measures=self.__latest_measures[i],
-                                                            neighbours_measures=self.__latest_measures)._diversity()
-
-            for i in range(len(self.__latest_population)):
-                self.__latest_measures[i] = MeasureRelative(genotype_measures=self.__latest_measures[i],
-                                                            neighbours_measures=self.__latest_measures)._dominated_individuals()
+                mes_rel = MeasureRelative(genotype_measures=self.__latest_measures[i],
+                                          neighbours_measures=self.__latest_measures)
+                self.__latest_measures[i] = mes_rel._diversity('pop')
+                self.__latest_measures[i] = mes_rel._age(self.__latest_population[i].id, self.__offspring_size)
 
             latest_relative_measures = []
             for i in range(len(self.__latest_population)):
@@ -659,8 +668,10 @@ class EAOptimizer(Process, Generic[Genotype, Measure]):
                 raise IncompatibleError()
 
             for i, row in enumerate(rows):
-                row.diversity = latest_relative_measures[i]['diversity']
-                row.dominated_individuals = latest_relative_measures[i]['dominated_individuals']
+                row.pop_diversity = latest_relative_measures[i]['pop_diversity']
+                row.pool_diversity = latest_relative_measures[i]['pool_diversity']
+                row.pool_dominated_individuals = latest_relative_measures[i]['pool_dominated_individuals']
+                row.age = 0
 
         # save current optimizer state
         session.add(
@@ -733,13 +744,17 @@ class EAOptimizer(Process, Generic[Genotype, Measure]):
         # save current generation
         for index, individual in enumerate(self.__latest_population):
             # TODO: this could be better, but it has to adapt to
-            #  the bizarre fact tht the initial pop gets saved before evaluated
+            #  the bizarre fact that the initial pop gets saved before evaluated
             if latest_relative_measures is None:
-                diversity = None
-                dominated_individuals = None
+                pop_diversity = None
+                pool_diversity = None
+                pool_dominated_individuals = None
+                age = None
             else:
-                diversity = latest_relative_measures[index]['diversity']
-                dominated_individuals = latest_relative_measures[index]['dominated_individuals']
+                pop_diversity = latest_relative_measures[index]['pop_diversity']
+                pool_diversity = latest_relative_measures[index]['pool_diversity']
+                pool_dominated_individuals = latest_relative_measures[index]['pool_dominated_individuals']
+                age = latest_relative_measures[index]['age']
 
             session.add(
                     DbEAOptimizerGeneration(
@@ -747,8 +762,10 @@ class EAOptimizer(Process, Generic[Genotype, Measure]):
                         generation_index=self.__generation_index,
                         individual_index=index,
                         individual_id=individual.id,
-                        diversity=diversity,
-                        dominated_individuals=dominated_individuals,
+                        pop_diversity=pop_diversity,
+                        pool_diversity=pool_diversity,
+                        pool_dominated_individuals=pool_dominated_individuals,
+                        age=age,
                     )
             )
 

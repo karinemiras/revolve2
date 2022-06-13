@@ -46,6 +46,8 @@ class Measure:
         self._proportion()
         self._symmetry()
 
+        self._relative_displacement_xy()
+
         return self._measures
 
     # behavioral measures
@@ -65,6 +67,9 @@ class Measure:
             )
 
         )
+
+    def _relative_displacement_xy(self):
+        self._measures['relative_displacement_xy'] = self._measures['displacement_xy']/self._measures['modules_count']
 
     def _get_orientations(self):
         for idx_state in range(0, len(self._states)):

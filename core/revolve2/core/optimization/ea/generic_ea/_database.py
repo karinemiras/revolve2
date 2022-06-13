@@ -38,8 +38,10 @@ class DbEAOptimizerGeneration(DbBase):
     generation_index = Column(Integer, nullable=False, primary_key=True)
     individual_index = Column(Integer, nullable=False, primary_key=True)
     individual_id = Column(Integer, nullable=False)
-    diversity = Column(Float, nullable=True)
-    dominated_individuals  = Column(Float, nullable=True)
+    pop_diversity = Column(Float, nullable=True)
+    pool_diversity = Column(Float, nullable=True)
+    pool_dominated_individuals = Column(Float, nullable=True)
+    age = Column(Float, nullable=True)
 
 
 # all history of born individuals

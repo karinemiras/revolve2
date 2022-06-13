@@ -44,6 +44,7 @@ class FloatSerializer(Serializer[float]):
                          coverage=f['coverage'],
                          proportion=f['proportion'],
                          symmetry=f['symmetry'],
+                         relative_displacement_xy=f['relative_displacement_xy'],
                          )
                  for f in objects]
 
@@ -88,6 +89,7 @@ class FloatSerializer(Serializer[float]):
             measures['coverage'] = items[i].coverage
             measures['proportion'] = items[i].proportion
             measures['symmetry'] = items[i].symmetry
+            measures['relative_displacement_xy'] = items[i].relative_displacement_xy
 
             measures_genotypes.append(measures)
 
@@ -121,4 +123,4 @@ class DbFloat(DbBase):
     coverage = sqlalchemy.Column(sqlalchemy.Float, nullable=True)
     proportion = sqlalchemy.Column(sqlalchemy.Float, nullable=True)
     symmetry = sqlalchemy.Column(sqlalchemy.Float, nullable=True)
-
+    relative_displacement_xy = sqlalchemy.Column(sqlalchemy.Float, nullable=True)

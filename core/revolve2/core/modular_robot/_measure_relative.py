@@ -11,7 +11,9 @@ from revolve2.core.physics.running import (
 )
 
 
-# relative measures (which depend on the rest on the pop to be calculated)
+# relative measures (which depend on the rest on the pop (or gens) to be calculated), and thus can change at every gen
+# 'pool' measures depend on the pool of competitors and while 'pop' measures depends only on the survivors
+# time dependent measures are also considered relative, e.g., age is relative to gens
 class MeasureRelative:
 
     _states: List[Tuple[float, RunnerState]]
@@ -21,8 +23,10 @@ class MeasureRelative:
         self._neighbours_measures = neighbours_measures
 
     def _return_only_relative(self):
-        relative_measures = ['diversity',
-                             'dominated_individuals']
+        relative_measures = ['pop_diversity',
+                             'pool_diversity',
+                             'pool_dominated_individuals',
+                             'age']
 
         copy_genotype_measures = copy.deepcopy(self._genotype_measures)
 
@@ -32,7 +36,7 @@ class MeasureRelative:
 
         return copy_genotype_measures
 
-    def _diversity(self):
+    def _diversity(self, type='pop'):
 
         # TODO: make this a param in the exp manager
         which_measures = ['symmetry',
@@ -41,13 +45,14 @@ class MeasureRelative:
                           'extremities_prop',
                           'hinge_prop',
                           'branching_prop']
-
+        # TODO: create age measure
         genotype_measures = []
         for key in which_measures:
             genotype_measures.append(self._genotype_measures[key])
 
         neighbours_measures = []
         for neighbour_measures in self._neighbours_measures:
+
             neighbours_measures.append([])
             for key in which_measures:
                 neighbours_measures[-1].append(neighbour_measures[key])
@@ -58,33 +63,36 @@ class MeasureRelative:
         distances, indexes = kdt.query([genotype_measures], k=len(self._neighbours_measures))
         diversity = sum(distances[0])/len(distances[0])
 
-        self._genotype_measures['diversity'] = diversity
+        self._genotype_measures[f'{type}_diversity'] = diversity
 
         return self._genotype_measures
 
     # counts how many individuals of the current pop this individual dominates
     # an individual a dominates an individual b if a is better in at least one measure and not worse in any measure
     # better=higher > maximization
-    def _dominated_individuals(self):
+    def _pool_dominated_individuals(self):
 
         # TODO: make this a param in the exp manager
         which_measures = ['displacement_xy',
-                          'diversity']
+                          'modules_count']
 
-        print('----')
+        pool_dominated_individuals = 0
         for neighbour_measures in self._neighbours_measures:
             better = 0
             worse = 0
-            dominated_individuals = 0
             for key in which_measures:
-                print(key, neighbour_measures[key], self._genotype_measures[key])
                 if self._genotype_measures[key] > neighbour_measures[key]:
                     better += 1
                 if self._genotype_measures[key] < neighbour_measures[key]:
                     worse += 1
             if better > 0 and worse == 0:
-                dominated_individuals += 1
-            print(better, worse)
-        print('dom',dominated_individuals)
-        self._genotype_measures['dominated_individuals'] = dominated_individuals
+                pool_dominated_individuals += 1
+
+        self._genotype_measures['pool_dominated_individuals'] = pool_dominated_individuals
+        return self._genotype_measures
+
+    # TODO: assumes that first gen is as large as offspring size: adapt it for otherwise
+    def _age(self, individual_id, offspring_size):
+        age = math.floor(float(individual_id) / offspring_size)
+        self._genotype_measures['age'] = age
         return self._genotype_measures
