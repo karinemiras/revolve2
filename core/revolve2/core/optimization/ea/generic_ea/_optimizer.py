@@ -375,8 +375,15 @@ class EAOptimizer(Process, Generic[Genotype, Measure]):
             initial_states = None
 
         while self.__safe_must_do_next_gen():
+
+            self.__generation_index += 1
+
+            self._relative_measures(self.__latest_population, self.__latest_measures)
+
             # let user select parents
-            latest_fitnesses = self.collect_key_value(self.__latest_measures, self.__fitness_measure)
+            latest_fitnesses = self.collect_key_value(self.__latest_measures,
+                                                      self.__fitness_measure)
+
             parent_selections = self.__safe_select_parents(
                 [i.genotype for i in self.__latest_population],
                 latest_fitnesses,
@@ -411,15 +418,13 @@ class EAOptimizer(Process, Generic[Genotype, Measure]):
                 for parent_indices, genotype in zip(parent_selections, offspring)
             ]
 
-            # pool dependent calculations must be sequential
+            # set ids for new individuals
+            for individual in new_individuals:
+                individual.id = self.__gen_next_individual_id()
+
             pool_individuals = self.__latest_population + new_individuals
             pool_measures = self.__latest_measures + new_measures
-            for i in range(len(pool_individuals)):
-                pool_measures[i] = MeasureRelative(genotype_measures=pool_measures[i],
-                                                      neighbours_measures=pool_measures)._pool_dominated_individuals()
-            for i in range(len(pool_individuals)):
-                pool_measures[i] = MeasureRelative(genotype_measures=pool_measures[i],
-                                                 neighbours_measures=pool_measures)._diversity('pool')
+            self._relative_measures(pool_individuals, pool_measures)
 
             # let user select survivors between old and new individuals
             new_fitnesses = self.collect_key_value(new_measures, self.__fitness_measure)
@@ -435,10 +440,6 @@ class EAOptimizer(Process, Generic[Genotype, Measure]):
             survived_new_measures = [new_measures[i] for i in new_survivors]
             survived_new_states = [new_states[i] for i in new_survivors]
 
-            # set ids for new individuals
-            for individual in new_individuals:
-                individual.id = self.__gen_next_individual_id()
-
             # combine old and new and store as the new generation
             self.__latest_population = [
                 self.__latest_population[i] for i in old_survivors
@@ -452,15 +453,11 @@ class EAOptimizer(Process, Generic[Genotype, Measure]):
                 self.__latest_states[i] for i in old_survivors
             ] + survived_new_states
 
-            self.__generation_index += 1
-
             # calculates measures relative to pop
             # pop dependent calculations must be sequential
             for i in range(len(self.__latest_population)):
-                mes_rel = MeasureRelative(genotype_measures=self.__latest_measures[i],
-                                          neighbours_measures=self.__latest_measures)
-                self.__latest_measures[i] = mes_rel._diversity('pop')
-                self.__latest_measures[i] = mes_rel._age(self.__latest_population[i].id, self.__offspring_size)
+                self.__latest_measures[i] = MeasureRelative(genotype_measures=self.__latest_measures[i],
+                                          neighbours_measures=self.__latest_measures)._diversity('pop')
 
             latest_relative_measures = []
             for i in range(len(self.__latest_population)):
@@ -493,6 +490,20 @@ class EAOptimizer(Process, Generic[Genotype, Measure]):
         assert (
             self.__generation_index > 0
         ), "Must create at least one generation beyond initial population. This behaviour is not supported."  # would break database structure
+
+    def _relative_measures(self, pool_individuals, pool_measures):
+
+        # pool dependent measures must be calculated sequentially (for after for...)
+        for i in range(len(pool_individuals)):
+            pool_measures[i] = MeasureRelative(genotype_measures=pool_measures[i],
+                                               neighbours_measures=pool_measures).\
+                                                        _age(self.__generation_index)
+
+            pool_measures[i] = MeasureRelative(genotype_measures=pool_measures[i],
+                                               neighbours_measures=pool_measures)._diversity('pool')
+        for i in range(len(pool_individuals)):
+            pool_measures[i] = MeasureRelative(genotype_measures=pool_measures[i],
+                                               neighbours_measures=pool_measures)._pool_dominated_individuals()
 
     @property
     def generation_index(self) -> Optional[int]:
@@ -671,7 +682,8 @@ class EAOptimizer(Process, Generic[Genotype, Measure]):
                 row.pop_diversity = latest_relative_measures[i]['pop_diversity']
                 row.pool_diversity = latest_relative_measures[i]['pool_diversity']
                 row.pool_dominated_individuals = latest_relative_measures[i]['pool_dominated_individuals']
-                row.age = 0
+                row.age = latest_relative_measures[i]['age']
+                row.inverse_age = latest_relative_measures[i]['inverse_age']
 
         # save current optimizer state
         session.add(
@@ -750,11 +762,13 @@ class EAOptimizer(Process, Generic[Genotype, Measure]):
                 pool_diversity = None
                 pool_dominated_individuals = None
                 age = None
+                inverse_age = None
             else:
                 pop_diversity = latest_relative_measures[index]['pop_diversity']
                 pool_diversity = latest_relative_measures[index]['pool_diversity']
                 pool_dominated_individuals = latest_relative_measures[index]['pool_dominated_individuals']
                 age = latest_relative_measures[index]['age']
+                inverse_age = latest_relative_measures[index]['inverse_age']
 
             session.add(
                     DbEAOptimizerGeneration(
@@ -766,6 +780,7 @@ class EAOptimizer(Process, Generic[Genotype, Measure]):
                         pool_diversity=pool_diversity,
                         pool_dominated_individuals=pool_dominated_individuals,
                         age=age,
+                        inverse_age=inverse_age,
                     )
             )
 

@@ -23,10 +23,14 @@ class MeasureRelative:
         self._neighbours_measures = neighbours_measures
 
     def _return_only_relative(self):
+        # pool measures used for parent selection are not being saved.
+        # they are overwritten, and only the values of survival selection are persisted.
+        # persisted it in the future?
         relative_measures = ['pop_diversity',
                              'pool_diversity',
                              'pool_dominated_individuals',
-                             'age']
+                             'age',
+                             'inverse_age']
 
         copy_genotype_measures = copy.deepcopy(self._genotype_measures)
 
@@ -67,14 +71,14 @@ class MeasureRelative:
 
         return self._genotype_measures
 
-    # counts how many individuals of the current pop this individual dominates
+    # counts how many individuals of the current pool this individual dominates
     # an individual a dominates an individual b if a is better in at least one measure and not worse in any measure
     # better=higher > maximization
     def _pool_dominated_individuals(self):
 
         # TODO: make this a param in the exp manager
-        which_measures = ['displacement_xy',
-                          'modules_count']
+        which_measures = ['displacement_y',
+                          'inverse_age']
 
         pool_dominated_individuals = 0
         for neighbour_measures in self._neighbours_measures:
@@ -91,8 +95,12 @@ class MeasureRelative:
         self._genotype_measures['pool_dominated_individuals'] = pool_dominated_individuals
         return self._genotype_measures
 
-    # TODO: assumes that first gen is as large as offspring size: adapt it for otherwise
-    def _age(self, individual_id, offspring_size):
-        age = math.floor(float(individual_id) / offspring_size)
+    # TODO: because of the bizarre logic that ties gen0 to gen1, some individuals from gen0 have incorrect age
+    def _age(self, generation_index):
+
+        age = generation_index - self._genotype_measures['birth'] + 1
+        inverse_age = 1/age
         self._genotype_measures['age'] = age
+        self._genotype_measures['inverse_age'] = inverse_age
+
         return self._genotype_measures

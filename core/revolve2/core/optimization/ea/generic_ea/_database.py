@@ -42,6 +42,7 @@ class DbEAOptimizerGeneration(DbBase):
     pool_diversity = Column(Float, nullable=True)
     pool_dominated_individuals = Column(Float, nullable=True)
     age = Column(Float, nullable=True)
+    inverse_age = Column(Float, nullable=True)
 
 
 # all history of born individuals

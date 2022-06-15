@@ -9,13 +9,37 @@ from optimizer import Optimizer
 
 from revolve2.core.database import open_async_database_sqlite
 from revolve2.core.optimization import ProcessIdGen
-from revolve2.core.config import Config
+from revolve2.core.config import cu
 
 
 async def main() -> None:
 
-    args = Config()._get_params()
+    # parser = argparse.ArgumentParser()
+    # parser.add_argument(
+    #     "--experiment_name",
+    #     required=False,
+    #     default="default_experiment",
+    #     type=str,
+    #     help="Name of the experiment.",
+    # )
+    #
+    # args = parser.parse_args()
+
     print(args)
+
+    # number of initial mutations for body and brain CPPNWIN networks
+    NUM_INITIAL_MUTATIONS = 10
+
+    SIMULATION_TIME = 1#30
+    SAMPLING_FREQUENCY = 5
+    CONTROL_FREQUENCY = 5
+
+    POPULATION_SIZE = 3
+    OFFSPRING_SIZE = 3
+    # actually means number of offspring generations
+    NUM_GENERATIONS = 1
+
+    FITNESS_MEASURE = 'pool_dominated_individuals'
 
     logging.basicConfig(
         level=logging.INFO,
@@ -54,8 +78,8 @@ async def main() -> None:
     else:
 
         initial_population = [
-            random_genotype(innov_db_body, innov_db_brain, rng, args.num_initial_mutations)
-            for _ in range(args.population_size)
+            random_genotype(innov_db_body, innov_db_brain, rng, NUM_INITIAL_MUTATIONS)
+            for _ in range(POPULATION_SIZE)
         ]
 
         optimizer = await Optimizer.new(
@@ -66,12 +90,12 @@ async def main() -> None:
             process_id_gen=process_id_gen,
             innov_db_body=innov_db_body,
             innov_db_brain=innov_db_brain,
-            simulation_time=args.simulation_time,
-            sampling_frequency=args.sampling_frequency,
-            control_frequency=args.control_frequency,
-            num_generations=args.num_generations,
-            offspring_size=args.offspring_size,
-            fitness_measure=args.fitness_measure,
+            simulation_time=SIMULATION_TIME,
+            sampling_frequency=SAMPLING_FREQUENCY,
+            control_frequency=CONTROL_FREQUENCY,
+            num_generations=NUM_GENERATIONS,
+            offspring_size=OFFSPRING_SIZE,
+            fitness_measure=FITNESS_MEASURE,
         )
 
     logging.info("Starting optimization process..")

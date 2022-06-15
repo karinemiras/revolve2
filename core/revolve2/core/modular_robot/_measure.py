@@ -17,18 +17,20 @@ class Measure:
 
     _states: List[Tuple[float, RunnerState]]
 
-    def __init__(self, states=None, genotype_idx=-1, phenotype=None):
+    def __init__(self, states=None, genotype_idx=-1, phenotype=None, generation=None):
         self._states = states
         self._genotype_idx = genotype_idx
         self._phenotype_body = phenotype.body
         self._phenotype_brain = phenotype.brain
+        self._generation = generation
         self._orientations = []
 
     def measure_all_non_relative(self):
 
         self._measures = {}
 
-        self._displacement_xy()
+        self._measures['birth'] = self._generation
+        self._displacement()
         self._head_balance()
 
         self._calculate_counts()
@@ -52,7 +54,7 @@ class Measure:
 
     # behavioral measures
 
-    def _displacement_xy(self):
+    def _displacement(self):
 
         # TODO simulation can continue slightly passed the defined sim time.
 
@@ -65,11 +67,24 @@ class Measure:
                 (begin_state.position[0] - end_state.position[0]) ** 2
                 + ((begin_state.position[1] - end_state.position[1]) ** 2)
             )
-
         )
 
+        # distance traveled on the y plane
+        self._measures['displacement_y'] = float(
+            math.sqrt(
+                 ((begin_state.position[1] - end_state.position[1]) ** 2)
+            )
+        )
+
+        # average z
+        z = 0
+        for s in self._states:
+            z += s.envs[self._genotype_idx].actor_states[0].position[2]
+        z /= len(self._states)
+        self._measures['average_z'] = float(z)
+
     def _relative_displacement_xy(self):
-        self._measures['relative_displacement_xy'] = self._measures['displacement_xy']/self._measures['modules_count']
+        self._measures['relative_displacement_y'] = self._measures['displacement_y']/self._measures['modules_count']
 
     def _get_orientations(self):
         for idx_state in range(0, len(self._states)):

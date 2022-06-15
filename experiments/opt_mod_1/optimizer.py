@@ -253,7 +253,7 @@ class Optimizer(EAOptimizer[Genotype, float]):
         for i in range(len(genotypes)):
             # TODO: avoid redevelopment
             phenotype = develop(genotypes[i])
-            m = Measure(states=states, genotype_idx=i, phenotype=phenotype)
+            m = Measure(states=states, genotype_idx=i, phenotype=phenotype, generation=self.generation_index)
             measures_genotypes.append(m.measure_all_non_relative())
 
         states_genotypes = []
