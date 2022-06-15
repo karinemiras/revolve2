@@ -212,8 +212,8 @@ def crossover(
     )
 
 
-def develop(genotype: Genotype) -> ModularRobot:
-    body = body_develop(genotype.body)
+def develop(genotype: Genotype, max_modules: int, body_substrate_dimensions: str) -> ModularRobot:
+    body = body_develop(genotype.body, max_modules, body_substrate_dimensions)
     brain = brain_develop(genotype.brain, body)
     return ModularRobot(body, brain)
 

@@ -7,11 +7,51 @@ class Config():
         parser = argparse.ArgumentParser()
 
         parser.add_argument(
+            "--study_name",
+            required=False,
+            default="default_study",
+            type=str,
+            help="",
+        )
+
+        parser.add_argument(
             "--experiment_name",
             required=False,
             default="default_experiment",
             type=str,
             help="Name of the experiment.",
+        )
+
+        parser.add_argument(
+            "--run",
+            required=False,
+            default=1,
+            type=int,
+            help="",
+        )
+
+        parser.add_argument(
+            "--headless",
+            required=False,
+            default=True,
+            type=bool,
+            help="",
+        )
+
+        parser.add_argument(
+            "--max_modules",
+            required=False,
+            default=5,
+            type=int,
+            help="",
+        )
+
+        parser.add_argument(
+            "--body_substrate_dimensions",
+            required=False,
+            default='2d',
+            type=str,
+            help="2d or 3d",
         )
 
         # number of initial mutations for body and brain CPPNWIN networks
@@ -60,7 +100,7 @@ class Config():
         parser.add_argument(
             "--num_generations",
             required=False,
-            default=10,
+            default=5,
             type=int,
         )
 

@@ -15,7 +15,6 @@ from revolve2.core.config import Config
 async def main() -> None:
 
     args = Config()._get_params()
-    print(args)
 
     logging.basicConfig(
         level=logging.INFO,
@@ -29,9 +28,7 @@ async def main() -> None:
     rng.seed(random())
 
     # database
-
-    database = open_async_database_sqlite(f'./data/{args.experiment_name}')
-
+    database = open_async_database_sqlite(f'./data/{args.study_name}/{args.experiment_name}/run_{args.run}')
 
     # process id generator
     process_id_gen = ProcessIdGen()
@@ -70,8 +67,11 @@ async def main() -> None:
             sampling_frequency=args.sampling_frequency,
             control_frequency=args.control_frequency,
             num_generations=args.num_generations,
-            offspring_size=args.offspring_size,
             fitness_measure=args.fitness_measure,
+            offspring_size=args.offspring_size,
+            experiment_name=args.experiment_name,
+            max_modules=args.max_modules,
+            body_substrate_dimensions=args.body_substrate_dimensions
         )
 
     logging.info("Starting optimization process..")

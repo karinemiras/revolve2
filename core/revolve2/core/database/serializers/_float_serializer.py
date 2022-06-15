@@ -115,6 +115,7 @@ class DbFloat(DbBase):
     birth = sqlalchemy.Column(sqlalchemy.Float, nullable=True)
     displacement_xy = sqlalchemy.Column(sqlalchemy.Float, nullable=True)
     displacement_y = sqlalchemy.Column(sqlalchemy.Float, nullable=True)
+    relative_displacement_y = sqlalchemy.Column(sqlalchemy.Float, nullable=True)
     average_z = sqlalchemy.Column(sqlalchemy.Float, nullable=True)
     head_balance = sqlalchemy.Column(sqlalchemy.Float, nullable=True)
     modules_count = sqlalchemy.Column(sqlalchemy.Float, nullable=True)
@@ -133,5 +134,5 @@ class DbFloat(DbBase):
     coverage = sqlalchemy.Column(sqlalchemy.Float, nullable=True)
     proportion = sqlalchemy.Column(sqlalchemy.Float, nullable=True)
     symmetry = sqlalchemy.Column(sqlalchemy.Float, nullable=True)
-    relative_displacement_y = sqlalchemy.Column(sqlalchemy.Float, nullable=True)
+
 

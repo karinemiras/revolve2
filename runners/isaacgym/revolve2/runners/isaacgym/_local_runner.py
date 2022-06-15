@@ -360,6 +360,7 @@ class LocalRunner(Runner):
         self._headless = headless
         self._real_time = real_time
 
+
     @staticmethod
     def SimParams() -> gymapi.SimParams:
         sim_params = gymapi.SimParams()

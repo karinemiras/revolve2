@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Float
+from sqlalchemy import Column, Integer, String, Float, Boolean
 from sqlalchemy.ext.declarative import declarative_base
 
 DbBase = declarative_base()
@@ -15,11 +15,14 @@ class DbEAOptimizer(DbBase):
         primary_key=True,
     )
     process_id = Column(Integer, nullable=False, unique=True)
-    offspring_size = Column(Integer, nullable=False)
     genotype_table = Column(String, nullable=False)
     measures_table = Column(String, nullable=False)
     states_table = Column(String, nullable=False)
-    fitness_measure = Column(String, nullable=False)
+    fitness_measure = Column(String, nullable=True)
+    offspring_size = Column(Integer, nullable=True)
+    experiment_name = Column(String, nullable=True)
+    max_modules = Column(Integer, nullable=True)
+    body_substrate_dimensions = Column(String, nullable=True)
 
 
 class DbEAOptimizerState(DbBase):
@@ -41,6 +44,7 @@ class DbEAOptimizerGeneration(DbBase):
     pop_diversity = Column(Float, nullable=True)
     pool_diversity = Column(Float, nullable=True)
     pool_dominated_individuals = Column(Float, nullable=True)
+    pool_fulldominated_individuals = Column(Float, nullable=True)
     age = Column(Float, nullable=True)
     inverse_age = Column(Float, nullable=True)
 

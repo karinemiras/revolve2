@@ -53,6 +53,9 @@ class Optimizer(EAOptimizer[Genotype, float]):
     _num_generations: int
 
     _fitness_measure: str
+    __experiment_name: str
+    __max_modules: int
+    __body_substrate_dimensions: str
 
     async def ainit_new(  # type: ignore # TODO for now ignoring mypy complaint about LSP problem, override parent's ainit
         self,
@@ -69,7 +72,10 @@ class Optimizer(EAOptimizer[Genotype, float]):
         control_frequency: float,
         num_generations: int,
         offspring_size: int,
-        fitness_measure: str
+        fitness_measure: str,
+        experiment_name: str,
+        max_modules: int,
+        body_substrate_dimensions: str
     ) -> None:
         await super().ainit_new(
             database=database,
@@ -81,9 +87,12 @@ class Optimizer(EAOptimizer[Genotype, float]):
             states_serializer=StatesSerializer,
             measures_type=float,
             measures_serializer=FloatSerializer,
-            offspring_size=offspring_size,
             initial_population=initial_population,
             fitness_measure=fitness_measure,
+            offspring_size=offspring_size,
+            experiment_name=experiment_name,
+            max_modules=max_modules,
+            body_substrate_dimensions=body_substrate_dimensions
         )
 
         self._process_id = process_id
@@ -96,6 +105,10 @@ class Optimizer(EAOptimizer[Genotype, float]):
         self._control_frequency = control_frequency
         self._num_generations = num_generations
         self._fitness_measure = fitness_measure
+        self._offspring_size = offspring_size
+        self._experiment_name = experiment_name
+        self._max_modules = max_modules
+        self._body_substrate_dimensions = body_substrate_dimensions
 
         # create database structure if not exists
         # TODO this works but there is probably a better way
@@ -227,7 +240,8 @@ class Optimizer(EAOptimizer[Genotype, float]):
         self._controllers = []
 
         for genotype in genotypes:
-            actor, controller = develop(genotype).make_actor_and_controller()
+            actor, controller = develop(genotype, self._max_modules, self._body_substrate_dimensions).\
+                make_actor_and_controller()
             bounding_box = actor.calc_aabb()
             self._controllers.append(controller)
             env = Environment()
@@ -252,7 +266,7 @@ class Optimizer(EAOptimizer[Genotype, float]):
         measures_genotypes = []
         for i in range(len(genotypes)):
             # TODO: avoid redevelopment
-            phenotype = develop(genotypes[i])
+            phenotype = develop(genotypes[i], self._max_modules, self._body_substrate_dimensions)
             m = Measure(states=states, genotype_idx=i, phenotype=phenotype, generation=self.generation_index)
             measures_genotypes.append(m.measure_all_non_relative())
 

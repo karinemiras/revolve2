@@ -11,6 +11,9 @@ from revolve2.core.physics.running import (
 )
 
 
+# TODO: because of the bizarre logic that ties gen0 to gen1, individuals from gen0 have incorrect relative measures
+# it seems as if the measures of gen1 are correct, and get copied to gen0
+
 # relative measures (which depend on the rest on the pop (or gens) to be calculated), and thus can change at every gen
 # 'pool' measures depend on the pool of competitors and while 'pop' measures depends only on the survivors
 # time dependent measures are also considered relative, e.g., age is relative to gens
@@ -29,6 +32,7 @@ class MeasureRelative:
         relative_measures = ['pop_diversity',
                              'pool_diversity',
                              'pool_dominated_individuals',
+                             'pool_fulldominated_individuals',
                              'age',
                              'inverse_age']
 
@@ -77,10 +81,11 @@ class MeasureRelative:
     def _pool_dominated_individuals(self):
 
         # TODO: make this a param in the exp manager
-        which_measures = ['displacement_y',
+        which_measures = ['relative_displacement_y',
                           'inverse_age']
 
         pool_dominated_individuals = 0
+        pool_fulldominated_individuals = 0
         for neighbour_measures in self._neighbours_measures:
             better = 0
             worse = 0
@@ -91,11 +96,13 @@ class MeasureRelative:
                     worse += 1
             if better > 0 and worse == 0:
                 pool_dominated_individuals += 1
+            if better == len(which_measures):
+                pool_fulldominated_individuals += 1
 
         self._genotype_measures['pool_dominated_individuals'] = pool_dominated_individuals
+        self._genotype_measures['pool_fulldominated_individuals'] = pool_fulldominated_individuals
         return self._genotype_measures
 
-    # TODO: because of the bizarre logic that ties gen0 to gen1, some individuals from gen0 have incorrect age
     def _age(self, generation_index):
 
         age = generation_index - self._genotype_measures['birth'] + 1
