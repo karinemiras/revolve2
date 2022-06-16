@@ -71,7 +71,8 @@ async def main() -> None:
             offspring_size=args.offspring_size,
             experiment_name=args.experiment_name,
             max_modules=args.max_modules,
-            body_substrate_dimensions=args.body_substrate_dimensions
+            body_substrate_dimensions=args.body_substrate_dimensions,
+            run_simulation=args.run_simulation
         )
 
     logging.info("Starting optimization process..")

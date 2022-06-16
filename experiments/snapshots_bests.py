@@ -9,6 +9,7 @@ from revolve2.core.config import Config
 
 import os
 
+
 async def main() -> None:
 
     args = Config()._get_params()
@@ -52,7 +53,7 @@ async def main() -> None:
                                 )
                             )[0]
 
-                            phenotype = develop(genotype, args.max_modules)
+                            phenotype = develop(genotype, args.max_modules, args.body_substrate_dimensions)
                             render = Render()
                             img_path = f'{path_gen}/{idx}_{r.DbEAOptimizerIndividual.individual_id}.png'
                             render.render_robot(phenotype.body.core, img_path)
@@ -61,3 +62,5 @@ if __name__ == "__main__":
     import asyncio
 
     asyncio.run(main())
+
+# can be run from root

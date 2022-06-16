@@ -41,7 +41,7 @@ class Config():
         parser.add_argument(
             "--max_modules",
             required=False,
-            default=5,
+            default=30,
             type=int,
             help="",
         )
@@ -77,6 +77,14 @@ class Config():
         )
 
         parser.add_argument(
+            "--run_simulation",
+            required=False,
+            default=True,
+            type=bool,
+            help="If false, runs optimizer without simulating robots, so behavioral measures are none."
+        )
+
+        parser.add_argument(
             "--control_frequency",
             required=False,
             default=5,
@@ -100,7 +108,7 @@ class Config():
         parser.add_argument(
             "--num_generations",
             required=False,
-            default=5,
+            default=10,
             type=int,
         )
 

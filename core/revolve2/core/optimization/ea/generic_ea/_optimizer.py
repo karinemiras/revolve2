@@ -137,6 +137,7 @@ class EAOptimizer(Process, Generic[Genotype, Measure]):
     __experiment_name: str
     __max_modules: int
     __body_substrate_dimensions: str
+    __run_simulation: bool
 
     async def ainit_new(
         self,
@@ -154,7 +155,8 @@ class EAOptimizer(Process, Generic[Genotype, Measure]):
         fitness_measure: str,
         experiment_name: str,
         max_modules: int,
-        body_substrate_dimensions: str
+        body_substrate_dimensions: str,
+        run_simulation: bool
     ) -> None:
         """
         :id: Unique id between all EAOptimizers in this database.
@@ -176,6 +178,7 @@ class EAOptimizer(Process, Generic[Genotype, Measure]):
         self.__experiment_name = experiment_name
         self.__max_modules = max_modules
         self.__body_substrate_dimensions = body_substrate_dimensions
+        self.__run_simulation = run_simulation
 
         self.__latest_population = [
             _Individual(self.__gen_next_individual_id(), g, [])
@@ -460,7 +463,8 @@ class EAOptimizer(Process, Generic[Genotype, Measure]):
 
             survived_new_individuals = [new_individuals[i] for i in new_survivors]
             survived_new_measures = [new_measures[i] for i in new_survivors]
-            survived_new_states = [new_states[i] for i in new_survivors]
+            if self.__run_simulation:
+                survived_new_states = [new_states[i] for i in new_survivors]
 
             # combine old and new and store as the new generation
             self.__latest_population = [
@@ -471,9 +475,10 @@ class EAOptimizer(Process, Generic[Genotype, Measure]):
                 self.__latest_measures[i] for i in old_survivors
             ] + survived_new_measures
 
-            self.__latest_states = [
-                self.__latest_states[i] for i in old_survivors
-            ] + survived_new_states
+            if self.__run_simulation:
+                self.__latest_states = [
+                    self.__latest_states[i] for i in old_survivors
+                ] + survived_new_states
 
             self._pop_relative_measures()
 
@@ -560,7 +565,6 @@ class EAOptimizer(Process, Generic[Genotype, Measure]):
         )
         assert type(measures) == list
         assert len(measures) == len(genotypes)
-        assert len(states) == len(genotypes)
         # TODO : adapt to new types
         # assert all(type(e) == self.__measures_type for e in measures)
         return measures, states
@@ -679,7 +683,8 @@ class EAOptimizer(Process, Generic[Genotype, Measure]):
 
             for i, row in enumerate(rows):
                 row.float_id = measures_ids[i]
-                row.states_id = states_ids[i]
+                if self.__run_simulation:
+                    row.states_id = states_ids[i]
 
             rows = (
                 (

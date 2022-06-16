@@ -56,6 +56,7 @@ class Optimizer(EAOptimizer[Genotype, float]):
     __experiment_name: str
     __max_modules: int
     __body_substrate_dimensions: str
+    __run_simulation: bool
 
     async def ainit_new(  # type: ignore # TODO for now ignoring mypy complaint about LSP problem, override parent's ainit
         self,
@@ -75,7 +76,8 @@ class Optimizer(EAOptimizer[Genotype, float]):
         fitness_measure: str,
         experiment_name: str,
         max_modules: int,
-        body_substrate_dimensions: str
+        body_substrate_dimensions: str,
+        run_simulation: bool
     ) -> None:
         await super().ainit_new(
             database=database,
@@ -92,7 +94,8 @@ class Optimizer(EAOptimizer[Genotype, float]):
             offspring_size=offspring_size,
             experiment_name=experiment_name,
             max_modules=max_modules,
-            body_substrate_dimensions=body_substrate_dimensions
+            body_substrate_dimensions=body_substrate_dimensions,
+            run_simulation=run_simulation
         )
 
         self._process_id = process_id
@@ -109,6 +112,7 @@ class Optimizer(EAOptimizer[Genotype, float]):
         self._experiment_name = experiment_name
         self._max_modules = max_modules
         self._body_substrate_dimensions = body_substrate_dimensions
+        self._run_simulation = run_simulation
 
         # create database structure if not exists
         # TODO this works but there is probably a better way
@@ -261,7 +265,10 @@ class Optimizer(EAOptimizer[Genotype, float]):
             )
             batch.environments.append(env)
 
-        states = await self._runner.run_batch(batch)
+        if self._run_simulation:
+            states = await self._runner.run_batch(batch)
+        else:
+            states = None
 
         measures_genotypes = []
         for i in range(len(genotypes)):
@@ -271,7 +278,7 @@ class Optimizer(EAOptimizer[Genotype, float]):
             measures_genotypes.append(m.measure_all_non_relative())
 
         states_genotypes = []
-        if len(states) > 0:
+        if states is not None:
             for idx_genotype in range(0, len(states[0].envs)):
                 states_genotypes.append({})
                 for idx_state in range(0, len(states)):

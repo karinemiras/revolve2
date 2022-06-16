@@ -53,10 +53,14 @@ class Measure:
         return self._measures
 
     # behavioral measures
-
+    # TODO simulation can continue slightly passed the defined sim time.
     def _displacement(self):
 
-        # TODO simulation can continue slightly passed the defined sim time.
+        if self._states is None:
+            self._measures['displacement_xy'] = -math.inf
+            self._measures['displacement_y'] = -math.inf
+            self._measures['average_z'] = -math.inf
+            return
 
         begin_state = self._states[0].envs[self._genotype_idx].actor_states[0]
         end_state = self._states[-1].envs[self._genotype_idx].actor_states[0]
@@ -101,6 +105,10 @@ class Measure:
         The closest to 1 the most balanced.
         :return:
         """
+        if self._states is None:
+            self._measures['head_balance'] = -math.inf
+            return
+
         roll = 0
         pitch = 0
         instants = len(self._states)
