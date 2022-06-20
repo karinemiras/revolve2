@@ -6,10 +6,11 @@
 study="default_study"
 experiments=("diversity")
 fitness_measure="pool_diversity"
-runs=6
-generations=10
-num_terminals=3
+runs=20
+num_generations="100"
+num_terminals=20
 
+mkdir data/${study}
 
 possible_screens=()
 
@@ -62,16 +63,15 @@ while true
         do
 
          printf  "\n${experiment}_${run} \n"
-         file="experiments/${study}/${experiment}_${run}/log.txt";
+         file="data/${study}/${experiment}_${run}.log";
 
          #check experiments status
          if [[ -f "$file" ]]; then
 
-             value=$(grep "Finished generation" $file|tail -n1|sed -E "s/\Finished generation ([0-9]+).*/\1/g");
-             echo " ${value} "
+              lastgen=$(grep -c "Finished generation" $file);
+              echo "latest finished gen ${lastgen}";
 
-             # unfinished TODO change != to < ?
-             if [ "$value" != "$checkpoints" ]; then
+             if [ "$lastgen" != "$num_generations" ]; then
 
                 # only if not already running
                 if [[ ! " ${active_experiments[@]} " =~ " ${experiment}_${run} " ]]; then
@@ -96,26 +96,25 @@ while true
     max_fs=${#free_screens[@]}
     to_do=("${to_do[@]:0:$max_fs}")
 
-
     p=0
     for to_d in "${to_do[@]}"; do
 
         exp=$(cut -d'_' -f1 <<<"${to_d}")
         run=$(cut -d'_' -f2 <<<"${to_d}")
 
-        echo screen -d -m -S screen_${free_screens[$p]}_${to_d} -L -Logfile data/${study}/${exp}_${run}".log" nice -n19 python3  experiments/${study}/optimize.py --experiment_name ${exp} --fitness_measure ${fitness_measure} --run ${run};
+        screen -d -m -S screen_${free_screens[$p]}_${to_d} -L -Logfile data/${study}/${exp}_${run}".log" nice -n19 python3  experiments/${study}/optimize.py --experiment_name ${exp} --fitness_measure ${fitness_measure} --run ${run} --run_simulation 0;
 
         printf "\n >> (re)starting screen_${free_screens[$p]}_${to_d} \n\n"
         p=$((${p}+1))
 
     done
 
-    sleep 300;
-   #sleep 1800;
+    sleep 3600;
 
 done
 
-# screen -ls  | egrep "^\s*[0-9]+.exp_" | awk -F "." '{print $1}' |  xargs kill
+# run from revolve root
+# screen -ls  | egrep "^\s*[0-9]+.screen_" | awk -F "." '{print $1}' |  xargs kill
 # killall screen
 # screen -r naaameee
 # screen -list

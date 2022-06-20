@@ -41,7 +41,7 @@ class Config():
         parser.add_argument(
             "--max_modules",
             required=False,
-            default=30,
+            default=15,
             type=int,
             help="",
         )
@@ -65,7 +65,7 @@ class Config():
         parser.add_argument(
             "--simulation_time",
             required=False,
-            default=1,
+            default=30,
             type=int,
         )
 
@@ -79,9 +79,9 @@ class Config():
         parser.add_argument(
             "--run_simulation",
             required=False,
-            default=True,
-            type=bool,
-            help="If false, runs optimizer without simulating robots, so behavioral measures are none."
+            default=1,
+            type=int,
+            help="If 0, runs optimizer without simulating robots, so behavioral measures are none."
         )
 
         parser.add_argument(
@@ -94,21 +94,21 @@ class Config():
         parser.add_argument(
             "--population_size",
             required=False,
-            default=10,
+            default=100,
             type=int,
         )
 
         parser.add_argument(
             "--offspring_size",
             required=False,
-            default=10,
+            default=100,
             type=int,
         )
 
         parser.add_argument(
             "--num_generations",
             required=False,
-            default=10,
+            default=100,
             type=int,
         )
 

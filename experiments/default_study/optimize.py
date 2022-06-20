@@ -45,6 +45,7 @@ async def main() -> None:
         innov_db_brain=innov_db_brain,
         rng=rng,
         process_id_gen=process_id_gen,
+        run_simulation=args.run_simulation
     )
     if maybe_optimizer is not None:
         optimizer = maybe_optimizer

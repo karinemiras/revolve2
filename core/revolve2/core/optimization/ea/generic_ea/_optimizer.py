@@ -210,6 +210,14 @@ class EAOptimizer(Process, Generic[Genotype, Measure]):
             session, None, None, None, None, self.__latest_population, None, None, None
         )
 
+    @property
+    def max_modules(self):
+        return self.__max_modules
+
+    @property
+    def body_substrate_dimensions(self):
+        return self.__body_substrate_dimensions
+
     async def ainit_from_database(
         self,
         database: AsyncEngine,
@@ -221,6 +229,7 @@ class EAOptimizer(Process, Generic[Genotype, Measure]):
         states_serializer: List[Tuple[float, State]],
         measures_type: Type[Measure],
         measures_serializer: Type[Serializer[Measure]],
+        run_simulation: int
     ) -> bool:
         self.__database = database
         self.__genotype_type = genotype_type
@@ -228,6 +237,7 @@ class EAOptimizer(Process, Generic[Genotype, Measure]):
         self.__states_serializer = states_serializer
         self.__measures_type = measures_type
         self.__measures_serializer = measures_serializer
+        self.__run_simulation = run_simulation
 
         try:
             eo_row = (
@@ -364,7 +374,7 @@ class EAOptimizer(Process, Generic[Genotype, Measure]):
             states = await self.__states_serializer.from_database(
                 session, states_ids
             )
-            assert len(states) == len(states_ids)
+            #assert len(states) == len(states_ids)
             self.__latest_states = states
 
         return True
@@ -509,7 +519,7 @@ class EAOptimizer(Process, Generic[Genotype, Measure]):
             initial_measures = None
             initial_states = None
 
-            logging.info(f"Finished generation {self.__generation_index}.")
+            logging.info(f"Finished generation {self.__generation_index}")
 
         assert (
             self.__generation_index > 0
@@ -746,14 +756,19 @@ class EAOptimizer(Process, Generic[Genotype, Measure]):
             measures_ids2 = [None for _ in range(len(new_individuals))]
 
         states_ids2:  List[Tuple[float, State]]
+
         if new_states is not None:
-            states_ids2 = [
-                s
-                for s in await self.__states_serializer.to_database(
-                    session, new_states
-                )
-            ]  # this extra comprehension is useless but it stops mypy from complaining
-            assert len(states_ids2) == len(new_states)
+            if len(new_states) > 0:
+                states_ids2 = [
+                    s
+                    for s in await self.__states_serializer.to_database(
+                        session, new_states
+                    )
+                ]  # this extra comprehension is useless but it stops mypy from complaining
+                assert len(states_ids2) == len(new_states)
+            # TODO: remove redundancy
+            else:
+                states_ids2 = [None for _ in range(len(new_individuals))]
         else:
             states_ids2 = [None for _ in range(len(new_individuals))]
 

@@ -53,10 +53,10 @@ class Optimizer(EAOptimizer[Genotype, float]):
     _num_generations: int
 
     _fitness_measure: str
-    __experiment_name: str
-    __max_modules: int
-    __body_substrate_dimensions: str
-    __run_simulation: bool
+    _experiment_name: str
+    _max_modules: int
+    _body_substrate_dimensions: str
+    _run_simulation: bool
 
     async def ainit_new(  # type: ignore # TODO for now ignoring mypy complaint about LSP problem, override parent's ainit
         self,
@@ -130,6 +130,7 @@ class Optimizer(EAOptimizer[Genotype, float]):
         rng: Random,
         innov_db_body: multineat.InnovationDatabase,
         innov_db_brain: multineat.InnovationDatabase,
+        run_simulation: int
     ) -> bool:
         if not await super().ainit_from_database(
             database=database,
@@ -141,6 +142,7 @@ class Optimizer(EAOptimizer[Genotype, float]):
             states_serializer=StatesSerializer,
             measures_type=float,
             measures_serializer=FloatSerializer,
+            run_simulation=run_simulation,
         ):
             return False
 
@@ -175,6 +177,7 @@ class Optimizer(EAOptimizer[Genotype, float]):
         self._innov_db_body.Deserialize(opt_row.innov_db_body)
         self._innov_db_brain = innov_db_brain
         self._innov_db_brain.Deserialize(opt_row.innov_db_brain)
+        self._run_simulation = run_simulation
 
         return True
 
@@ -244,7 +247,7 @@ class Optimizer(EAOptimizer[Genotype, float]):
         self._controllers = []
 
         for genotype in genotypes:
-            actor, controller = develop(genotype, self._max_modules, self._body_substrate_dimensions).\
+            actor, controller = develop(genotype, self.max_modules, self.body_substrate_dimensions).\
                 make_actor_and_controller()
             bounding_box = actor.calc_aabb()
             self._controllers.append(controller)
@@ -273,7 +276,7 @@ class Optimizer(EAOptimizer[Genotype, float]):
         measures_genotypes = []
         for i in range(len(genotypes)):
             # TODO: avoid redevelopment
-            phenotype = develop(genotypes[i], self._max_modules, self._body_substrate_dimensions)
+            phenotype = develop(genotypes[i], self.max_modules, self.body_substrate_dimensions)
             m = Measure(states=states, genotype_idx=i, phenotype=phenotype, generation=self.generation_index)
             measures_genotypes.append(m.measure_all_non_relative())
 
