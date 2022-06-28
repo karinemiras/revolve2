@@ -282,10 +282,11 @@ class Optimizer(EAOptimizer[Genotype, float]):
 
         states_genotypes = []
         if states is not None:
-            for idx_genotype in range(0, len(states[0].envs)):
+            for idx_genotype in range(0, len(states.environment_results)):
                 states_genotypes.append({})
-                for idx_state in range(0, len(states)):
-                    states_genotypes[-1][idx_state] = states[idx_state].envs[idx_genotype].actor_states[0].serialize()
+                for idx_state in range(0, len(states.environment_results[idx_genotype].environment_states)):
+                    states_genotypes[-1][idx_state] = \
+                        states.environment_results[idx_genotype].environment_states[idx_state].actor_states[0].serialize()
 
         return measures_genotypes, states_genotypes
 

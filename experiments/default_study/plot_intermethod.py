@@ -3,6 +3,8 @@ import argparse
 import matplotlib.pyplot as plt
 import pandas
 from sqlalchemy.future import select
+import os
+import inspect
 
 from revolve2.core.database import open_database_sqlite
 from revolve2.core.database.serializers import DbFloat
@@ -20,8 +22,15 @@ class Analysis:
         self.study = study
         self.experiments = experiments
         self.runs = runs
+        self.include_max = True
 
-    def plot_lines(self):
+    def consolidate(self):
+
+        path = f'data/{study}/analysis/basic_plots'
+        if not os.path.exists(path):
+            os.makedirs(path)
+
+        all_df = None
         for experiment in self.experiments:
             for run in self.runs:
 
@@ -43,88 +52,84 @@ class Analysis:
                 df["experiment"] = experiment
                 df["run"] = run
 
-                # TODO: make these groupings dynamically
+                if all_df is None:
+                    all_df = df
+                else:
+                    all_df = pandas.concat([all_df, df], axis=0)
 
-                # df_inner_group = df.groupby(['experiment', 'run', 'generation_index']).agg(
-                #      coverage_avg=('coverage', 'mean'),
-                #      pop_diversity_avg=('pop_diversity', 'mean'),
-                #      pool_dominated_individuals_avg=('pool_dominated_individuals', 'mean'),
-                #      pool_fulldominated_individuals_avg=('pool_fulldominated_individuals', 'mean'),
-                #      age_avg=('age', 'mean'),
-                #      displacement_xy_avg=('displacement_xy', 'mean'),
-                #      displacement_y_avg=('displacement_y', 'mean'),
-                #      relative_displacement_y_avg=('relative_displacement_y', 'mean'),
-                #      average_z_avg=('average_z', 'mean'),
-                #      head_balance_avg=('head_balance', 'mean'),
-                #      modules_count_avg=('modules_count', 'mean'),
-                #      hinge_count_avg=('hinge_count', 'mean'),
-                #      brick_count_avg=('brick_count', 'mean'),
-                #      hinge_prop_avg=('hinge_prop', 'mean'),
-                #      brick_prop_avg=('brick_prop', 'mean'),
-                #      branching_count_avg=('branching_count', 'mean'),
-                #      branching_prop_avg=('branching_prop', 'mean'),
-                #      extremities_avg=('extremities', 'mean'),
-                #      extensiveness_avg=('extensiveness', 'mean'),
-                #      extremities_prop_avg=('extremities_prop', 'mean'),
-                #      extensiveness_prop_avg=('extensiveness_prop', 'mean'),
-                #      width_avg=('width', 'mean'),
-                #      height_avg=('height', 'mean'),
-                #      proportion_avg=('proportion', 'mean'),
-                #      symmetry_avg=('symmetry', 'mean'),
-                #
-                #      pool_dominated_individuals_max=('pool_dominated_individuals', 'max'),
-                #      pool_fulldominated_individuals_max=('pool_fulldominated_individuals', 'max'),
-                #      displacement_y_max=('displacement_y', 'max'),
-                #      relative_displacement_y_max=('relative_displacement_y', 'max'),
-                #      average_z_max=('average_z', 'max'),
-                #      head_balance_max=('head_balance', 'max'),
-                #      modules_count_max=('modules_count', 'max'),
-                #      hinge_count_max=('hinge_count', 'max'),
-                #      brick_count_max=('brick_count', 'max'),
-                #      hinge_prop_max=('hinge_prop', 'max'),
-                #      brick_prop_max=('brick_prop', 'max'),
-                #      branching_count_max=('branching_count', 'max'),
-                #      branching_prop_max=('branching_prop', 'max'),
-                #      extremities_max=('extremities', 'max'),
-                #      extensiveness_max=('extensiveness', 'max'),
-                #      extremities_prop_max=('extremities_prop', 'max'),
-                #      extensiveness_prop_max=('extensiveness_prop', 'max'),
-                #      width_max=('width', 'max'),
-                #      height_max=('height', 'max'),
-                #      proportion_max=('proportion', 'max'),
-                #      symmetry_max=('symmetry', 'max')
-                # ).reset_index()
-                #
-                # print(df_inner_group)
+        measures = ['pop_diversity', 'pool_dominated_individuals',
+                       'pool_fulldominated_individuals', 'age',
+                       'displacement_xy', 'displacement_y', 'relative_displacement_y',
+                       'average_z', 'head_balance', 'modules_count', 'hinge_count',
+                       'brick_count', 'hinge_prop', 'brick_prop', 'branching_count',
+                       'branching_prop', 'extremities', 'extensiveness', 'extremities_prop',
+                       'extensiveness_prop', 'width', 'height', 'coverage', 'proportion',
+                       'symmetry']
+        keys = ['experiment', 'run', 'generation_index']
+        inner_metrics = ['mean', 'max']
 
-                measures = ['pop_diversity', 'pool_dominated_individuals',
-                               'pool_fulldominated_individuals', 'age',
-                               'displacement_xy', 'displacement_y', 'relative_displacement_y',
-                               'average_z', 'head_balance', 'modules_count', 'hinge_count',
-                               'brick_count', 'hinge_prop', 'brick_prop', 'branching_count',
-                               'branching_prop', 'extremities', 'extensiveness', 'extremities_prop',
-                               'extensiveness_prop', 'width', 'height', 'coverage', 'proportion',
-                               'symmetry']
-                metric = 'mean'
-                expr = {x: metric for x in measures}
-                df_inner_group=df_inner_group.groupby(['generation_index']).agg(expr).reset_index()
+        def renamer(col):
+            if col not in keys:
+                if inspect.ismethod(metric):
+                    sulfix = metric.__name__
+                else:
+                    sulfix = metric
+                return col + '_' + sulfix
+            else:
+                return col
 
-                def renamer(col):
-                    if col in measures:
-                        return col+'_'+sulfix
-                    else:
-                        return col
+        def groupby(data, measures, metric, keys):
+            expr = {x: metric for x in measures}
+            df_inner_group = data.groupby(keys).agg(expr).reset_index()
+            df_inner_group = df_inner_group.rename(mapper=renamer, axis='columns')
+            return df_inner_group
 
-                df_inner_group = df_inner_group.rename(mapper=renamer, axis='columns')
+        # inner measurements (within runs)
 
-                print(df_inner_group)
+        df_inner = {}
+        for metric in inner_metrics:
+            df_inner[metric] = groupby(all_df, measures, metric, keys)
+
+        df_inner = pandas.merge(df_inner['mean'], df_inner['max'], on=keys)
+
+        #self.plot_boxes()
+
+        # outer measurements (among runs)
+
+        measures_inner = []
+        for measure in measures:
+            for metric in inner_metrics:
+                measures_inner.append(f'{measure}_{metric}')
+
+        keys = ['experiment', 'generation_index']
+        metric = 'median'
+        df_outer_median = groupby(df_inner, measures_inner, metric, keys)
+
+        metric = self.q25
+        df_outer_q25 = groupby(df_inner, measures_inner, metric, keys)
+
+        metric = self.q75
+        df_outer_q75 = groupby(df_inner, measures_inner, metric, keys)
+
+        df_outer = pandas.merge(df_outer_median, df_outer_q25, on=keys)
+        df_outer = pandas.merge(df_outer, df_outer_q75, on=keys)
+
+        #self.plot_lines()
+
+    def q25(self, x):
+        return x.quantile(0.25)
+
+    def q75(self, x):
+        return x.quantile(0.75)
+
 
 args = Config()._get_params()
 study = 'default_study'
 experiments = ['diversity']
-runs = [1]
+runs = [1, 18]
+# TODO: break by environment
 analysis = Analysis(args, study, experiments, runs)
-analysis.plot_lines()
+analysis.consolidate()
 
 
 

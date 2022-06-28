@@ -4,13 +4,6 @@ from typing import List, Optional, Tuple
 import copy
 import pprint
 
-from ._module import Module
-from revolve2.core.physics.running import (
-    RunnerState,
-    ActorState
-)
-
-
 # TODO: because of the bizarre logic that ties gen0 to gen1, individuals from gen0 have incorrect relative measures
 # it seems as if the measures of gen1 are correct, and get copied to gen0
 
@@ -18,8 +11,6 @@ from revolve2.core.physics.running import (
 # 'pool' measures depend on the pool of competitors and while 'pop' measures depends only on the survivors
 # time dependent measures are also considered relative, e.g., age is relative to gens
 class MeasureRelative:
-
-    _states: List[Tuple[float, RunnerState]]
 
     def __init__(self, genotype_measures=None, neighbours_measures=None):
         self._genotype_measures = genotype_measures

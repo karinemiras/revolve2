@@ -65,7 +65,7 @@ class Config():
         parser.add_argument(
             "--simulation_time",
             required=False,
-            default=30,
+            default=1,
             type=int,
         )
 

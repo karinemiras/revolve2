@@ -6,7 +6,6 @@ import pprint
 from ._module import Module
 from .render.render import Render
 from revolve2.core.physics.running import (
-    RunnerState,
     ActorState
 )
 
@@ -15,7 +14,7 @@ from revolve2.core.modular_robot import Core, ActiveHinge, Brick
 
 class Measure:
 
-    _states: List[Tuple[float, RunnerState]]
+    _states: List[Tuple[float, ActorState]]
 
     def __init__(self, states=None, genotype_idx=-1, phenotype=None, generation=None):
         self._states = states
@@ -62,8 +61,8 @@ class Measure:
             self._measures['average_z'] = -math.inf
             return
 
-        begin_state = self._states[0].envs[self._genotype_idx].actor_states[0]
-        end_state = self._states[-1].envs[self._genotype_idx].actor_states[0]
+        begin_state = self._states.environment_results[self._genotype_idx].environment_states[0].actor_states[0]
+        end_state = self._states.environment_results[self._genotype_idx].environment_states[-1].actor_states[0]
 
         # distance traveled on the xy plane
         self._measures['displacement_xy'] = float(
@@ -82,17 +81,18 @@ class Measure:
 
         # average z
         z = 0
-        for s in self._states:
-            z += s.envs[self._genotype_idx].actor_states[0].position[2]
-        z /= len(self._states)
+        for s in self._states.environment_results[self._genotype_idx].environment_states:
+            z += s.actor_states[0].position[2]
+        z /= len(self._states.environment_results[self._genotype_idx].environment_states)
         self._measures['average_z'] = float(z)
 
     def _relative_displacement_xy(self):
         self._measures['relative_displacement_y'] = self._measures['displacement_y']/self._measures['modules_count']
 
     def _get_orientations(self):
-        for idx_state in range(0, len(self._states)):
-            _orientations = self._states[idx_state].envs[self._genotype_idx].actor_states[0].serialize()['orientation']
+        for idx_state in range(0, len(self._states.environment_results[self._genotype_idx].environment_states)):
+            _orientations = self._states.environment_results[self._genotype_idx].\
+                environment_states[idx_state].actor_states[0].serialize()['orientation']
             # w, x, y, z
             qua = Quaternion(_orientations[0], _orientations[1], _orientations[2], _orientations[3])
             euler = qua.to_euler()
@@ -111,7 +111,7 @@ class Measure:
 
         roll = 0
         pitch = 0
-        instants = len(self._states)
+        instants = len(self._states.environment_results[self._genotype_idx].environment_states)
         self._get_orientations()
 
         for o in self._orientations:
