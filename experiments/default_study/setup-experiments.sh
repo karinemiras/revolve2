@@ -4,7 +4,7 @@
 
 
 study="default_study"
-experiments=("diversity")
+experiments=("diversity2")
 fitness_measure="pool_diversity"
 runs=20
 num_generations="100"
