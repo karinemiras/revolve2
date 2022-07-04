@@ -28,7 +28,7 @@ async def main() -> None:
     rng.seed(random())
 
     # database
-    database = open_async_database_sqlite(f'./data/{args.study_name}/{args.experiment_name}/run_{args.run}')
+    database = open_async_database_sqlite(f'/storage/karine/{args.study_name}/{args.experiment_name}/run_{args.run}')
 
     # process id generator
     process_id_gen = ProcessIdGen()
@@ -72,10 +72,12 @@ async def main() -> None:
             offspring_size=args.offspring_size,
             experiment_name=args.experiment_name,
             max_modules=args.max_modules,
-            body_substrate_dimensions=args.body_substrate_dimensions,
+            crossover_prob=args.crossover_prob,
+            mutation_prob=args.mutation_prob,
+            substrate_radius=args.substrate_radius,
             run_simulation=args.run_simulation
         )
-
+    
     logging.info("Starting optimization process..")
 
     await optimizer.run()

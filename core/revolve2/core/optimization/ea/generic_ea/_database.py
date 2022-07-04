@@ -22,7 +22,9 @@ class DbEAOptimizer(DbBase):
     offspring_size = Column(Integer, nullable=True)
     experiment_name = Column(String, nullable=True)
     max_modules = Column(Integer, nullable=True)
-    body_substrate_dimensions = Column(String, nullable=True)
+    substrate_radius = Column(Integer, nullable=True)
+    crossover_prob = Column(Float, nullable=True)
+    mutation_prob = Column(Float, nullable=True)
 
 
 class DbEAOptimizerState(DbBase):

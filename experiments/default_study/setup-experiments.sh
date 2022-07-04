@@ -4,7 +4,7 @@
 
 
 study="default_study"
-experiments=("diversity2")
+experiments=("diversity")
 fitness_measure="pool_diversity"
 runs=20
 num_generations="100"
@@ -63,7 +63,7 @@ while true
         do
 
          printf  "\n${experiment}_${run} \n"
-         file="data/${study}/${experiment}_${run}.log";
+         file="/storage/karine/${study}/${experiment}_${run}.log";
 
          #check experiments status
          if [[ -f "$file" ]]; then
@@ -102,7 +102,7 @@ while true
         exp=$(cut -d'_' -f1 <<<"${to_d}")
         run=$(cut -d'_' -f2 <<<"${to_d}")
 
-        screen -d -m -S screen_${free_screens[$p]}_${to_d} -L -Logfile data/${study}/${exp}_${run}".log" nice -n19 python3  experiments/${study}/optimize.py --experiment_name ${exp} --fitness_measure ${fitness_measure} --run ${run} --run_simulation 0;
+        screen -d -m -S screen_${free_screens[$p]}_${to_d} -L -Logfile /storage/karine/${study}/${exp}_${run}".log" nice -n19 python3  experiments/${study}/optimize.py --experiment_name ${exp} --fitness_measure ${fitness_measure} --run ${run} --run_simulation 0;
 
         printf "\n >> (re)starting screen_${free_screens[$p]}_${to_d} \n\n"
         p=$((${p}+1))

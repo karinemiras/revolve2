@@ -55,7 +55,9 @@ class Optimizer(EAOptimizer[Genotype, float]):
     _fitness_measure: str
     _experiment_name: str
     _max_modules: int
-    _body_substrate_dimensions: str
+    _crossover_prob: float
+    _mutation_prob: float
+    _substrate_radius: str
     _run_simulation: bool
 
     async def ainit_new(  # type: ignore # TODO for now ignoring mypy complaint about LSP problem, override parent's ainit
@@ -76,7 +78,9 @@ class Optimizer(EAOptimizer[Genotype, float]):
         fitness_measure: str,
         experiment_name: str,
         max_modules: int,
-        body_substrate_dimensions: str,
+        crossover_prob: float,
+        mutation_prob: float,
+        substrate_radius: str,
         run_simulation: bool
     ) -> None:
         await super().ainit_new(
@@ -94,7 +98,9 @@ class Optimizer(EAOptimizer[Genotype, float]):
             offspring_size=offspring_size,
             experiment_name=experiment_name,
             max_modules=max_modules,
-            body_substrate_dimensions=body_substrate_dimensions,
+            crossover_prob=crossover_prob,
+            mutation_prob=mutation_prob,
+            substrate_radius=substrate_radius,
             run_simulation=run_simulation
         )
 
@@ -111,7 +117,9 @@ class Optimizer(EAOptimizer[Genotype, float]):
         self._offspring_size = offspring_size
         self._experiment_name = experiment_name
         self._max_modules = max_modules
-        self._body_substrate_dimensions = body_substrate_dimensions
+        self._crossover_prob = crossover_prob
+        self._mutation_prob = mutation_prob
+        self._substrate_radius = substrate_radius
         self._run_simulation = run_simulation
 
         # create database structure if not exists
@@ -191,11 +199,17 @@ class Optimizer(EAOptimizer[Genotype, float]):
         num_parent_groups: int,
     ) -> List[List[int]]:
 
+        # TODO: allow variable number
+        if self._crossover_prob == 0:
+            number_of_parents = 1
+        else:
+            number_of_parents = 2
+
         return [
             selection.multiple_unique(
                 population,
                 fitnesses,
-                2,
+                number_of_parents,
                 lambda _, fitnesses: selection.tournament(self._rng, fitnesses, k=2),
             )
             for _ in range(num_parent_groups)
@@ -224,8 +238,15 @@ class Optimizer(EAOptimizer[Genotype, float]):
         return self.generation_index != self._num_generations
 
     def _crossover(self, parents: List[Genotype]) -> Genotype:
-        assert len(parents) == 2
-        return crossover(parents[0], parents[1], self._rng)
+        # TODO: because revolve forces me to have crossover, I had to use a temporary workaround
+        if self._crossover_prob == 0:
+            parent1 = parents[0]
+            parent2 = parent1
+        else:
+            parent1 = parents[0]
+            parent2 = parents[1]
+
+        return crossover(parent1, parent2, self._rng)
 
     def _mutate(self, genotype: Genotype) -> Genotype:
         return mutate(genotype, self._innov_db_body, self._innov_db_brain, self._rng)
@@ -245,10 +266,13 @@ class Optimizer(EAOptimizer[Genotype, float]):
         )
 
         self._controllers = []
+        phenotypes = []
 
         for genotype in genotypes:
-            actor, controller = develop(genotype, self.max_modules, self.body_substrate_dimensions).\
-                make_actor_and_controller()
+            print(genotype)
+            phenotype = develop(genotype, genotype.mapping_seed, self.max_modules, self.substrate_radius)
+            phenotypes.append(phenotype)
+            actor, controller = phenotype.make_actor_and_controller()
             bounding_box = actor.calc_aabb()
             self._controllers.append(controller)
             env = Environment()
@@ -274,9 +298,7 @@ class Optimizer(EAOptimizer[Genotype, float]):
             states = None
 
         measures_genotypes = []
-        for i in range(len(genotypes)):
-            # TODO: avoid redevelopment
-            phenotype = develop(genotypes[i], self.max_modules, self.body_substrate_dimensions)
+        for i, phenotype in enumerate(phenotypes):
             m = Measure(states=states, genotype_idx=i, phenotype=phenotype, generation=self.generation_index)
             measures_genotypes.append(m.measure_all_non_relative())
 

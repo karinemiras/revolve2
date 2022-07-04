@@ -28,13 +28,12 @@ class Render:
             canvas.draw_controller(module.id)
         elif isinstance(module, ActiveHinge):
             canvas.move_by_slot(slot)
-        # gotta convert to degrees. anyway, were not using 3d for now
-           # Canvas.rotating_orientation += module,module.rotation
+            Canvas.rotating_orientation = module._rotation
             canvas.draw_hinge(module.id)
             canvas.draw_connector_to_parent()
         elif isinstance(module, Brick):
             canvas.move_by_slot(slot)
-           # Canvas.rotating_orientation += module,module.rotation
+            Canvas.rotating_orientation = module._rotation
             canvas.draw_module(module.id)
             canvas.draw_connector_to_parent()
 

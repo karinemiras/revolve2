@@ -41,7 +41,15 @@ class Config():
         parser.add_argument(
             "--max_modules",
             required=False,
-            default=15,
+            default=15, #50
+            type=int,
+            help="",
+        )
+
+        parser.add_argument(
+            "--substrate_radius",
+            required=False,
+            default=5, #15
             type=int,
             help="",
         )
@@ -94,22 +102,36 @@ class Config():
         parser.add_argument(
             "--population_size",
             required=False,
-            default=100,
+            default=10,
             type=int,
         )
 
         parser.add_argument(
             "--offspring_size",
             required=False,
-            default=100,
+            default=10,
             type=int,
         )
 
         parser.add_argument(
             "--num_generations",
             required=False,
-            default=100,
+            default=2,
             type=int,
+        )
+
+        parser.add_argument(
+            "--crossover_prob",
+            required=False,
+            default=0,
+            type=float,
+        )
+
+        parser.add_argument(
+            "--mutation_prob",
+            required=False,
+            default=0,
+            type=float,
         )
 
         parser.add_argument(

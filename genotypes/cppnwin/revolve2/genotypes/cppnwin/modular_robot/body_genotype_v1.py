@@ -137,6 +137,7 @@ def ___add_child(
     if child_type is None:
         return None
     up = __rotate(module.up, forward, orientation)
+    print(orientation, orientation * (math.pi / 2.0))
     child = child_type(orientation * (math.pi / 2.0))
     module.module_reference.children[child_index] = child
 

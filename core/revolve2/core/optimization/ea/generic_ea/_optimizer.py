@@ -136,7 +136,9 @@ class EAOptimizer(Process, Generic[Genotype, Measure]):
     __fitness_measure: str
     __experiment_name: str
     __max_modules: int
-    __body_substrate_dimensions: str
+    __substrate_radius: str
+    __crossover_prob: float
+    __mutation_prob: float
     __run_simulation: bool
 
     async def ainit_new(
@@ -155,7 +157,9 @@ class EAOptimizer(Process, Generic[Genotype, Measure]):
         fitness_measure: str,
         experiment_name: str,
         max_modules: int,
-        body_substrate_dimensions: str,
+        crossover_prob: float,
+        mutation_prob: float,
+        substrate_radius: str,
         run_simulation: bool
     ) -> None:
         """
@@ -177,7 +181,9 @@ class EAOptimizer(Process, Generic[Genotype, Measure]):
         self.__fitness_measure = fitness_measure
         self.__experiment_name = experiment_name
         self.__max_modules = max_modules
-        self.__body_substrate_dimensions = body_substrate_dimensions
+        self.__crossover_prob = crossover_prob
+        self.__mutation_prob = mutation_prob
+        self.__substrate_radius = substrate_radius
         self.__run_simulation = run_simulation
 
         self.__latest_population = [
@@ -199,7 +205,9 @@ class EAOptimizer(Process, Generic[Genotype, Measure]):
             offspring_size=self.__offspring_size,
             experiment_name=self.__experiment_name,
             max_modules=self.__max_modules,
-            body_substrate_dimensions=self.__body_substrate_dimensions
+            crossover_prob=self.__crossover_prob,
+            mutation_prob=self.__mutation_prob,
+            substrate_radius=self.__substrate_radius
         )
         session.add(new_opt)
         await session.flush()
@@ -215,8 +223,8 @@ class EAOptimizer(Process, Generic[Genotype, Measure]):
         return self.__max_modules
 
     @property
-    def body_substrate_dimensions(self):
-        return self.__body_substrate_dimensions
+    def substrate_radius(self):
+        return self.__substrate_radius
 
     async def ainit_from_database(
         self,
@@ -262,7 +270,9 @@ class EAOptimizer(Process, Generic[Genotype, Measure]):
         self.__offspring_size = eo_row.offspring_size
         self.__experiment_name = eo_row.experiment_name
         self.__max_modules = eo_row.max_modules
-        self.__body_substrate_dimensions = eo_row.body_substrate_dimensions
+        self.__crossover_prob = eo_row.crossover_prob
+        self.__mutation_prob = eo_row.mutation_prob
+        self.__substrate_radius = eo_row.substrate_radius
 
         # TODO: this name 'state' conflicts a bit with the table of states (positions)...
         state_row = (

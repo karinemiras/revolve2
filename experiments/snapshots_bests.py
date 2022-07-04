@@ -16,17 +16,17 @@ async def main() -> None:
 
     study = 'default_study'
     experiments_name = ['default_experiment']
-    runs = [1]
+    runs = [1]#list(range(1, 21))
     generations = [0]
 
     for experiment_name in experiments_name:
         for run in runs:
 
-            path = f'data/{study}/analysis/snapshots/{experiment_name}/run_{run}'
+            path = f'/storage/karine/{study}/analysis/snapshots/{experiment_name}/run_{run}'
             if not os.path.exists(path):
                 os.makedirs(path)
 
-            db = open_async_database_sqlite(f'./data/{study}/{experiment_name}/run_{run}')
+            db = open_async_database_sqlite(f'/storage/karine/{study}/{experiment_name}/run_{run}')
 
             for gen in generations:
                 path_gen = f'{path}/gen_{gen}'
@@ -53,7 +53,7 @@ async def main() -> None:
                                 )
                             )[0]
 
-                            phenotype = develop(genotype, args.max_modules, args.body_substrate_dimensions)
+                            phenotype = develop(genotype, genotype.mapping_seed, args.max_modules, args.substrate_radius)
                             render = Render()
                             img_path = f'{path_gen}/{idx}_{r.DbEAOptimizerIndividual.individual_id}.png'
                             render.render_robot(phenotype.body.core, img_path)

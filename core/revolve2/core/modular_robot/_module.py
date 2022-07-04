@@ -17,6 +17,9 @@ class Module:
     def __init__(self, num_children: int, rotation: float):
         self._children = [None] * num_children
         self._rotation = rotation
+        self.rgb = None
+        self.turtle_direction = None
+        self.substrate_coordinates = None
 
         self._id = None
         self._parent = None
