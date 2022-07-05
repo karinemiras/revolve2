@@ -102,21 +102,21 @@ class Config():
         parser.add_argument(
             "--population_size",
             required=False,
-            default=10,
+            default=100,
             type=int,
         )
 
         parser.add_argument(
             "--offspring_size",
             required=False,
-            default=10,
+            default=100,
             type=int,
         )
 
         parser.add_argument(
             "--num_generations",
             required=False,
-            default=2,
+            default=100,
             type=int,
         )
 
@@ -130,7 +130,7 @@ class Config():
         parser.add_argument(
             "--mutation_prob",
             required=False,
-            default=0,
+            default=1,
             type=float,
         )
 

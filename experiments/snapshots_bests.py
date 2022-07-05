@@ -17,7 +17,7 @@ async def main() -> None:
     study = 'default_study'
     experiments_name = ['default_experiment']
     runs = [1]#list(range(1, 21))
-    generations = [0]
+    generations = [ 2 ,3 ,4,5,6,7,8,9]
 
     for experiment_name in experiments_name:
         for run in runs:

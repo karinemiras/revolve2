@@ -200,7 +200,8 @@ class Optimizer(EAOptimizer[Genotype, float]):
     ) -> List[List[int]]:
 
         # TODO: allow variable number
-        if self._crossover_prob == 0:
+        #  and adapt the to_database to take the crossover probabilistic choice into consideration
+        if self.crossover_prob == 0:
             number_of_parents = 1
         else:
             number_of_parents = 2
@@ -238,18 +239,16 @@ class Optimizer(EAOptimizer[Genotype, float]):
         return self.generation_index != self._num_generations
 
     def _crossover(self, parents: List[Genotype]) -> Genotype:
-        # TODO: because revolve forces me to have crossover, I had to use a temporary workaround
-        if self._crossover_prob == 0:
-            parent1 = parents[0]
-            parent2 = parent1
+        if self._rng.uniform(0, 1) > self.crossover_prob:
+            return parents[0]
         else:
-            parent1 = parents[0]
-            parent2 = parents[1]
-
-        return crossover(parent1, parent2, self._rng)
+            return crossover(parents[0], parents[1], self._rng)
 
     def _mutate(self, genotype: Genotype) -> Genotype:
-        return mutate(genotype, self._innov_db_body, self._innov_db_brain, self._rng)
+        if self._rng.uniform(0, 1) > self.mutation_prob:
+            return genotype
+        else:
+            return mutate(genotype, self._innov_db_body, self._innov_db_brain, self._rng)
 
     async def _evaluate_generation(
         self,
@@ -269,7 +268,6 @@ class Optimizer(EAOptimizer[Genotype, float]):
         phenotypes = []
 
         for genotype in genotypes:
-            print(genotype)
             phenotype = develop(genotype, genotype.mapping_seed, self.max_modules, self.substrate_radius)
             phenotypes.append(phenotype)
             actor, controller = phenotype.make_actor_and_controller()

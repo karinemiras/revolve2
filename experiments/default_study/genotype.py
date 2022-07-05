@@ -31,7 +31,7 @@ args = Config()._get_params()
 def _make_multineat_params() -> multineat.Parameters:
     multineat_params = multineat.Parameters()
 
-    multineat_params.OverallMutationRate = args.mutation_prob
+    multineat_params.OverallMutationRate = 1
     multineat_params.MutateAddLinkProb = 0.5
     multineat_params.MutateRemLinkProb = 0.5
     multineat_params.MutateAddNeuronProb = 0.2
@@ -132,7 +132,7 @@ class GenotypeSerializer(Serializer[Genotype]):
         id_map = {t.id: t for t in rows}
         body_ids = [id_map[id].body_id for id in ids]
         brain_ids = [id_map[id].brain_id for id in ids]
-        mapping_seeds = {t.mapping_seed: t for t in rows}
+        mapping_seeds = [t.mapping_seed for t in rows]
 
         body_genotypes = await CppnwinGenotypeSerializer.from_database(
             session, body_ids

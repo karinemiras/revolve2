@@ -173,7 +173,7 @@ class EAOptimizer(Process, Generic[Genotype, Measure]):
         self.__measures_serializer = measures_serializer
         self.__states_serializer = states_serializer
         self.__process_id_gen = process_id_gen
-        self.__next_individual_id = 0
+        self.__next_individual_id = 1
         self.__latest_measures = None
         self.__latest_states = None
         self.__generation_index = 0
@@ -225,6 +225,14 @@ class EAOptimizer(Process, Generic[Genotype, Measure]):
     @property
     def substrate_radius(self):
         return self.__substrate_radius
+
+    @property
+    def crossover_prob(self):
+        return self.__crossover_prob
+
+    @property
+    def mutation_prob(self):
+        return self.__mutation_prob
 
     async def ainit_from_database(
         self,
@@ -364,6 +372,8 @@ class EAOptimizer(Process, Generic[Genotype, Measure]):
             session, genotype_ids
         )
 
+        print( len(genotypes), len(genotype_ids))
+        print( genotypes, genotype_ids)
         assert len(genotypes) == len(genotype_ids)
         self.__latest_population = [
             _Individual(g_id, g, None) for g_id, g in zip(individual_ids, genotypes)

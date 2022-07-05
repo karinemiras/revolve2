@@ -35,7 +35,6 @@ class Develop:
         self.substrate_radius = substrate_radius
         self.genotype = genotype
         self.querying_seed = querying_seed
-        print('seed', self.querying_seed)
         self.development_seed = None
         self.random = None
         self.cppn = None
