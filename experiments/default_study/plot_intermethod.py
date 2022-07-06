@@ -32,11 +32,13 @@ class Analysis:
         self.runs = runs
         self.include_max = False
         self.final_gen = 100
+        self.gens_boxes = [0, 100]
         self.clrs = ['#336600', '#990000']
-        self.path = f'data/{study}/analysis/basic_plots'
+        self.path = f'/storage/karine/{study}'
 
         self.measures = {
             'pop_diversity': ['Diversity', 0, 1],
+            'pool_diversity': ['Pool Diversity', 0, 1],
             'pool_dominated_individuals': ['Dominated individuals', 0, 1],
             'pool_fulldominated_individuals': ['Fully dominated individuals', 0, 1],
             'age': ['Age', 0, 1],
@@ -70,7 +72,7 @@ class Analysis:
         all_df = None
         for experiment in self.experiments:
             for run in self.runs:
-                db = open_database_sqlite(f'./data/{study}/{experiment}/run_{run}')
+                db = open_database_sqlite(f'{self.path}/{experiment}/run_{run}')
 
                 # read the optimizer data into a pandas dataframe
                 df = pandas.read_sql(
@@ -140,16 +142,22 @@ class Analysis:
         df_outer = pandas.merge(df_outer_median, df_outer_q25, on=keys)
         df_outer = pandas.merge(df_outer, df_outer_q75, on=keys)
 
-        # plots
-
-        self.plot_lines(df_outer)
-        self.plot_boxes(df_inner)
+        df_inner.to_csv(f'{self.path}/analysis/df_inner.csv', index=True)
+        df_outer.to_csv(f'{self.path}/analysis/df_outer.csv', index=True)
 
     def q25(self, x):
         return x.quantile(0.25)
 
     def q75(self, x):
         return x.quantile(0.75)
+
+    def plots(self):
+
+        df_inner = pandas.read_csv(f'{self.path}/analysis/df_inner.csv')
+        df_outer = pandas.read_csv(f'{self.path}/analysis/df_outer.csv')
+
+       # self.plot_lines(df_outer)
+        self.plot_boxes(df_inner)
 
     def plot_lines(self, df_outer):
 
@@ -181,41 +189,44 @@ class Analysis:
             plt.xlabel('')
             plt.ylabel(f'{self.measures[measure][0]}')
             #ax.legend()
-            plt.savefig(f'{self.path}/{measure}_line.png', bbox_inches='tight')
+            plt.savefig(f'{self.path}/analysis/basic_plots/{measure}_line.png', bbox_inches='tight')
             plt.clf()
+            plt.close(fig)
 
     def plot_boxes(self, df_inner):
 
-        df_inner = df_inner[df_inner['generation_index'] == self.final_gen]
-        #self.min_max_inner(df_inner)
-        plt.clf()
-
-        tests_combinations = [(self.experiments[i], self.experiments[j]) \
-                              for i in range(len(self.experiments)) for j in range(i+1, len(self.experiments))]
-        for idx_measure, measure in enumerate(self.measures.keys()):
-            sb.set(rc={"axes.titlesize": 23, "axes.labelsize": 23, 'ytick.labelsize': 21, 'xtick.labelsize': 21})
-            sb.set_style("whitegrid")
-
-            plot = sb.boxplot(x='experiment', y=f'{measure}_mean', data=df_inner,
-                              palette=self.clrs, width=0.4, showmeans=True, linewidth=2, fliersize=6,
-                              meanprops={"marker": "o", "markerfacecolor": "yellow", "markersize": "12"})
-
-            try:
-                if len(tests_combinations) > 0:
-                    add_stat_annotation(plot, data=df_inner, x='experiment', y=f'{measure}_mean',
-                                        box_pairs=tests_combinations,
-                                        comparisons_correction=None,
-                                        test='Wilcoxon', text_format='star', fontsize='xx-large', loc='inside',
-                                        verbose=1)
-            except Exception as error:
-                print(error)
-
-            # if self.measures[measure][1] != -math.inf and self.measures[measure][2] != -math.inf:
-            #     plot.set_ylim(self.measures[measure][1], self.measures[measure][2])
-            plt.xlabel('')
-            plt.ylabel(f'{self.measures[measure][0]}')
-            plot.get_figure().savefig(f'{self.path}/{measure}_box.png', bbox_inches='tight')
+        for gen_boxes in self.gens_boxes:
+            df_inner2 = df_inner[df_inner['generation_index'] == gen_boxes]
+            #self.min_max_inner(df_inner)
             plt.clf()
+
+            tests_combinations = [(self.experiments[i], self.experiments[j]) \
+                                  for i in range(len(self.experiments)) for j in range(i+1, len(self.experiments))]
+            for idx_measure, measure in enumerate(self.measures.keys()):
+                sb.set(rc={"axes.titlesize": 23, "axes.labelsize": 23, 'ytick.labelsize': 21, 'xtick.labelsize': 21})
+                sb.set_style("whitegrid")
+
+                plot = sb.boxplot(x='experiment', y=f'{measure}_mean', data=df_inner2,
+                                  palette=self.clrs, width=0.4, showmeans=True, linewidth=2, fliersize=6,
+                                  meanprops={"marker": "o", "markerfacecolor": "yellow", "markersize": "12"})
+
+                try:
+                    if len(tests_combinations) > 0:
+                        add_stat_annotation(plot, data=df_inner2, x='experiment', y=f'{measure}_mean',
+                                            box_pairs=tests_combinations,
+                                            comparisons_correction=None,
+                                            test='Wilcoxon', text_format='star', fontsize='xx-large', loc='inside',
+                                            verbose=1)
+                except Exception as error:
+                    print(error)
+
+                # if self.measures[measure][1] != -math.inf and self.measures[measure][2] != -math.inf:
+                #     plot.set_ylim(self.measures[measure][1], self.measures[measure][2])
+                plt.xlabel('')
+                plt.ylabel(f'{self.measures[measure][0]}')
+                plot.get_figure().savefig(f'{self.path}/analysis/basic_plots/{measure}_{gen_boxes}_box.png', bbox_inches='tight')
+                plt.clf()
+                plt.close()
 
     # def min_max_outer(self, df):
     #     if not self.include_max:
@@ -255,12 +266,12 @@ class Analysis:
 args = Config()._get_params()
 study = 'default_study'
 # make sure to provide experiments names in alphabetic order
-experiments = ['diversity', 'diversity2']
+experiments = ['diversity2']
 runs = list(range(1, 21))
 
 # TODO: break by environment
 analysis = Analysis(args, study, experiments, runs)
-analysis.consolidate()
-
+#analysis.consolidate()
+analysis.plots()
 
 

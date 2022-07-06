@@ -372,8 +372,6 @@ class EAOptimizer(Process, Generic[Genotype, Measure]):
             session, genotype_ids
         )
 
-        print( len(genotypes), len(genotype_ids))
-        print( genotypes, genotype_ids)
         assert len(genotypes) == len(genotype_ids)
         self.__latest_population = [
             _Individual(g_id, g, None) for g_id, g in zip(individual_ids, genotypes)

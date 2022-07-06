@@ -4,7 +4,7 @@ from sqlalchemy.future import select
 from revolve2.core.optimization.ea.generic_ea import DbEAOptimizerGeneration, DbEAOptimizerIndividual
 from revolve2.core.modular_robot.render.render import Render
 #TODO: make import based on param and move file to anal_resources
-from default_study.genotype import GenotypeSerializer, develop
+from genotype import GenotypeSerializer, develop
 from revolve2.core.config import Config
 
 import os
@@ -15,9 +15,9 @@ async def main() -> None:
     args = Config()._get_params()
 
     study = 'default_study'
-    experiments_name = ['default_experiment']
-    runs = [1]#list(range(1, 21))
-    generations = [ 2 ,3 ,4,5,6,7,8,9]
+    experiments_name = ['diversity2']
+    runs = list(range(1, 21))
+    generations = [0, 100]
 
     for experiment_name in experiments_name:
         for run in runs:

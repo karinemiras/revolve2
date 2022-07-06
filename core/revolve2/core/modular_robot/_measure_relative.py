@@ -37,14 +37,15 @@ class MeasureRelative:
 
     def _diversity(self, type='pop'):
 
-        # TODO: make this a param in the exp manager
+        # TODO: when type is pool (for novelty), lacking an arquive
+        # TODO: make which_measures a param
         which_measures = ['symmetry',
                           'proportion',
                           'coverage',
                           'extremities_prop',
                           'hinge_prop',
                           'branching_prop']
-        # TODO: create age measure
+
         genotype_measures = []
         for key in which_measures:
             genotype_measures.append(self._genotype_measures[key])
@@ -58,8 +59,14 @@ class MeasureRelative:
 
         kdt = KDTree(neighbours_measures, leaf_size=30, metric='euclidean')
 
+        if type == 'pop':
+            k = len(self._neighbours_measures)
+        else:
+            # TODO: make it a param
+            k = 10
+
         # distances from neighbors
-        distances, indexes = kdt.query([genotype_measures], k=len(self._neighbours_measures))
+        distances, indexes = kdt.query([genotype_measures], k=k)
         diversity = sum(distances[0])/len(distances[0])
 
         self._genotype_measures[f'{type}_diversity'] = diversity
