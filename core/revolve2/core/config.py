@@ -41,7 +41,7 @@ class Config():
         parser.add_argument(
             "--max_modules",
             required=False,
-            default=15, #50
+            default=50, #15
             type=int,
             help="",
         )
@@ -49,7 +49,7 @@ class Config():
         parser.add_argument(
             "--substrate_radius",
             required=False,
-            default=5, #15
+            default=15, #5
             type=int,
             help="",
         )

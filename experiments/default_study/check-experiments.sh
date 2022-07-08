@@ -4,8 +4,8 @@
 
 
 study="default_study"
-experiments=("speed")
-runs=20
+experiments=("purespeebig")
+runs=10
 num_generations="100"
 
 

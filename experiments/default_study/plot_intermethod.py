@@ -30,10 +30,11 @@ class Analysis:
         self.experiments = experiments
         self.inner_metrics = ['mean', 'max']
         self.runs = runs
-        self.include_max = False
+        self.include_max = True
+        self.merge_lines = False
         self.final_gen = 100
         self.gens_boxes = [0, 100]
-        self.clrs = ['#336600', '#990000']
+        self.clrs = ['#336600', '#990000', '#009900']
         self.path = f'/storage/karine/{study}'
 
         self.measures = {
@@ -42,9 +43,9 @@ class Analysis:
             'pool_dominated_individuals': ['Dominated individuals', 0, 1],
             'pool_fulldominated_individuals': ['Fully dominated individuals', 0, 1],
             'age': ['Age', 0, 1],
-            'displacement_xy': ['Displacement', 0, 1],
-            'displacement_y': ['Displacement y', 0, 1],
-            'relative_displacement_y': ['Relative displacement y', 0, 1],
+            'displacement_xy': ['Displacement (cm/s)', 0, 1],
+            'displacement_y': ['Displacement y  (cm/s)', 0, 1],
+            'relative_displacement_y': ['Relative displacement y  (cm/s)', 0, 1],
             'average_z': ['Z', 0, 1],
             'head_balance': ['Balance', 0, 1],
             'modules_count': ['Modules count', 0, 1],
@@ -65,9 +66,12 @@ class Analysis:
             'symmetry': ['Symmetry', 0, 1]}
 
     def consolidate(self):
+        print('consolidating...')
 
         if not os.path.exists(self.path):
             os.makedirs(self.path)
+        if not os.path.exists(f'{self.path}/analysis/basic_plots'):
+            os.makedirs(f'{self.path}/analysis/basic_plots')
 
         all_df = None
         for experiment in self.experiments:
@@ -89,12 +93,18 @@ class Analysis:
                 df["experiment"] = experiment
                 df["run"] = run
 
+                # TODO: convert metrics?
+
                 if all_df is None:
                     all_df = df
                 else:
                     all_df = pandas.concat([all_df, df], axis=0)
 
         all_df = all_df[all_df['generation_index'] <= self.final_gen]
+
+        for column in all_df:
+            if 'displacement' in column:
+                all_df[column] = all_df[column] * 100
 
         keys = ['experiment', 'run', 'generation_index']
 
@@ -156,16 +166,24 @@ class Analysis:
         df_inner = pandas.read_csv(f'{self.path}/analysis/df_inner.csv')
         df_outer = pandas.read_csv(f'{self.path}/analysis/df_outer.csv')
 
-       # self.plot_lines(df_outer)
+        self.plot_lines(df_outer)
         self.plot_boxes(df_inner)
 
     def plot_lines(self, df_outer):
 
+        print('plotting lines...')
+
         #self.min_max_outer(df_outer)
         for measure in self.measures.keys():
+
             font = {'font.size': 20}
             plt.rcParams.update(font)
             fig, ax = plt.subplots()
+
+            #ax.legend()
+            plt.xlabel('')
+            plt.ylabel(f'{self.measures[measure][0]}')
+
             for idx_experiment, experiment in enumerate(self.experiments):
                 data = df_outer[df_outer['experiment'] == experiment]
 
@@ -186,15 +204,20 @@ class Analysis:
                 # if self.measures[measure][1] != -math.inf and self.measures[measure][2] != -math.inf:
                 #     ax.set_ylim(self.measures[measure][1], self.measures[measure][2])
 
-            plt.xlabel('')
-            plt.ylabel(f'{self.measures[measure][0]}')
-            #ax.legend()
-            plt.savefig(f'{self.path}/analysis/basic_plots/{measure}_line.png', bbox_inches='tight')
-            plt.clf()
-            plt.close(fig)
+                if not self.merge_lines:
+                    plt.savefig(f'{self.path}/analysis/basic_plots/line_{experiment}_{measure}.png', bbox_inches='tight')
+                    plt.clf()
+                    plt.close(fig)
+                    plt.rcParams.update(font)
+                    fig, ax = plt.subplots()
+
+            if self.merge_lines:
+                plt.savefig(f'{self.path}/analysis/basic_plots/line_{measure}.png', bbox_inches='tight')
+                plt.clf()
+                plt.close(fig)
 
     def plot_boxes(self, df_inner):
-
+        print('plotting boxes...')
         for gen_boxes in self.gens_boxes:
             df_inner2 = df_inner[df_inner['generation_index'] == gen_boxes]
             #self.min_max_inner(df_inner)
@@ -224,7 +247,7 @@ class Analysis:
                 #     plot.set_ylim(self.measures[measure][1], self.measures[measure][2])
                 plt.xlabel('')
                 plt.ylabel(f'{self.measures[measure][0]}')
-                plot.get_figure().savefig(f'{self.path}/analysis/basic_plots/{measure}_{gen_boxes}_box.png', bbox_inches='tight')
+                plot.get_figure().savefig(f'{self.path}/analysis/basic_plots/box_{measure}_{gen_boxes}.png', bbox_inches='tight')
                 plt.clf()
                 plt.close()
 
@@ -266,8 +289,8 @@ class Analysis:
 args = Config()._get_params()
 study = 'default_study'
 # make sure to provide experiments names in alphabetic order
-experiments = ['diversity2']
-runs = list(range(1, 21))
+experiments = ['speed', 'speebig', 'purespeebig']
+runs = list(range(1, 11))
 
 # TODO: break by environment
 analysis = Analysis(args, study, experiments, runs)

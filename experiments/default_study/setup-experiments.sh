@@ -4,9 +4,10 @@
 
 
 study="default_study"
-experiments=("speed")
+# DO NOT use _
+experiments=("purespeebig")
 fitness_measure="pool_dominated_individuals"
-runs=20
+runs=10
 num_generations="100"
 num_terminals=10
 
@@ -109,7 +110,7 @@ while true
 
     done
 
-    sleep 3600;
+    sleep 1800;
 
 done
 

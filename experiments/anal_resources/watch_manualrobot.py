@@ -45,47 +45,21 @@ async def main() -> None:
 
     body = Body()
 
-
     body.core.left = Brick(0.0)
     body.core.back = ActiveHinge(0)
-    body.core.back.attachment =ActiveHinge(0)
-
-
-    # body.core.front = ActiveHinge(math.pi / 2.0)
-    # body.core.front.attachment = Brick(0.0)
-    # body.core.front.attachment.front = Brick(0.0)
-    # body.core.front.attachment.front.left = Brick(0.0)
-    # body.core.front.attachment.front.left.front = Brick(0.0)
-    # body.core.front.attachment.front.left.front.left = Brick(0.0)
-    # body.core.front.attachment.front.left.front.left.right = ActiveHinge(math.pi / 2.0)
-    #
-    # body.core.left = ActiveHinge(math.pi / 2.0)
-    # body.core.left.attachment = Brick(0.0)
-    #
-    # body.core.right = ActiveHinge(math.pi / 2.0)
-    # body.core.right.attachment = Brick(0.0)
-    # body.core.right.attachment.right = Brick(0.0)
-    # body.core.right.attachment.right.front = Brick(0.0)
-    # body.core.right.attachment.right.front.front = Brick(0.0)
-    # body.core.right.attachment.right.front.front.left = Brick(0.0)
-    # body.core.right.attachment.right.front.front.right = Brick(0.0)
-    #
-    # body.core.back = Brick(0.0)
-
-
+    body.core.back.attachment = ActiveHinge(0)
+    body.core.front = ActiveHinge(math.pi / 2.0)
     body.finalize()
 
     brain = CpgRandom(rng)
     robot = ModularRobot(body, brain)
 
     render = Render()
-    # TODO: fix experiment name
-    img_path = f'data/test.png'
-    # create folders structure auto
+    img_path = f'data/manualrobot.png'
     render.render_robot(robot.body.core, img_path)
 
-    # sim = Simulator()
-    # await sim.simulate(robot, 10)
+    sim = Simulator()
+    await sim.simulate(robot, 10)
 
 
 if __name__ == "__main__":

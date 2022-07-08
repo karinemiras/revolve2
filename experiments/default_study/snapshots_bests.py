@@ -15,12 +15,14 @@ async def main() -> None:
     args = Config()._get_params()
 
     study = 'default_study'
-    experiments_name = ['diversity2']
-    runs = list(range(1, 21))
-    generations = [0, 100]
+    experiments_name = ['speebig', 'speed', 'purespeebig']
+    runs = list(range(1, 11))
+    generations = [100]
 
     for experiment_name in experiments_name:
+        print(experiment_name)
         for run in runs:
+            print(' run: ', run)
 
             path = f'/storage/karine/{study}/analysis/snapshots/{experiment_name}/run_{run}'
             if not os.path.exists(path):
@@ -29,6 +31,7 @@ async def main() -> None:
             db = open_async_database_sqlite(f'/storage/karine/{study}/{experiment_name}/run_{run}')
 
             for gen in generations:
+                print('  gen: ', gen)
                 path_gen = f'{path}/gen_{gen}'
                 if os.path.exists(path_gen):
                     print(f'{path_gen} already exists!')

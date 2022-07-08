@@ -37,7 +37,7 @@ class MeasureRelative:
 
     def _diversity(self, type='pop'):
 
-        # TODO: when type is pool (for novelty), lacking an arquive
+        # TODO: when type is pool (for novelty), lacking an archive
         # TODO: make which_measures a param
         which_measures = ['symmetry',
                           'proportion',
@@ -79,7 +79,7 @@ class MeasureRelative:
     def _pool_dominated_individuals(self):
 
         # TODO: make this a param in the exp manager
-        which_measures = ['relative_displacement_y',
+        which_measures = ['displacement_y',
                           'inverse_age']
 
         pool_dominated_individuals = 0
