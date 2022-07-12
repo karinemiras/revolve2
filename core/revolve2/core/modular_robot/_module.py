@@ -8,6 +8,8 @@ from ._not_finalized_error import NotFinalizedError
 class Module:
     _children: List[Optional[Module]]
     _rotation: float
+    # temp hack
+    _orientation: int
 
     # The following members are initialized by the ModularRobot finalize function:
     _id: Optional[int]

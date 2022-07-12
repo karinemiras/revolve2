@@ -22,7 +22,7 @@ def random_v1(
         multineat_params,
         output_activation_func,
         3,  # bias(always 1), pos_x, pos_y
-        4,  # brick, activehinge, rot0, rot90
+        3,  # brick, activehinge, rotation
         num_initial_mutations,
     )
 
@@ -32,6 +32,7 @@ class Develop:
     def __init__(self, max_modules, substrate_radius, genotype, querying_seed):
 
         self.max_modules = max_modules
+        self.quantity_modules = 0
         self.substrate_radius = substrate_radius
         self.genotype = genotype
         self.querying_seed = querying_seed
@@ -151,7 +152,7 @@ class Develop:
                 # if position in substrate is not already occupied
                 if potential_module_coord not in self.queried_substrate.keys():
 
-                    new_module = self.new_module(module_type, rotation)
+                    new_module = self.new_module(module_type, rotation, parent_module)
 
                     new_module.substrate_coordinates = potential_module_coord
 
@@ -189,13 +190,29 @@ class Develop:
         self.phenotype_body = Body()
         self.phenotype_body.core.turtle_direction = Core.FRONT
         orientation = 0
+        self.phenotype_body.core._id = self.quantity_modules
         self.phenotype_body.core._rotation = orientation * (math.pi / 2.0)
+        self.phenotype_body.core._orientation = 0
         self.phenotype_body.core.rgb = self.get_color(module_type, orientation)
         self.phenotype_body.core.substrate_coordinates = (0, 0)
         self.queried_substrate[(0, 0)] = self.phenotype_body.core
 
-    def new_module(self, module_type, orientation):
-        module = module_type(orientation * (math.pi / 2.0))
+    def new_module(self, module_type, orientation, parent_module):
+
+        rot = 0
+        if module_type == ActiveHinge and orientation == 1:
+            if type(parent_module) == ActiveHinge and parent_module._orientation == 1:
+                rot = 0
+            else:
+                rot = 1
+        else:
+            if type(parent_module) == ActiveHinge and parent_module._orientation == 1:
+                rot = 1
+
+        module = module_type(rot * (math.pi / 2.0))
+        self.quantity_modules += 1
+        module._id = str(self.quantity_modules)
+        module._orientation = orientation
         module.rgb = self.get_color(module_type, orientation)
         return module
     
@@ -217,10 +234,13 @@ class Develop:
 
         # get rotation from output probabilities
         if module_type is ActiveHinge:
-            rotation_probs = [outputs[2], outputs[3]]
-            rotation = rotation_probs.index(max(rotation_probs))
+            if outputs[2] <= 0:
+                rotation = 0
+            else:
+                rotation = 1
         else:
             rotation = 0
+
         return module_type, rotation
 
     def get_color(self, module_type, rotation):

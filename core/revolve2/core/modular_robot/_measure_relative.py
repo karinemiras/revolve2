@@ -63,7 +63,7 @@ class MeasureRelative:
             k = len(self._neighbours_measures)
         else:
             # TODO: make it a param
-            k = 10
+            k = len(self._neighbours_measures)#10
 
         # distances from neighbors
         distances, indexes = kdt.query([genotype_measures], k=k)
@@ -79,7 +79,7 @@ class MeasureRelative:
     def _pool_dominated_individuals(self):
 
         # TODO: make this a param in the exp manager
-        which_measures = ['displacement_y',
+        which_measures = ['speed_x',
                           'inverse_age']
 
         pool_dominated_individuals = 0

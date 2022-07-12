@@ -9,7 +9,7 @@ from pyrr import Quaternion, Vector3
 
 from revolve2.actor_controller import ActorController
 from revolve2.core.modular_robot import ActiveHinge, Body, Brick, ModularRobot
-from revolve2.core.modular_robot.brains import CpgRandom
+from revolve2.core.modular_robot.brains import BrainCpgNetworkNeighbourRandom
 from revolve2.core.physics.running import ActorControl, Batch, Environment, PosedActor
 from revolve2.runners.isaacgym import LocalRunner
 from revolve2.core.modular_robot.render.render import Render
@@ -28,7 +28,14 @@ class Simulator:
         actor, self._controller = robot.make_actor_and_controller()
 
         env = Environment()
-        env.actors.append(PosedActor(actor, Vector3([0.0, 0.0, 0.1]), Quaternion()))
+        env.actors.append(
+            PosedActor(
+                actor,
+                Vector3([0.0, 0.0, 0.1]),
+                Quaternion(),
+                [0.0 for _ in self._controller.get_dof_targets()],
+            )
+        )
         batch.environments.append(env)
 
         runner = LocalRunner(LocalRunner.SimParams())
@@ -43,15 +50,13 @@ async def main() -> None:
     rng = Random()
     rng.seed(5)
 
+    # set id is deactivated...will break...
     body = Body()
-
-    body.core.left = Brick(0.0)
     body.core.back = ActiveHinge(0)
-    body.core.back.attachment = ActiveHinge(0)
-    body.core.front = ActiveHinge(math.pi / 2.0)
+    # body.core.front = ActiveHinge(math.pi / 2.0)
     body.finalize()
 
-    brain = CpgRandom(rng)
+    brain = BrainCpgNetworkNeighbourRandom(rng)
     robot = ModularRobot(body, brain)
 
     render = Render()

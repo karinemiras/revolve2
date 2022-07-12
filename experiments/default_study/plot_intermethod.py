@@ -30,7 +30,7 @@ class Analysis:
         self.experiments = experiments
         self.inner_metrics = ['mean', 'max']
         self.runs = runs
-        self.include_max = True
+        self.include_max = False
         self.merge_lines = False
         self.final_gen = 100
         self.gens_boxes = [0, 100]

@@ -1,7 +1,7 @@
 from sqlalchemy.ext.asyncio.session import AsyncSession
 from revolve2.core.database import open_async_database_sqlite
 from sqlalchemy.future import select
-from revolve2.core.optimization.ea.generic_ea import DbEAOptimizerGeneration, DbEAOptimizerIndividual
+from revolve2.core.optimization.ea.generic_ea import DbEAOptimizerGeneration, DbEAOptimizerIndividual, DbEAOptimizer
 from revolve2.core.modular_robot.render.render import Render
 #TODO: make import based on param and move file to anal_resources
 from genotype import GenotypeSerializer, develop
@@ -15,9 +15,9 @@ async def main() -> None:
     args = Config()._get_params()
 
     study = 'default_study'
-    experiments_name = ['speebig', 'speed', 'purespeebig']
-    runs = list(range(1, 11))
-    generations = [100]
+    experiments_name = ['default_experiment'] # ['speed']
+    runs = [1] #list(range(1, 11))
+    generations = [1]
 
     for experiment_name in experiments_name:
         print(experiment_name)
@@ -39,6 +39,13 @@ async def main() -> None:
                     os.makedirs(path_gen)
 
                     async with AsyncSession(db) as session:
+
+                        rows = (
+                            (await session.execute(select(DbEAOptimizer))).all()
+                        )
+                        max_modules = rows[0].DbEAOptimizer.max_modules
+                        substrate_radius = rows[0].DbEAOptimizer.substrate_radius
+
                         rows = (
                             (await session.execute(select(DbEAOptimizerGeneration, DbEAOptimizerIndividual)
                                                    .filter(DbEAOptimizerGeneration.generation_index.in_([gen]))
@@ -50,13 +57,14 @@ async def main() -> None:
                         )
 
                         for idx, r in enumerate(rows):
+                            print('geno',r.DbEAOptimizerIndividual.genotype_id)
                             genotype = (
                                 await GenotypeSerializer.from_database(
                                     session, [r.DbEAOptimizerIndividual.genotype_id]
                                 )
                             )[0]
 
-                            phenotype = develop(genotype, genotype.mapping_seed, args.max_modules, args.substrate_radius)
+                            phenotype = develop(genotype, genotype.mapping_seed, max_modules, substrate_radius)
                             render = Render()
                             img_path = f'{path_gen}/{idx}_{r.DbEAOptimizerIndividual.individual_id}.png'
                             render.render_robot(phenotype.body.core, img_path)

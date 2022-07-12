@@ -4,9 +4,9 @@
 
 
 study="default_study"
-experiments=("purespeebig")
+experiments=("speed")
 runs=10
-num_generations="100"
+num_generations="200"
 
 
 # discover unfinished experiments

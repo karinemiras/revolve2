@@ -29,13 +29,12 @@ class Measure:
         self._measures = {}
 
         self._measures['birth'] = self._generation
-        self._displacement()
+        self._speed_x()
         self._head_balance()
 
         self._calculate_counts()
         self._modules_count()
-        self._measures['hinge_prop'] = self._measures['hinge_count'] / self._measures['modules_count']
-        self._measures['brick_prop'] = self._measures['brick_count'] / self._measures['modules_count']
+        self._props()
         self._branching_count()
         self._branching_prop()
         self._extremities_extensiveness(None, False, True)
@@ -47,37 +46,45 @@ class Measure:
         self._proportion()
         self._symmetry()
 
-        self._relative_displacement_xy()
+        self._relative_speed_x()
 
         return self._measures
 
+    def _props(self):
+        max_hinges = max(self._measures['hinge_horizontal'], self._measures['hinge_vertical'])
+        min_hinges = min(self._measures['hinge_horizontal'], self._measures['hinge_vertical'])
+        if max_hinges > 0 and min_hinges > 0:
+            self._measures['hinge_ratio'] = float(min_hinges/max_hinges)
+        else:
+            self._measures['hinge_ratio'] = 0
+
+        self._measures['hinge_prop'] = self._measures['hinge_count'] / self._measures['modules_count']
+        self._measures['brick_prop'] = self._measures['brick_count'] / self._measures['modules_count']
+
     # behavioral measures
     # TODO simulation can continue slightly passed the defined sim time.
-    def _displacement(self):
+    def _speed_x(self):
 
         if self._states is None:
-            self._measures['displacement_xy'] = -math.inf
-            self._measures['displacement_y'] = -math.inf
+            self._measures['speed_x'] = -math.inf
             self._measures['average_z'] = -math.inf
             return
 
         begin_state = self._states.environment_results[self._genotype_idx].environment_states[0].actor_states[0]
         end_state = self._states.environment_results[self._genotype_idx].environment_states[-1].actor_states[0]
+        instants = len(self._states.environment_results[self._genotype_idx].environment_states)
 
-        # distance traveled on the xy plane
-        self._measures['displacement_xy'] = float(
+        displacement = float(
             math.sqrt(
                 (begin_state.position[0] - end_state.position[0]) ** 2
                 + ((begin_state.position[1] - end_state.position[1]) ** 2)
-            )
-        )
-
-        # distance traveled on the y plane
-        self._measures['displacement_y'] = float(
-            math.sqrt(
-                 ((begin_state.position[1] - end_state.position[1]) ** 2)
-            )
-        )
+            ))
+        # TODO: check if outlier from pop avg
+        if displacement >= 10:
+            self._measures['speed_x'] = -math.inf
+        else:
+            # speed on the x plane
+            self._measures['speed_x'] = float((begin_state.position[1]-end_state.position[1])/instants)
 
         # average z
         z = 0
@@ -86,8 +93,8 @@ class Measure:
         z /= len(self._states.environment_results[self._genotype_idx].environment_states)
         self._measures['average_z'] = float(z)
 
-    def _relative_displacement_xy(self):
-        self._measures['relative_displacement_y'] = self._measures['displacement_y']/self._measures['modules_count']
+    def _relative_speed_x(self):
+        self._measures['relative_speed_x'] = self._measures['speed_x']/self._measures['modules_count']
 
     def _get_orientations(self):
         for idx_state in range(0, len(self._states.environment_results[self._genotype_idx].environment_states)):
@@ -135,14 +142,22 @@ class Measure:
         """
         Count amount of modules for each distinct type
         """
+
         if init:
             self._measures['hinge_count'] = 0
             self._measures['brick_count'] = 0
+            self._measures['hinge_ratio'] = 0
+            self._measures['hinge_horizontal'] = 0
+            self._measures['hinge_vertical'] = 0
 
         if module is None:
             module = self._phenotype_body.core
         elif isinstance(module, ActiveHinge):
             self._measures['hinge_count'] += 1
+            if module._orientation == 0:
+                self._measures['hinge_horizontal'] += 1
+            else:
+                self._measures['hinge_vertical'] += 1
         elif isinstance(module, Brick):
             self._measures['brick_count'] += 1
 

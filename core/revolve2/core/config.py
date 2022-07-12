@@ -41,7 +41,7 @@ class Config():
         parser.add_argument(
             "--max_modules",
             required=False,
-            default=50, #15
+            default=30,
             type=int,
             help="",
         )
@@ -49,7 +49,7 @@ class Config():
         parser.add_argument(
             "--substrate_radius",
             required=False,
-            default=15, #5
+            default=15,
             type=int,
             help="",
         )
@@ -95,7 +95,7 @@ class Config():
         parser.add_argument(
             "--control_frequency",
             required=False,
-            default=5,
+            default=60,
             type=int,
         )
 
@@ -116,7 +116,7 @@ class Config():
         parser.add_argument(
             "--num_generations",
             required=False,
-            default=100,
+            default=200,
             type=int,
         )
 
