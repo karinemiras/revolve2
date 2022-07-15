@@ -16,6 +16,7 @@ from optimizer import DbOptimizerState
 import sys
 from revolve2.core.modular_robot.render.render import Render
 from revolve2.core.modular_robot import Measure
+from revolve2.core.database.serializers import DbFloat
 import pprint
 
 if sys.platform == "linux" or sys.platform == "linux2":
@@ -23,16 +24,16 @@ if sys.platform == "linux" or sys.platform == "linux2":
 else:
     from revolve2.runners.mujoco import LocalRunner
 
-
+# run 4/106 has rotation
 class Simulator:
     _controller: ActorController
 
     async def simulate(self) -> None:
 
         study = 'default_study'
-        experiments_name = ['default_experiment'] #['speed']
-        runs = [1]#list(range(1, 11))
-        generations = [1]#[200]
+        experiments_name = ['speed']
+        runs = [1]#list(range(1, 20+1))
+        generations = [4]#[200]
         bests = 1
 
         for experiment_name in experiments_name:
@@ -63,20 +64,23 @@ class Simulator:
                         )
                         sampling_frequency = rows[0].DbOptimizerState.sampling_frequency
                         control_frequency = rows[0].DbOptimizerState.control_frequency
+                        simulation_time = rows[0].DbOptimizerState.simulation_time
 
                         rows = (
-                            (await session.execute(select(DbEAOptimizerGeneration, DbEAOptimizerIndividual)
+                            (await session.execute(select(DbEAOptimizerGeneration, DbEAOptimizerIndividual, DbFloat)
                                                    .filter(DbEAOptimizerGeneration.generation_index.in_([gen]))
                                                    .filter(
-                                DbEAOptimizerGeneration.individual_id == DbEAOptimizerIndividual.individual_id)
-                                                   .order_by(
-                                DbEAOptimizerGeneration.pool_dominated_individuals.desc())
-
+                                (DbEAOptimizerGeneration.individual_id == DbEAOptimizerIndividual.individual_id)
+                                & (DbFloat.id == DbEAOptimizerIndividual.float_id) )
+                                                   .order_by( DbFloat.speed_x.desc())
                                                    )).all()
                         )
 
                         for idx, r in enumerate(rows[0:bests]):
-                            print(f'\n rank:{idx} id:{r.DbEAOptimizerIndividual.individual_id} dom:{r.DbEAOptimizerGeneration.pool_dominated_individuals}')
+                            print(f'\n rank:{idx} id:{r.DbEAOptimizerIndividual.individual_id} ' \
+                                  f'dom:{r.DbEAOptimizerGeneration.pool_dominated_individuals}' \
+                                  f'disp:{r.DbFloat.speed_x}' \
+                                  )
                             genotype = (
                                 await GenotypeSerializer.from_database(
                                     session, [r.DbEAOptimizerIndividual.genotype_id]
@@ -101,7 +105,7 @@ class Simulator:
                             )
                             # TODO : make a loop?
                             batch = Batch(
-                                simulation_time=100000,
+                                simulation_time=30,
                                 sampling_frequency=sampling_frequency,
                                 control_frequency=control_frequency,
                                 control=self._control,
@@ -114,7 +118,7 @@ class Simulator:
                             states = await runner.run_batch(batch)
 
                             m = Measure(states=states, genotype_idx=0, phenotype=phenotype,
-                                        generation=0)
+                                        generation=0, simulation_time=simulation_time)
                             pprint.pprint(m.measure_all_non_relative())
 
     if sys.platform == "linux" or sys.platform == "linux2":

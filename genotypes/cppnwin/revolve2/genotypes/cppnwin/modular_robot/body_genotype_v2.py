@@ -22,7 +22,7 @@ def random_v1(
         multineat_params,
         output_activation_func,
         3,  # bias(always 1), pos_x, pos_y
-        3,  # brick, activehinge, rotation
+        4,  # brick, activehinge, rot0, rot90
         num_initial_mutations,
     )
 
@@ -199,20 +199,26 @@ class Develop:
 
     def new_module(self, module_type, orientation, parent_module):
 
-        rot = 0
+        # calculates _absolute_rotation
+        absolute_rotation = 0
         if module_type == ActiveHinge and orientation == 1:
-            if type(parent_module) == ActiveHinge and parent_module._orientation == 1:
-                rot = 0
+            if type(parent_module) == ActiveHinge and parent_module._absolute_rotation == 1:
+                absolute_rotation = 0
             else:
-                rot = 1
+                absolute_rotation = 1
         else:
-            if type(parent_module) == ActiveHinge and parent_module._orientation == 1:
-                rot = 1
+            if type(parent_module) == ActiveHinge and parent_module._absolute_rotation == 1:
+                absolute_rotation = 1
 
-        module = module_type(rot * (math.pi / 2.0))
+        # makes sure it wont rotate bricks, so to prevent 3d shapes
+        if module_type == Brick and type(parent_module) == ActiveHinge and parent_module._absolute_rotation == 1:
+            # inverts it no absolute rotation
+            orientation = 1
+
+        module = module_type(orientation * (math.pi / 2.0))
         self.quantity_modules += 1
         module._id = str(self.quantity_modules)
-        module._orientation = orientation
+        module._absolute_rotation = absolute_rotation
         module.rgb = self.get_color(module_type, orientation)
         return module
     
@@ -234,10 +240,8 @@ class Develop:
 
         # get rotation from output probabilities
         if module_type is ActiveHinge:
-            if outputs[2] <= 0:
-                rotation = 0
-            else:
-                rotation = 1
+            rotation_probs = [outputs[2], outputs[3]]
+            rotation = rotation_probs.index(max(rotation_probs))
         else:
             rotation = 0
 

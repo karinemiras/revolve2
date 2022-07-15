@@ -44,6 +44,7 @@ class MeasureRelative:
                           'coverage',
                           'extremities_prop',
                           'hinge_prop',
+                          'hinge_ratio',
                           'branching_prop']
 
         genotype_measures = []
@@ -63,7 +64,7 @@ class MeasureRelative:
             k = len(self._neighbours_measures)
         else:
             # TODO: make it a param
-            k = len(self._neighbours_measures)#10
+            k = 10
 
         # distances from neighbors
         distances, indexes = kdt.query([genotype_measures], k=k)

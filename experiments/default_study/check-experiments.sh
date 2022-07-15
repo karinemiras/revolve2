@@ -5,7 +5,7 @@
 
 study="default_study"
 experiments=("speed")
-runs=10
+runs=20
 num_generations="200"
 
 

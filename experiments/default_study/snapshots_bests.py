@@ -6,6 +6,7 @@ from revolve2.core.modular_robot.render.render import Render
 #TODO: make import based on param and move file to anal_resources
 from genotype import GenotypeSerializer, develop
 from revolve2.core.config import Config
+from revolve2.core.database.serializers import DbFloat
 
 import os
 
@@ -15,9 +16,9 @@ async def main() -> None:
     args = Config()._get_params()
 
     study = 'default_study'
-    experiments_name = ['default_experiment'] # ['speed']
-    runs = [1] #list(range(1, 11))
-    generations = [1]
+    experiments_name = ['speed']
+    runs = [1]#list(range(1, 20+1))
+    generations = [4]#[200]
 
     for experiment_name in experiments_name:
         print(experiment_name)
@@ -47,17 +48,19 @@ async def main() -> None:
                         substrate_radius = rows[0].DbEAOptimizer.substrate_radius
 
                         rows = (
-                            (await session.execute(select(DbEAOptimizerGeneration, DbEAOptimizerIndividual)
+                            (await session.execute(select(DbEAOptimizerGeneration, DbEAOptimizerIndividual, DbFloat)
                                                    .filter(DbEAOptimizerGeneration.generation_index.in_([gen]))
-                                                   .filter(DbEAOptimizerGeneration.individual_id == DbEAOptimizerIndividual.individual_id)
-                                                   .order_by(DbEAOptimizerGeneration.pool_dominated_individuals.desc())
+                                                   .filter((DbEAOptimizerGeneration.individual_id == DbEAOptimizerIndividual.individual_id)
+                                                           & (DbFloat.id == DbEAOptimizerIndividual.float_id)
+                                                           )
+                                                   .order_by(DbFloat.speed_x.desc())
 
 
                             )).all()
                         )
 
                         for idx, r in enumerate(rows):
-                            print('geno',r.DbEAOptimizerIndividual.genotype_id)
+                            #print('geno',r.DbEAOptimizerIndividual.genotype_id)
                             genotype = (
                                 await GenotypeSerializer.from_database(
                                     session, [r.DbEAOptimizerIndividual.genotype_id]

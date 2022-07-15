@@ -30,11 +30,11 @@ class Analysis:
         self.experiments = experiments
         self.inner_metrics = ['mean', 'max']
         self.runs = runs
-        self.include_max = False
-        self.merge_lines = False
-        self.final_gen = 100
-        self.gens_boxes = [0, 100]
-        self.clrs = ['#336600', '#990000', '#009900']
+        self.include_max = True
+        self.merge_lines = True
+        self.final_gen = 200
+        self.gens_boxes = [200]
+        self.clrs = ['#336600', '#990000', '#009900','#000099']
         self.path = f'/storage/karine/{study}'
 
         self.measures = {
@@ -43,15 +43,16 @@ class Analysis:
             'pool_dominated_individuals': ['Dominated individuals', 0, 1],
             'pool_fulldominated_individuals': ['Fully dominated individuals', 0, 1],
             'age': ['Age', 0, 1],
-            'displacement_xy': ['Displacement (cm/s)', 0, 1],
-            'displacement_y': ['Displacement y  (cm/s)', 0, 1],
-            'relative_displacement_y': ['Relative displacement y  (cm/s)', 0, 1],
+            'speed_x': ['Speed (ms)', 0, 1],
+            'relative_speed_x': ['Relative speed (ms)', 0, 1],
+            'displacement': ['Total displacement', 0, 1],
             'average_z': ['Z', 0, 1],
             'head_balance': ['Balance', 0, 1],
             'modules_count': ['Modules count', 0, 1],
             'hinge_count': ['Hinge count', 0, 1],
             'brick_count': ['Brick count', 0, 1],
             'hinge_prop': ['Hinge prop', 0, 1],
+            'hinge_ratio': ['Hinge ratio', 0, 1],
             'brick_prop': ['Brick prop', 0, 1],
             'branching_count': ['Branching count', 0, 1],
             'branching_prop': ['Branching prop', 0, 1],
@@ -76,6 +77,7 @@ class Analysis:
         all_df = None
         for experiment in self.experiments:
             for run in self.runs:
+                print(experiment, run)
                 db = open_database_sqlite(f'{self.path}/{experiment}/run_{run}')
 
                 # read the optimizer data into a pandas dataframe
@@ -101,10 +103,6 @@ class Analysis:
                     all_df = pandas.concat([all_df, df], axis=0)
 
         all_df = all_df[all_df['generation_index'] <= self.final_gen]
-
-        for column in all_df:
-            if 'displacement' in column:
-                all_df[column] = all_df[column] * 100
 
         keys = ['experiment', 'run', 'generation_index']
 
@@ -154,6 +152,8 @@ class Analysis:
 
         df_inner.to_csv(f'{self.path}/analysis/df_inner.csv', index=True)
         df_outer.to_csv(f'{self.path}/analysis/df_outer.csv', index=True)
+
+        print('consolidated!')
 
     def q25(self, x):
         return x.quantile(0.25)
@@ -216,6 +216,8 @@ class Analysis:
                 plt.clf()
                 plt.close(fig)
 
+        print('plotted lines!')
+
     def plot_boxes(self, df_inner):
         print('plotting boxes...')
         for gen_boxes in self.gens_boxes:
@@ -250,6 +252,8 @@ class Analysis:
                 plot.get_figure().savefig(f'{self.path}/analysis/basic_plots/box_{measure}_{gen_boxes}.png', bbox_inches='tight')
                 plt.clf()
                 plt.close()
+
+        print('plotted boxes!')
 
     # def min_max_outer(self, df):
     #     if not self.include_max:
@@ -289,12 +293,12 @@ class Analysis:
 args = Config()._get_params()
 study = 'default_study'
 # make sure to provide experiments names in alphabetic order
-experiments = ['speed', 'speebig', 'purespeebig']
-runs = list(range(1, 11))
+experiments = ['speed']
+runs = [1]#list(range(1, 20+1))
 
 # TODO: break by environment
 analysis = Analysis(args, study, experiments, runs)
-#analysis.consolidate()
+analysis.consolidate()
 analysis.plots()
 
 

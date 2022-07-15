@@ -7,9 +7,11 @@ study="default_study"
 # DO NOT use _
 experiments=("speed")
 fitness_measure="pool_dominated_individuals"
-runs=10
+runs=20
 num_generations="200"
-num_terminals=10
+
+# recommended max 15
+num_terminals=15
 
 mkdir data/${study}
 

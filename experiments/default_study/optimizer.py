@@ -297,7 +297,8 @@ class Optimizer(EAOptimizer[Genotype, float]):
 
         measures_genotypes = []
         for i, phenotype in enumerate(phenotypes):
-            m = Measure(states=states, genotype_idx=i, phenotype=phenotype, generation=self.generation_index)
+            m = Measure(states=states, genotype_idx=i, phenotype=phenotype,\
+                        generation=self.generation_index, simulation_time=self._simulation_time)
             measures_genotypes.append(m.measure_all_non_relative())
 
         states_genotypes = []

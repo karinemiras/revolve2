@@ -7,9 +7,10 @@ from ._not_finalized_error import NotFinalizedError
 
 class Module:
     _children: List[Optional[Module]]
+    # the rotation relative to the parent
     _rotation: float
-    # temp hack
-    _orientation: int
+    # the rotation regarding the ground: for differentiating horizontal or vertical joints
+    _absolute_rotation: int
 
     # The following members are initialized by the ModularRobot finalize function:
     _id: Optional[int]

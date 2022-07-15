@@ -8,9 +8,9 @@ import numpy as np
 async def main() -> None:
 
     study = 'default_study'
-    experiments_name = ['speed', 'speebig', 'purespeebig']
+    experiments_name = ['speed']
     runs = list(range(1, 11))
-    generations = [100]
+    generations = [200]
     bests = 5
     path_out = f'/storage/karine/{study}/analysis/snapshots'
 

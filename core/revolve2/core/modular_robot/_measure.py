@@ -16,12 +16,13 @@ class Measure:
 
     _states: List[Tuple[float, ActorState]]
 
-    def __init__(self, states=None, genotype_idx=-1, phenotype=None, generation=None):
+    def __init__(self, states=None, genotype_idx=-1, phenotype=None, generation=None, simulation_time=None):
         self._states = states
         self._genotype_idx = genotype_idx
         self._phenotype_body = phenotype.body
         self._phenotype_brain = phenotype.brain
         self._generation = generation
+        self._simulation_time = simulation_time
         self._orientations = []
 
     def measure_all_non_relative(self):
@@ -29,7 +30,7 @@ class Measure:
         self._measures = {}
 
         self._measures['birth'] = self._generation
-        self._speed_x()
+        self._displacement()
         self._head_balance()
 
         self._calculate_counts()
@@ -63,7 +64,7 @@ class Measure:
 
     # behavioral measures
     # TODO simulation can continue slightly passed the defined sim time.
-    def _speed_x(self):
+    def _displacement(self):
 
         if self._states is None:
             self._measures['speed_x'] = -math.inf
@@ -72,19 +73,22 @@ class Measure:
 
         begin_state = self._states.environment_results[self._genotype_idx].environment_states[0].actor_states[0]
         end_state = self._states.environment_results[self._genotype_idx].environment_states[-1].actor_states[0]
-        instants = len(self._states.environment_results[self._genotype_idx].environment_states)
 
         displacement = float(
             math.sqrt(
                 (begin_state.position[0] - end_state.position[0]) ** 2
                 + ((begin_state.position[1] - end_state.position[1]) ** 2)
             ))
+
+        self._measures['displacement'] = displacement
+
         # TODO: check if outlier from pop avg
         if displacement >= 10:
             self._measures['speed_x'] = -math.inf
         else:
-            # speed on the x plane
-            self._measures['speed_x'] = float((begin_state.position[1]-end_state.position[1])/instants)
+            # speed on the x plane (to the right)
+            displacement_x = float((end_state.position[0]-begin_state.position[0])*-1)
+            self._measures['speed_x'] = float((displacement_x/self._simulation_time)*100)
 
         # average z
         z = 0
@@ -154,7 +158,7 @@ class Measure:
             module = self._phenotype_body.core
         elif isinstance(module, ActiveHinge):
             self._measures['hinge_count'] += 1
-            if module._orientation == 0:
+            if module._absolute_rotation == 0:
                 self._measures['hinge_horizontal'] += 1
             else:
                 self._measures['hinge_vertical'] += 1
