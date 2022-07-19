@@ -552,7 +552,7 @@ class EAOptimizer(Process, Generic[Genotype, Measure]):
 
     def _pool_and_time_relative_measures(self, pool_individuals, pool_measures):
 
-        # interdependent measures must be calculated sequentially (for after for)
+        # populationall-interdependent measures must be calculated sequentially (for after for)
         for i in range(len(pool_individuals)):
             pool_measures[i] = MeasureRelative(genotype_measures=pool_measures[i],
                                                neighbours_measures=pool_measures).\
@@ -560,6 +560,7 @@ class EAOptimizer(Process, Generic[Genotype, Measure]):
 
             pool_measures[i] = MeasureRelative(genotype_measures=pool_measures[i],
                                                neighbours_measures=pool_measures)._diversity('pool')
+
         for i in range(len(pool_individuals)):
             pool_measures[i] = MeasureRelative(genotype_measures=pool_measures[i],
                                                neighbours_measures=pool_measures)._pool_dominated_individuals()

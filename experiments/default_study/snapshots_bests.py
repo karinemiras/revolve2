@@ -5,7 +5,6 @@ from revolve2.core.optimization.ea.generic_ea import DbEAOptimizerGeneration, Db
 from revolve2.core.modular_robot.render.render import Render
 #TODO: make import based on param and move file to anal_resources
 from genotype import GenotypeSerializer, develop
-from revolve2.core.config import Config
 from revolve2.core.database.serializers import DbFloat
 
 import os
@@ -13,12 +12,10 @@ import os
 
 async def main() -> None:
 
-    args = Config()._get_params()
-
     study = 'default_study'
-    experiments_name = ['speed']
-    runs = [1]#list(range(1, 20+1))
-    generations = [4]#[200]
+    experiments_name = ['speed', 'purespeed']
+    runs = list(range(1, 20+1))
+    generations = [200]
 
     for experiment_name in experiments_name:
         print(experiment_name)

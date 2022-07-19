@@ -8,14 +8,14 @@ import numpy as np
 async def main() -> None:
 
     study = 'default_study'
-    experiments_name = ['speed']
-    runs = list(range(1, 11))
+    experiments_name = ['speed', 'purespeed']
+    runs = list(range(2, 20+1))
     generations = [200]
     bests = 5
     path_out = f'/storage/karine/{study}/analysis/snapshots'
 
     for gen in generations:
-        # TODO: change balck backgound
+        # TODO: change black background to white
         for experiment_name in experiments_name:
             horizontal = []
             print(experiment_name)
@@ -30,24 +30,24 @@ async def main() -> None:
                 lst = os.listdir(path_in)
                 lst = lst[0:bests]
                 print(lst)
-                for_contacts = [cv2.imread(f'{path_in}/{robot}') for robot in lst]
-                heights = [o.shape[0] for o in for_contacts]
+                for_concats = [cv2.imread(f'{path_in}/{robot}') for robot in lst]
+                heights = [o.shape[0] for o in for_concats]
                 max_height = max(heights)
                 margin = 20
 
-                for idx, c in enumerate(for_contacts):
-                    if for_contacts[idx].shape[0] < max_height:
-                        bottom = max_height - for_contacts[idx].shape[0] + margin
+                for idx, c in enumerate(for_concats):
+                    if for_concats[idx].shape[0] < max_height:
+                        bottom = max_height - for_concats[idx].shape[0] + margin
                     else:
                         bottom = margin
 
-                    for_contacts[idx] = cv2.copyMakeBorder(for_contacts[idx], margin, math.ceil(bottom), margin,\
+                    for_concats[idx] = cv2.copyMakeBorder(for_concats[idx], margin, math.ceil(bottom), margin,\
                                                            margin, cv2.BORDER_CONSTANT, None, value=[0, 0, 0]) #value=[255, 255, 255])
-                    #for_contacts[idx][np.where((for_contacts[idx] == [0, 0, 0]).all(axis=2))] = [255, 255, 255]
+                    #for_concats[idx][np.where((for_concats[idx] == [0, 0, 0]).all(axis=2))] = [255, 255, 255]
 
-                contacts = cv2.hconcat(for_contacts)
-                horizontal.append(contacts)
-                #contacts[np.where((contacts == [0, 0, 0]).all(axis=2))] = [255, 255, 255]
+                concats = cv2.hconcat(for_concats)
+                horizontal.append(concats)
+                #concats[np.where((concats == [0, 0, 0]).all(axis=2))] = [255, 255, 255]
 
             widths = [o.shape[1] for o in horizontal]
 
@@ -65,7 +65,7 @@ async def main() -> None:
             vertical = cv2.vconcat(horizontal)
             #vertical[np.where((vertical == [0, 0, 0]).all(axis=2))] = [255, 255, 255]
             
-            cv2.imwrite(f'{path_out}/{experiment_name}.png', vertical)
+            cv2.imwrite(f'{path_out}/bests_{experiment_name}_{gen}.png', vertical)
 
 
 if __name__ == "__main__":

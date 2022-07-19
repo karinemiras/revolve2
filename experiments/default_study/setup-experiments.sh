@@ -5,8 +5,8 @@
 
 study="default_study"
 # DO NOT use _
-experiments=("speed")
-fitness_measure="pool_dominated_individuals"
+experiments=("speed_diversity")
+fitness_measure="speed_diversity"
 runs=20
 num_generations="200"
 

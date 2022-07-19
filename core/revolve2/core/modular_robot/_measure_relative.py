@@ -72,6 +72,13 @@ class MeasureRelative:
 
         self._genotype_measures[f'{type}_diversity'] = diversity
 
+        #TEMP?! or save in db
+        if type == 'pool':
+            if self._genotype_measures['speed_x'] > 0:
+                self._genotype_measures['speed_diversity'] = self._genotype_measures['speed_x'] * diversity
+            else:
+                self._genotype_measures['speed_diversity'] = self._genotype_measures['speed_x'] / diversity
+
         return self._genotype_measures
 
     # counts how many individuals of the current pool this individual dominates

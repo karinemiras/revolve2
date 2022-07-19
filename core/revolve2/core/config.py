@@ -77,6 +77,7 @@ class Config():
             type=int,
         )
 
+        # number of samples per sec from batch (snapshots of sim)
         parser.add_argument(
             "--sampling_frequency",
             required=False,
@@ -95,7 +96,7 @@ class Config():
         parser.add_argument(
             "--control_frequency",
             required=False,
-            default=5,
+            default=5, #60
             type=int,
         )
 

@@ -43,9 +43,9 @@ class Analysis:
             'pool_dominated_individuals': ['Dominated individuals', 0, 1],
             'pool_fulldominated_individuals': ['Fully dominated individuals', 0, 1],
             'age': ['Age', 0, 1],
-            'speed_x': ['Speed (ms)', 0, 1],
-            'relative_speed_x': ['Relative speed (ms)', 0, 1],
-            'displacement': ['Total displacement', 0, 1],
+            'speed_x': ['Speed (cm/s)', 0, 1],
+            'relative_speed_x': ['Relative speed (cm/s)', 0, 1],
+            'displacement': ['Total displacement (m)', 0, 1],
             'average_z': ['Z', 0, 1],
             'head_balance': ['Balance', 0, 1],
             'modules_count': ['Modules count', 0, 1],
@@ -167,7 +167,7 @@ class Analysis:
         df_outer = pandas.read_csv(f'{self.path}/analysis/df_outer.csv')
 
         self.plot_lines(df_outer)
-        self.plot_boxes(df_inner)
+        #self.plot_boxes(df_inner)
 
     def plot_lines(self, df_outer):
 
@@ -293,12 +293,12 @@ class Analysis:
 args = Config()._get_params()
 study = 'default_study'
 # make sure to provide experiments names in alphabetic order
-experiments = ['speed']
-runs = [1]#list(range(1, 20+1))
+experiments = ['purespeed', 'speed']
+runs = list(range(2, 20+1))
 
 # TODO: break by environment
 analysis = Analysis(args, study, experiments, runs)
-analysis.consolidate()
+#analysis.consolidate()
 analysis.plots()
 
 

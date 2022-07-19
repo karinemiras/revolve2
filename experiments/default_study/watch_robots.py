@@ -24,102 +24,115 @@ if sys.platform == "linux" or sys.platform == "linux2":
 else:
     from revolve2.runners.mujoco import LocalRunner
 
-# run 4/106 has rotation
+
 class Simulator:
     _controller: ActorController
 
     async def simulate(self) -> None:
 
-        study = 'default_study'
-        experiments_name = ['speed']
-        runs = [1]#list(range(1, 20+1))
-        generations = [4]#[200]
-        bests = 1
+        self.study = 'default_study'
+        self.experiments_name = ['purespeed']
+        self.runs = [7]#list(range(1, 20+1))
+        self.generations = [200]
+        self.bests = 1
+        # 'all' or 'gens': all selects best from the whole experiment and gens from chosen generations
+        self.bests_type = 'all'
 
-        for experiment_name in experiments_name:
+        for experiment_name in self.experiments_name:
             print('\n', experiment_name)
-            for run in runs:
+            for run in self.runs:
                 print('\n run: ', run)
 
                 if sys.platform == "linux" or sys.platform == "linux2":
-                    path = f'/storage/karine/{study}'
+                    path = f'/storage/karine/{self.study}'
                 else:
-                    path = f'/Users/karinemiras/Documents/storage_ripper2/{study}'
+                    path = f'/Users/karinemiras/Documents/storage_ripper2/{self.study}'
 
                 db = open_async_database_sqlite(f'{path}/{experiment_name}/run_{run}')
 
-                for gen in generations:
-                    print('  gen: ', gen)
+                if self.bests_type == 'gens':
+                    for gen in self.generations:
+                        print('  gen: ', gen, path)
+                        await self.recover(db, gen)
+                else:
+                    print('  within all gens')
+                    await self.recover(db, -1, path)
 
-                    async with AsyncSession(db) as session:
+    async def recover(self, db, gen, path):
+        async with AsyncSession(db) as session:
 
-                        rows = (
-                            (await session.execute(select(DbEAOptimizer))).all()
-                        )
-                        max_modules = rows[0].DbEAOptimizer.max_modules
-                        substrate_radius = rows[0].DbEAOptimizer.substrate_radius
+            rows = (
+                (await session.execute(select(DbEAOptimizer))).all()
+            )
+            max_modules = rows[0].DbEAOptimizer.max_modules
+            substrate_radius = rows[0].DbEAOptimizer.substrate_radius
 
-                        rows = (
-                            (await session.execute(select(DbOptimizerState))).all()
-                        )
-                        sampling_frequency = rows[0].DbOptimizerState.sampling_frequency
-                        control_frequency = rows[0].DbOptimizerState.control_frequency
-                        simulation_time = rows[0].DbOptimizerState.simulation_time
+            rows = (
+                (await session.execute(select(DbOptimizerState))).all()
+            )
+            sampling_frequency = rows[0].DbOptimizerState.sampling_frequency
+            control_frequency = rows[0].DbOptimizerState.control_frequency
+            simulation_time = rows[0].DbOptimizerState.simulation_time
 
-                        rows = (
-                            (await session.execute(select(DbEAOptimizerGeneration, DbEAOptimizerIndividual, DbFloat)
-                                                   .filter(DbEAOptimizerGeneration.generation_index.in_([gen]))
-                                                   .filter(
-                                (DbEAOptimizerGeneration.individual_id == DbEAOptimizerIndividual.individual_id)
-                                & (DbFloat.id == DbEAOptimizerIndividual.float_id) )
-                                                   .order_by( DbFloat.speed_x.desc())
-                                                   )).all()
-                        )
+            # TODO: make code more reusable...
+            if gen == -1:
+                rows = ((await session.execute(select(DbEAOptimizerGeneration, DbEAOptimizerIndividual, DbFloat)
+                                           .filter( (DbEAOptimizerGeneration.individual_id == DbEAOptimizerIndividual.individual_id)
+                                                & (DbFloat.id == DbEAOptimizerIndividual.float_id))
+                                           .order_by( DbFloat.speed_x.desc())
+                                           )).all())
+            else:
+                rows = ((await session.execute(select(DbEAOptimizerGeneration, DbEAOptimizerIndividual, DbFloat)
+                                           .filter(DbEAOptimizerGeneration.generation_index.in_([gen]))
+                                           .filter( (DbEAOptimizerGeneration.individual_id == DbEAOptimizerIndividual.individual_id)
+                                                & (DbFloat.id == DbEAOptimizerIndividual.float_id))
+                                           .order_by( DbFloat.speed_x.desc())
+                                           )).all())
 
-                        for idx, r in enumerate(rows[0:bests]):
-                            print(f'\n rank:{idx} id:{r.DbEAOptimizerIndividual.individual_id} ' \
-                                  f'dom:{r.DbEAOptimizerGeneration.pool_dominated_individuals}' \
-                                  f'disp:{r.DbFloat.speed_x}' \
-                                  )
-                            genotype = (
-                                await GenotypeSerializer.from_database(
-                                    session, [r.DbEAOptimizerIndividual.genotype_id]
-                                )
-                            )[0]
+            for idx, r in enumerate(rows[0:self.bests]):
+                print(f'\n    rank:{idx} id:{r.DbEAOptimizerIndividual.individual_id} ' \
+                      f' birth:{r.DbFloat.birth} ' \
+                      f' speed:{r.DbFloat.speed_x}' \
+                      )
+                genotype = (
+                    await GenotypeSerializer.from_database(
+                        session, [r.DbEAOptimizerIndividual.genotype_id]
+                    )
+                )[0]
 
-                            phenotype = develop(genotype, genotype.mapping_seed, max_modules, substrate_radius)
-                            render = Render()
-                            img_path = f'currentinsim.png'
-                            render.render_robot(phenotype.body.core, img_path)
+                phenotype = develop(genotype, genotype.mapping_seed, max_modules, substrate_radius)
+                render = Render()
+                img_path = f'{path}/analysis/currentinsim.png'
+                render.render_robot(phenotype.body.core, img_path)
 
-                            actor, self._controller = phenotype.make_actor_and_controller()
+                actor, self._controller = phenotype.make_actor_and_controller()
 
-                            env = Environment()
-                            env.actors.append(
-                                PosedActor(
-                                    actor,
-                                    Vector3([0.0, 0.0, 0.1]),
-                                    Quaternion(),
-                                    [0.0 for _ in self._controller.get_dof_targets()],
-                                )
-                            )
-                            # TODO : make a loop?
-                            batch = Batch(
-                                simulation_time=30,
-                                sampling_frequency=sampling_frequency,
-                                control_frequency=control_frequency,
-                                control=self._control,
-                            )
-                            batch.environments.append(env)
-                            if sys.platform == "linux" or sys.platform == "linux2":
-                                runner = LocalRunner(LocalRunner.SimParams())
-                            else:
-                                runner = LocalRunner()
-                            states = await runner.run_batch(batch)
+                env = Environment()
+                env.actors.append(
+                    PosedActor(
+                        actor,
+                        Vector3([0.0, 0.0, 0.1]),
+                        Quaternion(),
+                        [0.0 for _ in self._controller.get_dof_targets()],
+                    )
+                )
 
-                            m = Measure(states=states, genotype_idx=0, phenotype=phenotype,
-                                        generation=0, simulation_time=simulation_time)
-                            pprint.pprint(m.measure_all_non_relative())
+                batch = Batch(
+                    simulation_time=30,
+                    sampling_frequency=sampling_frequency,
+                    control_frequency=control_frequency,
+                    control=self._control,
+                )
+                batch.environments.append(env)
+                if sys.platform == "linux" or sys.platform == "linux2":
+                    runner = LocalRunner(LocalRunner.SimParams())
+                else:
+                    runner = LocalRunner()
+                states = await runner.run_batch(batch)
+
+                m = Measure(states=states, genotype_idx=0, phenotype=phenotype,
+                            generation=0, simulation_time=simulation_time)
+                pprint.pprint(m.measure_all_non_relative())
 
     if sys.platform == "linux" or sys.platform == "linux2":
         def _control(self, dt: float, control: ActorControl) -> None:
