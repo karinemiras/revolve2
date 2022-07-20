@@ -22,8 +22,8 @@ class MeasureRelative:
         # persisted it in the future?
         relative_measures = ['pop_diversity',
                              'pool_diversity',
-                             'pool_dominated_individuals',
-                             'pool_fulldominated_individuals',
+                             'dominated_quality_youth',
+                             'fullydominated_quality_youth',
                              'age',
                              'inverse_age']
 
@@ -72,12 +72,11 @@ class MeasureRelative:
 
         self._genotype_measures[f'{type}_diversity'] = diversity
 
-        #TEMP?! or save in db
-        if type == 'pool':
-            if self._genotype_measures['speed_x'] > 0:
-                self._genotype_measures['speed_diversity'] = self._genotype_measures['speed_x'] * diversity
-            else:
-                self._genotype_measures['speed_diversity'] = self._genotype_measures['speed_x'] / diversity
+        # if type == 'pool':
+        #     if self._genotype_measures['speed_x'] > 0:
+        #         self._genotype_measures['speed_diversity'] = self._genotype_measures['speed_x'] * diversity
+        #     else:
+        #         self._genotype_measures['speed_diversity'] = self._genotype_measures['speed_x'] / diversity
 
         return self._genotype_measures
 
@@ -85,11 +84,12 @@ class MeasureRelative:
     # an individual a dominates an individual b if a is better in at least one measure and not worse in any measure
     # better=higher > maximization
     def _pool_dominated_individuals(self):
+        # TODO: get quality from param instead of only speed_x
+        self._pareto_dominance(['speed_x', 'inverse_age'], 'quality_youth')
 
-        # TODO: make this a param in the exp manager
-        which_measures = ['speed_x',
-                          'inverse_age']
+        return self._genotype_measures
 
+    def _pareto_dominance(self, which_measures, type):
         pool_dominated_individuals = 0
         pool_fulldominated_individuals = 0
         for neighbour_measures in self._neighbours_measures:
@@ -105,9 +105,8 @@ class MeasureRelative:
             if better == len(which_measures):
                 pool_fulldominated_individuals += 1
 
-        self._genotype_measures['pool_dominated_individuals'] = pool_dominated_individuals
-        self._genotype_measures['pool_fulldominated_individuals'] = pool_fulldominated_individuals
-        return self._genotype_measures
+        self._genotype_measures[f'dominated_{type}'] = pool_dominated_individuals
+        self._genotype_measures[f'fullydominated_{type}'] = pool_fulldominated_individuals
 
     def _age(self, generation_index):
 

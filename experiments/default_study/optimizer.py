@@ -51,7 +51,7 @@ class Optimizer(EAOptimizer[Genotype, float]):
     _control_frequency: float
 
     _num_generations: int
-
+    _offspring_size: int
     _fitness_measure: str
     _experiment_name: str
     _max_modules: int
@@ -59,6 +59,7 @@ class Optimizer(EAOptimizer[Genotype, float]):
     _mutation_prob: float
     _substrate_radius: str
     _run_simulation: bool
+    _env_conditions: List
 
     async def ainit_new(  # type: ignore # TODO for now ignoring mypy complaint about LSP problem, override parent's ainit
         self,
@@ -81,7 +82,8 @@ class Optimizer(EAOptimizer[Genotype, float]):
         crossover_prob: float,
         mutation_prob: float,
         substrate_radius: str,
-        run_simulation: bool
+        run_simulation: bool,
+        env_conditions: List,
     ) -> None:
         await super().ainit_new(
             database=database,
@@ -101,10 +103,11 @@ class Optimizer(EAOptimizer[Genotype, float]):
             crossover_prob=crossover_prob,
             mutation_prob=mutation_prob,
             substrate_radius=substrate_radius,
-            run_simulation=run_simulation
+            run_simulation=run_simulation,
         )
 
         self._process_id = process_id
+        self._env_conditions = env_conditions
         self._init_runner()
         self._innov_db_body = innov_db_body
         self._innov_db_brain = innov_db_brain
@@ -138,7 +141,8 @@ class Optimizer(EAOptimizer[Genotype, float]):
         rng: Random,
         innov_db_body: multineat.InnovationDatabase,
         innov_db_brain: multineat.InnovationDatabase,
-        run_simulation: int
+        run_simulation: int,
+        num_generations: int
     ) -> bool:
         if not await super().ainit_from_database(
             database=database,
@@ -176,7 +180,7 @@ class Optimizer(EAOptimizer[Genotype, float]):
         self._simulation_time = opt_row.simulation_time
         self._sampling_frequency = opt_row.sampling_frequency
         self._control_frequency = opt_row.control_frequency
-        self._num_generations = opt_row.num_generations
+        self._num_generations = num_generations
 
         self._rng = rng
         self._rng.setstate(pickle.loads(opt_row.rng))
@@ -190,7 +194,7 @@ class Optimizer(EAOptimizer[Genotype, float]):
         return True
 
     def _init_runner(self) -> None:
-        self._runner = LocalRunner(LocalRunner.SimParams(), headless=True)
+        self._runner = LocalRunner(LocalRunner.SimParams(), headless=True, env_conditions=self._env_conditions[0]) # TEMP!
 
     def _select_parents(
         self,
@@ -327,7 +331,6 @@ class Optimizer(EAOptimizer[Genotype, float]):
                 simulation_time=self._simulation_time,
                 sampling_frequency=self._sampling_frequency,
                 control_frequency=self._control_frequency,
-                num_generations=self._num_generations,
             )
         )
 
@@ -352,4 +355,4 @@ class DbOptimizerState(DbBase):
     simulation_time = sqlalchemy.Column(sqlalchemy.Integer, nullable=False)
     sampling_frequency = sqlalchemy.Column(sqlalchemy.Float, nullable=False)
     control_frequency = sqlalchemy.Column(sqlalchemy.Float, nullable=False)
-    num_generations = sqlalchemy.Column(sqlalchemy.Integer, nullable=False)
+

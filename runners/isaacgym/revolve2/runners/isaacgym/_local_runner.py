@@ -35,6 +35,7 @@ class LocalRunner(Runner):
             ]  # actor handles, in same order as provided by environment description
 
         _real_time: bool
+        _env_conditions: List
 
         _gym: gymapi.Gym
         _batch: Batch
@@ -52,9 +53,11 @@ class LocalRunner(Runner):
             sim_params: gymapi.SimParams,
             headless: bool,
             real_time: bool,
+            env_conditions: List,
         ):
             self._gym = gymapi.acquire_gym()
             self._batch = batch
+            self._env_conditions = env_conditions
 
             self._sim = self._create_sim(sim_params)
             self._gymenvs = self._create_envs()
@@ -83,10 +86,14 @@ class LocalRunner(Runner):
             # let the user create static object, rendering the group plane redundant.
             # But for now we keep it because it's easy for our first test release.
             plane_params = gymapi.PlaneParams()
-            plane_params.normal = gymapi.Vec3(0, 0, 1)
+            print('conds', self._env_conditions)
+            static_friction, dynamic_friction, gravity, normal_xyz = self._env_conditions
+            normal_xyz = normal_xyz.split(';')
+
+            plane_params.normal = gymapi.Vec3(float(normal_xyz[0]), float(normal_xyz[1]), float(normal_xyz[2]))
             plane_params.distance = 0
-            plane_params.static_friction = 1.0
-            plane_params.dynamic_friction = 1.0
+            plane_params.static_friction = static_friction
+            plane_params.dynamic_friction = dynamic_friction
             plane_params.restitution = 0
             self._gym.add_ground(self._sim, plane_params)
 
@@ -349,17 +356,22 @@ class LocalRunner(Runner):
     _sim_params: gymapi.SimParams
     _headless: bool
     _real_time: bool
+    _static_friction: float
+    _dynamic_friction: float
+    _gravity: List
+    _normal_xyz: List
 
     def __init__(
         self,
         sim_params: gymapi.SimParams,
+        env_conditions: List,
         headless: bool = False,
         real_time: bool = False,
     ):
         self._sim_params = sim_params
         self._headless = headless
         self._real_time = real_time
-
+        self._env_conditions = env_conditions
 
     @staticmethod
     def SimParams() -> gymapi.SimParams:
@@ -367,6 +379,7 @@ class LocalRunner(Runner):
         sim_params.dt = 0.02
         sim_params.substeps = 2
         sim_params.up_axis = gymapi.UP_AXIS_Z
+        # TODO: get values from  self.gravity
         sim_params.gravity = gymapi.Vec3(0.0, 0.0, -9.81)
 
         sim_params.physx.solver_type = 1
@@ -393,6 +406,7 @@ class LocalRunner(Runner):
                 self._sim_params,
                 self._headless,
                 self._real_time,
+                self._env_conditions,
             ),
         )
         process.start()
@@ -419,8 +433,9 @@ class LocalRunner(Runner):
         sim_params: gymapi.SimParams,
         headless: bool,
         real_time: bool,
+        env_conditions: List,
     ) -> None:
-        _Simulator = cls._Simulator(batch, sim_params, headless, real_time)
+        _Simulator = cls._Simulator(batch, sim_params, headless, real_time, env_conditions)
         batch_results = _Simulator.run()
         _Simulator.cleanup()
         for environment_results in batch_results.environment_results:

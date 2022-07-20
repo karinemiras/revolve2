@@ -160,7 +160,7 @@ class EAOptimizer(Process, Generic[Genotype, Measure]):
         crossover_prob: float,
         mutation_prob: float,
         substrate_radius: str,
-        run_simulation: bool
+        run_simulation: bool,
     ) -> None:
         """
         :id: Unique id between all EAOptimizers in this database.
@@ -432,7 +432,7 @@ class EAOptimizer(Process, Generic[Genotype, Measure]):
             self.__generation_index += 1
 
             self._pool_and_time_relative_measures(self.__latest_population, self.__latest_measures)
-
+          
             # let user select parents
             latest_fitnesses = self.collect_key_value(self.__latest_measures,
                                                       self.__fitness_measure)
@@ -644,7 +644,7 @@ class EAOptimizer(Process, Generic[Genotype, Measure]):
             new_measures,
             num_survivors,
         )
-   
+
         assert type(old_survivors) == list
         assert type(new_survivors) == list
         assert len(old_survivors) + len(new_survivors) == len(self.__latest_population)
@@ -742,8 +742,8 @@ class EAOptimizer(Process, Generic[Genotype, Measure]):
             for i, row in enumerate(rows):
                 row.pop_diversity = initial_relative_measures[i]['pop_diversity']
                 row.pool_diversity = initial_relative_measures[i]['pool_diversity']
-                row.pool_dominated_individuals = initial_relative_measures[i]['pool_dominated_individuals']
-                row.pool_fulldominated_individuals = initial_relative_measures[i]['pool_fulldominated_individuals']
+                row.dominated_quality_youth = initial_relative_measures[i]['dominated_quality_youth']
+                row.fullydominated_quality_youth = initial_relative_measures[i]['fullydominated_quality_youth']
                 row.age = initial_relative_measures[i]['age']
                 row.inverse_age = initial_relative_measures[i]['inverse_age']
 
@@ -827,15 +827,15 @@ class EAOptimizer(Process, Generic[Genotype, Measure]):
             if latest_relative_measures is None:
                 pop_diversity = None
                 pool_diversity = None
-                pool_dominated_individuals = None
-                pool_fulldominated_individuals = None
+                dominated_quality_youth = None
+                fullydominated_quality_youth = None
                 age = None
                 inverse_age = None
             else:
                 pop_diversity = latest_relative_measures[index]['pop_diversity']
                 pool_diversity = latest_relative_measures[index]['pool_diversity']
-                pool_dominated_individuals = latest_relative_measures[index]['pool_dominated_individuals']
-                pool_fulldominated_individuals = latest_relative_measures[index]['pool_fulldominated_individuals']
+                dominated_quality_youth = latest_relative_measures[index]['dominated_quality_youth']
+                fullydominated_quality_youth = latest_relative_measures[index]['fullydominated_quality_youth']
                 age = latest_relative_measures[index]['age']
                 inverse_age = latest_relative_measures[index]['inverse_age']
 
@@ -847,8 +847,8 @@ class EAOptimizer(Process, Generic[Genotype, Measure]):
                         individual_id=individual.id,
                         pop_diversity=pop_diversity,
                         pool_diversity=pool_diversity,
-                        pool_dominated_individuals=pool_dominated_individuals,
-                        pool_fulldominated_individuals=pool_fulldominated_individuals,
+                        dominated_quality_youth=dominated_quality_youth,
+                        fullydominated_quality_youth=fullydominated_quality_youth,
                         age=age,
                         inverse_age=inverse_age,
                     )

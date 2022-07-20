@@ -5,13 +5,13 @@
 
 study="default_study"
 # DO NOT use _
-experiments=("speed_diversity")
-fitness_measure="speed_diversity"
+experiments=("speed")
+fitness_measure=("speed_x")
 runs=20
 num_generations="200"
 
-# recommended max 15
-num_terminals=15
+# recommended 10-15
+num_terminals=10
 
 mkdir data/${study}
 
@@ -104,9 +104,10 @@ while true
 
         exp=$(cut -d'_' -f1 <<<"${to_d}")
         run=$(cut -d'_' -f2 <<<"${to_d}")
+        idx_fit=$( echo ${experiments[@]/${exp}//} | cut -d/ -f1 | wc -w | tr -d ' ' )
 
-       # screen -d -m -S screen_${free_screens[$p]}_${to_d} -L -Logfile /storage/karine/${study}/${exp}_${run}".log" nice -n19 python3  experiments/${study}/optimize.py --experiment_name ${exp} --fitness_measure ${fitness_measure} --run ${run}; #--run_simulation 0;
-         screen -d -m -S screen_${free_screens[$p]}_${to_d} -L -Logfile /storage/karine/${study}/${exp}_${run}".log" python3  experiments/${study}/optimize.py --experiment_name ${exp} --fitness_measure ${fitness_measure} --run ${run}; #--run_simulation 0;
+        # nice -n19 python3  experiments/${study}/optimize.py
+        screen -d -m -S screen_${free_screens[$p]}_${to_d} -L -Logfile /storage/karine/${study}/${exp}_${run}".log" python3  experiments/${study}/optimize.py --experiment_name ${exp} --fitness_measure ${fitness_measure[$idx_fit]} --run ${run};
 
         printf "\n >> (re)starting screen_${free_screens[$p]}_${to_d} \n\n"
         p=$((${p}+1))

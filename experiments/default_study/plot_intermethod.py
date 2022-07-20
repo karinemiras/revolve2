@@ -30,7 +30,7 @@ class Analysis:
         self.experiments = experiments
         self.inner_metrics = ['mean', 'max']
         self.runs = runs
-        self.include_max = True
+        self.include_max = False
         self.merge_lines = True
         self.final_gen = 200
         self.gens_boxes = [200]
@@ -293,12 +293,12 @@ class Analysis:
 args = Config()._get_params()
 study = 'default_study'
 # make sure to provide experiments names in alphabetic order
-experiments = ['purespeed', 'speed']
-runs = list(range(2, 20+1))
+experiments = ['speed']
+runs = list(range(1, 10+1))
 
 # TODO: break by environment
 analysis = Analysis(args, study, experiments, runs)
-#analysis.consolidate()
+analysis.consolidate()
 analysis.plots()
 
 

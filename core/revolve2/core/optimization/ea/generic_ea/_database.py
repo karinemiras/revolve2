@@ -45,8 +45,8 @@ class DbEAOptimizerGeneration(DbBase):
     individual_id = Column(Integer, nullable=False)
     pop_diversity = Column(Float, nullable=True)
     pool_diversity = Column(Float, nullable=True)
-    pool_dominated_individuals = Column(Float, nullable=True)
-    pool_fulldominated_individuals = Column(Float, nullable=True)
+    dominated_quality_youth = Column(Float, nullable=True)
+    fullydominated_quality_youth = Column(Float, nullable=True)
     age = Column(Float, nullable=True)
     inverse_age = Column(Float, nullable=True)
 

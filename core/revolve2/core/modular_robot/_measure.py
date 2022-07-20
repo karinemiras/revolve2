@@ -69,6 +69,7 @@ class Measure:
         if self._states is None:
             self._measures['speed_x'] = -math.inf
             self._measures['average_z'] = -math.inf
+            self._measures['displacement'] = -math.inf
             return
 
         begin_state = self._states.environment_results[self._genotype_idx].environment_states[0].actor_states[0]
@@ -293,11 +294,11 @@ class Measure:
         vertical_total = 0
         # Calculate symmetry in body
         for position in coordinates:
-            if position[0] is not 0:
+            if position[0] != 0:
                 horizontal_total += 1
                 if [-position[0], position[1]] in coordinates:
                     horizontal_mirrored += 1
-            if position[1] is not 0:
+            if position[1] != 0:
                 vertical_total += 1
                 if [position[0], -position[1]] in coordinates:
                     vertical_mirrored += 1
