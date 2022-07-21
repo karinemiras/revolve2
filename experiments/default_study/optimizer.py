@@ -104,6 +104,7 @@ class Optimizer(EAOptimizer[Genotype, float]):
             mutation_prob=mutation_prob,
             substrate_radius=substrate_radius,
             run_simulation=run_simulation,
+            env_conditions=env_conditions,
         )
 
         self._process_id = process_id
@@ -194,7 +195,10 @@ class Optimizer(EAOptimizer[Genotype, float]):
         return True
 
     def _init_runner(self) -> None:
-        self._runner = LocalRunner(LocalRunner.SimParams(), headless=True, env_conditions=self._env_conditions[0]) # TEMP!
+        self._runner = {}
+        for env in self.env_conditions:
+            print(env, self.env_conditions[env])
+            self._runner[env] = (LocalRunner(LocalRunner.SimParams(), headless=True, env_conditions=self.env_conditions[env]))
 
     def _select_parents(
         self,
@@ -261,59 +265,69 @@ class Optimizer(EAOptimizer[Genotype, float]):
         process_id: int,
         process_id_gen: ProcessIdGen,
     ) -> List[float]:
-        batch = Batch(
-            simulation_time=self._simulation_time,
-            sampling_frequency=self._sampling_frequency,
-            control_frequency=self._control_frequency,
-            control=self._control,
-        )
 
-        self._controllers = []
-        phenotypes = []
+        envs_measures_genotypes = {}
+        envs_states_genotypes = {}
+        for cond in self.env_conditions:
+            print('envvvvv', cond)
 
-        for genotype in genotypes:
-            phenotype = develop(genotype, genotype.mapping_seed, self.max_modules, self.substrate_radius)
-            phenotypes.append(phenotype)
-            actor, controller = phenotype.make_actor_and_controller()
-            bounding_box = actor.calc_aabb()
-            self._controllers.append(controller)
-            env = Environment()
-            env.actors.append(
-                PosedActor(
-                    actor,
-                    Vector3(
-                        [
-                            0.0,
-                            0.0,
-                            bounding_box.size.z / 2.0 - bounding_box.offset.z,
-                        ]
-                    ),
-                    Quaternion(),
-                    [0.0 for _ in controller.get_dof_targets()],
-                )
+            batch = Batch(
+                simulation_time=self._simulation_time,
+                sampling_frequency=self._sampling_frequency,
+                control_frequency=self._control_frequency,
+                control=self._control,
             )
-            batch.environments.append(env)
 
-        if self._run_simulation:
-            states = await self._runner.run_batch(batch)
-        else:
-            states = None
+            self._controllers = []
+            phenotypes = []
 
-        measures_genotypes = []
-        for i, phenotype in enumerate(phenotypes):
-            m = Measure(states=states, genotype_idx=i, phenotype=phenotype,\
-                        generation=self.generation_index, simulation_time=self._simulation_time)
-            measures_genotypes.append(m.measure_all_non_relative())
+            for genotype in genotypes:
+                phenotype = develop(genotype, genotype.mapping_seed, self.max_modules, self.substrate_radius)
+                phenotypes.append(phenotype)
+                actor, controller = phenotype.make_actor_and_controller()
+                bounding_box = actor.calc_aabb()
+                self._controllers.append(controller)
+                env = Environment()
+                env.actors.append(
+                    PosedActor(
+                        actor,
+                        Vector3(
+                            [
+                                0.0,
+                                0.0,
+                                bounding_box.size.z / 2.0 - bounding_box.offset.z,
+                            ]
+                        ),
+                        Quaternion(),
+                        [0.0 for _ in controller.get_dof_targets()],
+                    )
+                )
+                batch.environments.append(env)
 
-        states_genotypes = []
-        if states is not None:
-            for idx_genotype in range(0, len(states.environment_results)):
-                states_genotypes.append({})
-                for idx_state in range(0, len(states.environment_results[idx_genotype].environment_states)):
-                    states_genotypes[-1][idx_state] = \
-                        states.environment_results[idx_genotype].environment_states[idx_state].actor_states[0].serialize()
+            if self._run_simulation:
+                states = await self._runner[cond].run_batch(batch)
+            else:
+                states = None
 
-        return measures_genotypes, states_genotypes
+            measures_genotypes = []
+            for i, phenotype in enumerate(phenotypes):
+                m = Measure(states=states, genotype_idx=i, phenotype=phenotype,\
+                            generation=self.generation_index, simulation_time=self._simulation_time)
+                measures_genotypes.append(m.measure_all_non_relative())
+            envs_measures_genotypes[cond] = measures_genotypes
+
+            states_genotypes = []
+            if states is not None:
+                for idx_genotype in range(0, len(states.environment_results)):
+                    states_genotypes.append({})
+                    for idx_state in range(0, len(states.environment_results[idx_genotype].environment_states)):
+                        states_genotypes[-1][idx_state] = \
+                            states.environment_results[idx_genotype].environment_states[idx_state].actor_states[0].serialize()
+            envs_states_genotypes[cond] = states_genotypes
+
+        pprint.pprint(envs_measures_genotypes)
+
+        return envs_measures_genotypes, envs_states_genotypes
 
     def _control(self, dt: float, control: ActorControl) -> None:
         for control_i, controller in enumerate(self._controllers):

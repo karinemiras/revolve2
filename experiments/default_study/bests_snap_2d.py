@@ -8,8 +8,8 @@ import numpy as np
 async def main() -> None:
 
     study = 'default_study'
-    experiments_name = ['speed', 'purespeed']
-    runs = list(range(2, 20+1))
+    experiments_name = ['speed']
+    runs = list(range(1, 10+1))
     generations = [200]
     bests = 5
     path_out = f'/storage/karine/{study}/analysis/snapshots'

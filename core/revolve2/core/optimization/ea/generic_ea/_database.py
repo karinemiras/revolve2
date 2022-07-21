@@ -70,3 +70,11 @@ class DbEAOptimizerParent(DbBase):
     parent_individual_id = Column(Integer, nullable=False, primary_key=True)
 
 
+class DbEnvconditions(DbBase):
+    __tablename__ = "env_conditions"
+
+    id = Column(
+        Integer, nullable=False, primary_key=True, autoincrement=True
+    )
+    ea_optimizer_id = Column(Integer, nullable=False)
+    conditions = Column(String, nullable=False)

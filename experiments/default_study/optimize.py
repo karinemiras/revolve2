@@ -20,9 +20,16 @@ async def main() -> None:
     gravity = "0;0;-9.81"
     normal_xyz = "0;0;1"
     env_conditions_plane = [static_friction, dynamic_friction, gravity, normal_xyz]
-    normal_xyz = "0;0.01;0.1"
+    normal_xyz = "0;1;0"
     env_conditions_tilted = [static_friction, dynamic_friction, gravity, normal_xyz]
     env_conditions = [env_conditions_plane, env_conditions_tilted]
+
+    # static_friction = 1.0
+    # dynamic_friction = 1.0
+    # gravity = "0;0;-9.81"
+    # normal_xyz = "0;0;1"
+    # env_conditions_tilted = [static_friction, dynamic_friction, gravity, normal_xyz]
+    # env_conditions = [env_conditions_tilted]
 
     args = Config()._get_params()
 

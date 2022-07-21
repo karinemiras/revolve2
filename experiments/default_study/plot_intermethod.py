@@ -30,7 +30,7 @@ class Analysis:
         self.experiments = experiments
         self.inner_metrics = ['mean', 'max']
         self.runs = runs
-        self.include_max = False
+        self.include_max = True
         self.merge_lines = True
         self.final_gen = 200
         self.gens_boxes = [200]
@@ -150,6 +150,7 @@ class Analysis:
         df_outer = pandas.merge(df_outer_median, df_outer_q25, on=keys)
         df_outer = pandas.merge(df_outer, df_outer_q75, on=keys)
 
+        all_df.to_csv(f'{self.path}/analysis/all_df.csv', index=True)
         df_inner.to_csv(f'{self.path}/analysis/df_inner.csv', index=True)
         df_outer.to_csv(f'{self.path}/analysis/df_outer.csv', index=True)
 
@@ -167,7 +168,7 @@ class Analysis:
         df_outer = pandas.read_csv(f'{self.path}/analysis/df_outer.csv')
 
         self.plot_lines(df_outer)
-        #self.plot_boxes(df_inner)
+        self.plot_boxes(df_inner)
 
     def plot_lines(self, df_outer):
 
@@ -293,7 +294,7 @@ class Analysis:
 args = Config()._get_params()
 study = 'default_study'
 # make sure to provide experiments names in alphabetic order
-experiments = ['speed']
+experiments = ['speed', 'joints', 'speeddiversity']
 runs = list(range(1, 10+1))
 
 # TODO: break by environment

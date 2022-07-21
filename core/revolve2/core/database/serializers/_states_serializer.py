@@ -46,7 +46,6 @@ class StatesSerializer(Serializer[List[Tuple[float, ActorState]]]):
     async def to_database(
         cls, session: AsyncSession, objects: List[Tuple[float, ActorState]]
     ) -> List[int]:
-
         dbstates = [
             DbStates(serialized_states=str(o))
             for o in objects

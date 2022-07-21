@@ -31,12 +31,15 @@ class Simulator:
     async def simulate(self) -> None:
 
         self.study = 'default_study'
-        self.experiments_name = ['purespeed']
-        self.runs = [7]#list(range(1, 20+1))
+        self.experiments_name = ['speed']
+        self.runs = [1]#list(range(1, 20+1))
         self.generations = [200]
         self.bests = 1
-        # 'all' or 'gens': all selects best from the whole experiment and gens from chosen generations
-        self.bests_type = 'all'
+        self.specific_robot = 8
+        # 'all' selects best from the whole experiment
+        # 'gens' selects best from chosen generations
+        # 'specific' selects teh robot provided in specific_robot
+        self.bests_type = 'specific'
 
         for experiment_name in self.experiments_name:
             print('\n', experiment_name)
@@ -52,10 +55,12 @@ class Simulator:
 
                 if self.bests_type == 'gens':
                     for gen in self.generations:
-                        print('  gen: ', gen, path)
-                        await self.recover(db, gen)
-                else:
+                        print('  in gen: ', gen, path)
+                        await self.recover(db, gen, path)
+                elif self.bests_type == 'all':
                     print('  within all gens')
+                    await self.recover(db, -1, path)
+                elif self.bests_type == 'specific':
                     await self.recover(db, -1, path)
 
     async def recover(self, db, gen, path):
@@ -74,25 +79,27 @@ class Simulator:
             control_frequency = rows[0].DbOptimizerState.control_frequency
             simulation_time = rows[0].DbOptimizerState.simulation_time
 
-            # TODO: make code more reusable...
+            # TODO: make queries more reusable...
             if gen == -1:
-                rows = ((await session.execute(select(DbEAOptimizerGeneration, DbEAOptimizerIndividual, DbFloat)
-                                           .filter( (DbEAOptimizerGeneration.individual_id == DbEAOptimizerIndividual.individual_id)
-                                                & (DbFloat.id == DbEAOptimizerIndividual.float_id))
-                                           .order_by( DbFloat.speed_x.desc())
-                                           )).all())
+                if self.bests_type == 'specific':
+                    rows = ((await session.execute(select(DbEAOptimizerGeneration, DbEAOptimizerIndividual, DbFloat)
+                                               .filter((DbEAOptimizerGeneration.individual_id == DbEAOptimizerIndividual.individual_id)
+                                               & (DbFloat.id == DbEAOptimizerIndividual.float_id)
+                                               & (DbEAOptimizerGeneration.individual_id == self.specific_robot)) )).all())
+                else:
+                    rows = ((await session.execute(select(DbEAOptimizerGeneration, DbEAOptimizerIndividual, DbFloat)
+                                               .filter((DbEAOptimizerGeneration.individual_id == DbEAOptimizerIndividual.individual_id)
+                                               & (DbFloat.id == DbEAOptimizerIndividual.float_id)).order_by(DbFloat.speed_x.desc()) )).all())
             else:
                 rows = ((await session.execute(select(DbEAOptimizerGeneration, DbEAOptimizerIndividual, DbFloat)
                                            .filter(DbEAOptimizerGeneration.generation_index.in_([gen]))
-                                           .filter( (DbEAOptimizerGeneration.individual_id == DbEAOptimizerIndividual.individual_id)
-                                                & (DbFloat.id == DbEAOptimizerIndividual.float_id))
-                                           .order_by( DbFloat.speed_x.desc())
-                                           )).all())
+                                           .filter((DbEAOptimizerGeneration.individual_id == DbEAOptimizerIndividual.individual_id)
+                                          & (DbFloat.id == DbEAOptimizerIndividual.float_id)).order_by(DbFloat.speed_x.desc()) )).all())
 
             for idx, r in enumerate(rows[0:self.bests]):
                 print(f'\n    rank:{idx} id:{r.DbEAOptimizerIndividual.individual_id} ' \
                       f' birth:{r.DbFloat.birth} ' \
-                      f' speed:{r.DbFloat.speed_x}' \
+                      f' speed_x:{r.DbFloat.speed_x}' \
                       )
                 genotype = (
                     await GenotypeSerializer.from_database(
@@ -117,12 +124,13 @@ class Simulator:
                     )
                 )
 
+                states = None
                 batch = Batch(
-                    simulation_time=30,
-                    sampling_frequency=sampling_frequency,
-                    control_frequency=control_frequency,
-                    control=self._control,
-                )
+                     simulation_time=30,
+                     sampling_frequency=sampling_frequency,
+                     control_frequency=control_frequency,
+                     control=self._control,
+                 )
                 batch.environments.append(env)
                 if sys.platform == "linux" or sys.platform == "linux2":
                     runner = LocalRunner(LocalRunner.SimParams())

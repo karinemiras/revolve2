@@ -15,10 +15,12 @@ from sqlalchemy.orm.exc import MultipleResultsFound, NoResultFound
 from revolve2.core.database import IncompatibleError, Serializer
 from revolve2.core.modular_robot import MeasureRelative
 from revolve2.core.optimization import Process, ProcessIdGen
+from ast import literal_eval
 
 
 from ._database import (
     DbBase,
+    DbEnvconditions,
     DbEAOptimizer,
     DbEAOptimizerGeneration,
     DbEAOptimizerIndividual,
@@ -140,6 +142,7 @@ class EAOptimizer(Process, Generic[Genotype, Measure]):
     __crossover_prob: float
     __mutation_prob: float
     __run_simulation: bool
+    __env_conditions: List
 
     async def ainit_new(
         self,
@@ -161,6 +164,7 @@ class EAOptimizer(Process, Generic[Genotype, Measure]):
         mutation_prob: float,
         substrate_radius: str,
         run_simulation: bool,
+        env_conditions: List,
     ) -> None:
         """
         :id: Unique id between all EAOptimizers in this database.
@@ -185,6 +189,7 @@ class EAOptimizer(Process, Generic[Genotype, Measure]):
         self.__mutation_prob = mutation_prob
         self.__substrate_radius = substrate_radius
         self.__run_simulation = run_simulation
+        self.__env_conditions = env_conditions
 
         self.__latest_population = [
             _Individual(self.__gen_next_individual_id(), g, [])
@@ -214,6 +219,19 @@ class EAOptimizer(Process, Generic[Genotype, Measure]):
         assert new_opt.id is not None  # this is impossible because it's not nullable
         self.__ea_optimizer_id = new_opt.id
 
+        conditions = [
+            DbEnvconditions(
+                ea_optimizer_id=self.__ea_optimizer_id,
+                conditions=str(cond), )
+            for cond in self.__env_conditions
+        ]
+        session.add_all(conditions)
+        await session.flush()
+        self.__env_conditions = {}
+        for c in conditions:
+            self.__env_conditions[c.id] = literal_eval(c.conditions)
+        print('ini', self.__env_conditions)
+
         await self.__save_generation_using_session(
             session, None, None, None, None, self.__latest_population, None, None, None
         )
@@ -233,6 +251,10 @@ class EAOptimizer(Process, Generic[Genotype, Measure]):
     @property
     def mutation_prob(self):
         return self.__mutation_prob
+
+    @property
+    def env_conditions(self):
+        return self.__env_conditions
 
     async def ainit_from_database(
         self,
@@ -267,7 +289,6 @@ class EAOptimizer(Process, Generic[Genotype, Measure]):
                 .scalars()
                 .one()
             )
-
         except MultipleResultsFound as err:
             raise IncompatibleError() from err
         except (NoResultFound, OperationalError):
@@ -282,7 +303,16 @@ class EAOptimizer(Process, Generic[Genotype, Measure]):
         self.__mutation_prob = eo_row.mutation_prob
         self.__substrate_radius = eo_row.substrate_radius
 
+        c_rows = ((await session.execute(
+                    select(DbEnvconditions).filter(
+                        DbEnvconditions.ea_optimizer_id == self.__ea_optimizer_id
+                    ))).all())
+        self.__env_conditions = {}
+        for c_row in c_rows:
+            self.__env_conditions[c_row[0].id] = literal_eval(c_row[0].conditions)
+
         # TODO: this name 'state' conflicts a bit with the table of states (positions)...
+        # the one below is more like 'status'
         state_row = (
             (
                 await session.execute(
@@ -432,7 +462,7 @@ class EAOptimizer(Process, Generic[Genotype, Measure]):
             self.__generation_index += 1
 
             self._pool_and_time_relative_measures(self.__latest_population, self.__latest_measures)
-          
+
             # let user select parents
             latest_fitnesses = self.collect_key_value(self.__latest_measures,
                                                       self.__fitness_measure)

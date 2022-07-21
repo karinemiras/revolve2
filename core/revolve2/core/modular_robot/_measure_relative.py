@@ -64,7 +64,7 @@ class MeasureRelative:
             k = len(self._neighbours_measures)
         else:
             # TODO: make it a param
-            k = 10
+            k = 3#10
 
         # distances from neighbors
         distances, indexes = kdt.query([genotype_measures], k=k)
