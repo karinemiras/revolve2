@@ -230,7 +230,6 @@ class EAOptimizer(Process, Generic[Genotype, Measure]):
         self.__env_conditions = {}
         for c in conditions:
             self.__env_conditions[c.id] = literal_eval(c.conditions)
-        print('ini', self.__env_conditions)
 
         await self.__save_generation_using_session(
             session, None, None, None, None, self.__latest_population, None, None, None
@@ -637,6 +636,7 @@ class EAOptimizer(Process, Generic[Genotype, Measure]):
         parent_selections = self._select_parents(
             population, fitnesses, num_parent_groups
         )
+
         assert type(parent_selections) == list
         assert len(parent_selections) == num_parent_groups
         assert all(type(s) == list for s in parent_selections)

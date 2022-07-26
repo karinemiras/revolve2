@@ -10,8 +10,8 @@ fitness_measure=("speed_x")
 runs=20
 num_generations="200"
 
-# recommended 10-15
-num_terminals=10
+# before recommended 10-15? 20 now?
+num_terminals=20
 
 mkdir data/${study}
 

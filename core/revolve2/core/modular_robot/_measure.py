@@ -18,6 +18,7 @@ class Measure:
 
     def __init__(self, states=None, genotype_idx=-1, phenotype=None, generation=None, simulation_time=None):
         self._states = states
+        # TODO: _genotype_idx: obsolete variable
         self._genotype_idx = genotype_idx
         self._phenotype_body = phenotype.body
         self._phenotype_brain = phenotype.brain

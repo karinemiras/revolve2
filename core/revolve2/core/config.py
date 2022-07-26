@@ -132,7 +132,7 @@ class Config():
         parser.add_argument(
             "--control_frequency",
             required=False,
-            default=60, #5
+            default=20, #60
             type=int,
         )
 

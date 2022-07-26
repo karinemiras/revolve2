@@ -28,20 +28,25 @@ class Analysis:
         self.args = args
         self.study = study
         self.experiments = experiments
-        self.inner_metrics = ['mean', 'max']
+        self.inner_metrics = ['median', 'max']
         self.runs = runs
         self.include_max = True
         self.merge_lines = True
         self.final_gen = 200
         self.gens_boxes = [200]
-        self.clrs = ['#336600', '#990000', '#009900','#000099']
+        self.clrs = ['#009900',
+                     '#EE8610',
+                     '#7550ff',
+                     '#876044']
         self.path = f'/storage/karine/{study}'
 
         self.measures = {
             'pop_diversity': ['Diversity', 0, 1],
             'pool_diversity': ['Pool Diversity', 0, 1],
-            'pool_dominated_individuals': ['Dominated individuals', 0, 1],
-            'pool_fulldominated_individuals': ['Fully dominated individuals', 0, 1],
+             'dominated_quality_youth': ['Dominated individuals', 0, 1],
+             'fullydominated_quality_youth': ['Fully dominated individuals', 0, 1],
+         #   'pool_dominated_individuals': ['Dominated individuals', 0, 1],
+        #    'pool_fulldominated_individuals': ['Fully dominated individuals', 0, 1],
             'age': ['Age', 0, 1],
             'speed_x': ['Speed (cm/s)', 0, 1],
             'relative_speed_x': ['Relative speed (cm/s)', 0, 1],
@@ -128,7 +133,7 @@ class Analysis:
         for metric in self.inner_metrics:
             df_inner[metric] = groupby(all_df, self.measures.keys(), metric, keys)
 
-        df_inner = pandas.merge(df_inner['mean'], df_inner['max'], on=keys)
+        df_inner = pandas.merge(df_inner[self.inner_metrics[0]], df_inner[self.inner_metrics[1]], on=keys)
 
         # outer measurements (among runs)
 
@@ -181,30 +186,30 @@ class Analysis:
             plt.rcParams.update(font)
             fig, ax = plt.subplots()
 
-            #ax.legend()
             plt.xlabel('')
             plt.ylabel(f'{self.measures[measure][0]}')
-
             for idx_experiment, experiment in enumerate(self.experiments):
                 data = df_outer[df_outer['experiment'] == experiment]
-
-                ax.plot(data['generation_index'], data[f'{measure}_mean_median'], label=f'{experiment}_mean', c=self.clrs[idx_experiment])
+                print(f'{experiment}_{self.inner_metrics[0]}')
+                ax.plot(data['generation_index'], data[f'{measure}_{self.inner_metrics[0]}_median'],
+                        label=f'{experiment}_{self.inner_metrics[0]}', c=self.clrs[idx_experiment])
                 ax.fill_between(data['generation_index'],
-                                data[f'{measure}_mean_q25'],
-                                data[f'{measure}_mean_q75'],
+                                data[f'{measure}_{self.inner_metrics[0]}_q25'],
+                                data[f'{measure}_{self.inner_metrics[0]}_q75'],
                                 alpha=0.3, facecolor=self.clrs[idx_experiment])
 
                 if self.include_max:
-                    ax.plot(data['generation_index'], data[f'{measure}_max_median'], 'b--',  label=f'{experiment}_max',
-                            c=self.clrs[idx_experiment])
+                    ax.plot(data['generation_index'], data[f'{measure}_{self.inner_metrics[1]}_median'],
+                            'b--', label=f'{experiment}_{self.inner_metrics[1]}', c=self.clrs[idx_experiment])
                     ax.fill_between(data['generation_index'],
-                                    data[f'{measure}_max_q25'],
-                                    data[f'{measure}_max_q75'],
+                                    data[f'{measure}_{self.inner_metrics[1]}_q25'],
+                                    data[f'{measure}_{self.inner_metrics[1]}_q75'],
                                     alpha=0.3, facecolor=self.clrs[idx_experiment])
 
                 # if self.measures[measure][1] != -math.inf and self.measures[measure][2] != -math.inf:
                 #     ax.set_ylim(self.measures[measure][1], self.measures[measure][2])
 
+                ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.1),  fancybox=True, shadow=True, ncol=5, fontsize=10)
                 if not self.merge_lines:
                     plt.savefig(f'{self.path}/analysis/basic_plots/line_{experiment}_{measure}.png', bbox_inches='tight')
                     plt.clf()
@@ -232,13 +237,13 @@ class Analysis:
                 sb.set(rc={"axes.titlesize": 23, "axes.labelsize": 23, 'ytick.labelsize': 21, 'xtick.labelsize': 21})
                 sb.set_style("whitegrid")
 
-                plot = sb.boxplot(x='experiment', y=f'{measure}_mean', data=df_inner2,
+                plot = sb.boxplot(x='experiment', y=f'{measure}_{self.inner_metrics[0]}', data=df_inner2,
                                   palette=self.clrs, width=0.4, showmeans=True, linewidth=2, fliersize=6,
                                   meanprops={"marker": "o", "markerfacecolor": "yellow", "markersize": "12"})
 
                 try:
                     if len(tests_combinations) > 0:
-                        add_stat_annotation(plot, data=df_inner2, x='experiment', y=f'{measure}_mean',
+                        add_stat_annotation(plot, data=df_inner2, x='experiment', y=f'{measure}_{self.inner_metrics[0]}',
                                             box_pairs=tests_combinations,
                                             comparisons_correction=None,
                                             test='Wilcoxon', text_format='star', fontsize='xx-large', loc='inside',
@@ -294,8 +299,8 @@ class Analysis:
 args = Config()._get_params()
 study = 'default_study'
 # make sure to provide experiments names in alphabetic order
-experiments = ['speed', 'joints', 'speeddiversity']
-runs = list(range(1, 10+1))
+experiments = ["speed60", "speed5", "speed20"]
+runs = list(range(1, 13+1))
 
 # TODO: break by environment
 analysis = Analysis(args, study, experiments, runs)

@@ -18,6 +18,7 @@ from revolve2.core.modular_robot.render.render import Render
 from revolve2.core.modular_robot import Measure
 from revolve2.core.database.serializers import DbFloat
 import pprint
+import numpy
 
 if sys.platform == "linux" or sys.platform == "linux2":
     from revolve2.runners.isaacgym import LocalRunner
@@ -31,11 +32,11 @@ class Simulator:
     async def simulate(self) -> None:
 
         self.study = 'default_study'
-        self.experiments_name = ['speed']
+        self.experiments_name = ['default_experiment']
         self.runs = [1]#list(range(1, 20+1))
-        self.generations = [200]
+        self.generations = [3]
         self.bests = 1
-        self.specific_robot = 8
+        self.specific_robot = 37
         # 'all' selects best from the whole experiment
         # 'gens' selects best from chosen generations
         # 'specific' selects teh robot provided in specific_robot
@@ -55,7 +56,7 @@ class Simulator:
 
                 if self.bests_type == 'gens':
                     for gen in self.generations:
-                        print('  in gen: ', gen, path)
+                        print('  in gen: ', gen)
                         await self.recover(db, gen, path)
                 elif self.bests_type == 'all':
                     print('  within all gens')
@@ -83,9 +84,8 @@ class Simulator:
             if gen == -1:
                 if self.bests_type == 'specific':
                     rows = ((await session.execute(select(DbEAOptimizerGeneration, DbEAOptimizerIndividual, DbFloat)
-                                               .filter((DbEAOptimizerGeneration.individual_id == DbEAOptimizerIndividual.individual_id)
-                                               & (DbFloat.id == DbEAOptimizerIndividual.float_id)
-                                               & (DbEAOptimizerGeneration.individual_id == self.specific_robot)) )).all())
+                                               .filter(  (DbFloat.id == DbEAOptimizerIndividual.float_id)
+                                               & (DbEAOptimizerIndividual.individual_id == self.specific_robot)) )).all())
                 else:
                     rows = ((await session.execute(select(DbEAOptimizerGeneration, DbEAOptimizerIndividual, DbFloat)
                                                .filter((DbEAOptimizerGeneration.individual_id == DbEAOptimizerIndividual.individual_id)
@@ -113,12 +113,13 @@ class Simulator:
                 render.render_robot(phenotype.body.core, img_path)
 
                 actor, self._controller = phenotype.make_actor_and_controller()
+                bounding_box = actor.calc_aabb()
 
                 env = Environment()
                 env.actors.append(
                     PosedActor(
                         actor,
-                        Vector3([0.0, 0.0, 0.1]),
+                        Vector3([0.0, 0.0,  bounding_box.size.z / 2.0 - bounding_box.offset.z,]),
                         Quaternion(),
                         [0.0 for _ in self._controller.get_dof_targets()],
                     )
@@ -126,14 +127,20 @@ class Simulator:
 
                 states = None
                 batch = Batch(
-                     simulation_time=30,
+                     simulation_time=simulation_time,
                      sampling_frequency=sampling_frequency,
                      control_frequency=control_frequency,
                      control=self._control,
                  )
                 batch.environments.append(env)
                 if sys.platform == "linux" or sys.platform == "linux2":
-                    runner = LocalRunner(LocalRunner.SimParams())
+                    static_friction = 1.0
+                    dynamic_friction = 1.0
+                    gravity = "0;0;-9.81"
+                    normal_xyz = "0;0;1"
+                    env_conditions_plane = [static_friction, dynamic_friction, gravity, normal_xyz]
+                    env_conditions = [env_conditions_plane]
+                    runner = LocalRunner(LocalRunner.SimParams(), env_conditions=env_conditions[0])
                 else:
                     runner = LocalRunner()
                 states = await runner.run_batch(batch)
