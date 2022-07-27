@@ -48,7 +48,7 @@ class Measure:
         self._proportion()
         self._symmetry()
 
-        self._relative_speed_x()
+        self._relative_speed_y()
 
         return self._measures
 
@@ -68,7 +68,7 @@ class Measure:
     def _displacement(self):
 
         if self._states is None:
-            self._measures['speed_x'] = -math.inf
+            self._measures['speed_y'] = -math.inf
             self._measures['average_z'] = -math.inf
             self._measures['displacement'] = -math.inf
             return
@@ -86,11 +86,11 @@ class Measure:
 
         # TODO: check if outlier from pop avg
         if displacement >= 10:
-            self._measures['speed_x'] = -math.inf
+            self._measures['speed_y'] = -math.inf
         else:
-            # speed on the x plane (to the right)
-            displacement_x = float((end_state.position[0]-begin_state.position[0])*-1)
-            self._measures['speed_x'] = float((displacement_x/self._simulation_time)*100)
+            # speed on the y-axis (to the right is higher/better)
+            displacement_y = float((end_state.position[1]-begin_state.position[1])*-1)
+            self._measures['speed_y'] = float((displacement_y/self._simulation_time)*100)
 
         # average z
         z = 0
@@ -99,8 +99,8 @@ class Measure:
         z /= len(self._states.environment_results[self._genotype_idx].environment_states)
         self._measures['average_z'] = float(z)
 
-    def _relative_speed_x(self):
-        self._measures['relative_speed_x'] = self._measures['speed_x']/self._measures['modules_count']
+    def _relative_speed_y(self):
+        self._measures['relative_speed_y'] = self._measures['speed_y']/self._measures['modules_count']
 
     def _get_orientations(self):
         for idx_state in range(0, len(self._states.environment_results[self._genotype_idx].environment_states)):

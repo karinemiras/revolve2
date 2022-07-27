@@ -31,16 +31,17 @@ class Simulator:
 
     async def simulate(self) -> None:
 
+        # nice one: speed20_10
         self.study = 'default_study'
-        self.experiments_name = ['default_experiment']
-        self.runs = [1]#list(range(1, 20+1))
-        self.generations = [3]
+        self.experiments_name = ['speed20']
+        self.runs = [2]#list(range(1, 20+1))
+        self.generations = [200]
         self.bests = 1
-        self.specific_robot = 37
+        self.specific_robot = 1
         # 'all' selects best from the whole experiment
         # 'gens' selects best from chosen generations
         # 'specific' selects teh robot provided in specific_robot
-        self.bests_type = 'specific'
+        self.bests_type = 'all'
 
         for experiment_name in self.experiments_name:
             print('\n', experiment_name)
@@ -134,11 +135,12 @@ class Simulator:
                  )
                 batch.environments.append(env)
                 if sys.platform == "linux" or sys.platform == "linux2":
+                    # TODO: take values from database
                     static_friction = 1.0
                     dynamic_friction = 1.0
                     gravity = "0;0;-9.81"
-                    normal_xyz = "0;0;1"
-                    env_conditions_plane = [static_friction, dynamic_friction, gravity, normal_xyz]
+                    y_rotation_degrees = "15"
+                    env_conditions_plane = [static_friction, dynamic_friction, gravity, y_rotation_degrees]
                     env_conditions = [env_conditions_plane]
                     runner = LocalRunner(LocalRunner.SimParams(), env_conditions=env_conditions[0])
                 else:

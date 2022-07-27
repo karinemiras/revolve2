@@ -77,7 +77,7 @@ class Config():
         parser.add_argument(
             "--fitness_measure",
             required=False,
-            default="speed_x",
+            default="speed_y",
             type=str,
         )
 
@@ -132,10 +132,18 @@ class Config():
         parser.add_argument(
             "--control_frequency",
             required=False,
-            default=20, #60
+            default=20,
             type=int,
         )
 
+        parser.add_argument(
+            "--seasons_conditions",
+            required=False,
+            default='1.0_1.0_0',
+            type=str,
+            # seasons separated by '|' and their params separated by '_'
+            help="staticfriction_dynamicfriction_yrotationdegrees|staticfriction_dynamicfriction_yrotationdegrees|...",
+        )
         args = parser.parse_args()
 
         return args

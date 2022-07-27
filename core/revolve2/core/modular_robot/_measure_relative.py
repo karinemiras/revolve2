@@ -64,7 +64,7 @@ class MeasureRelative:
             k = len(self._neighbours_measures)
         else:
             # TODO: make it a param
-            k = 10+1
+            k = 3#10+1
 
         # distances from neighbors
         distances, indexes = kdt.query([genotype_measures], k=k)
@@ -73,10 +73,10 @@ class MeasureRelative:
         self._genotype_measures[f'{type}_diversity'] = diversity
 
         # if type == 'pool':
-        #     if self._genotype_measures['speed_x'] > 0:
-        #         self._genotype_measures['speed_diversity'] = self._genotype_measures['speed_x'] * diversity
+        #     if self._genotype_measures['speed_y'] > 0:
+        #         self._genotype_measures['speed_diversity'] = self._genotype_measures['speed_y'] * diversity
         #     else:
-        #         self._genotype_measures['speed_diversity'] = self._genotype_measures['speed_x'] / diversity
+        #         self._genotype_measures['speed_diversity'] = self._genotype_measures['speed_y'] / diversity
 
         return self._genotype_measures
 
@@ -84,8 +84,8 @@ class MeasureRelative:
     # an individual a dominates an individual b if a is better in at least one measure and not worse in any measure
     # better=higher > maximization
     def _pool_dominated_individuals(self):
-        # TODO: get quality from param instead of only speed_x
-        self._pareto_dominance(['speed_x', 'inverse_age'], 'quality_youth')
+        # TODO: get quality from param instead of only speed_y
+        self._pareto_dominance(['speed_y', 'inverse_age'], 'quality_youth')
 
         return self._genotype_measures
 

@@ -4,8 +4,8 @@
 
 
 study="default_study"
-experiments=("speed")
-runs=20
+experiments=("speedtilted5" "speedtilted10")
+runs=10
 num_generations="200"
 
 

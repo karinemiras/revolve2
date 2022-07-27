@@ -14,24 +14,7 @@ from revolve2.core.config import Config
 
 async def main() -> None:
 
-    # TODO: gravity param is not being used
-
-    # environmental conditions
-    # static_friction = 1.0
-    # dynamic_friction = 1.0
-    # gravity = "0;0;-9.81"
-    # normal_xyz = "0;0;1"
-    # env_conditions_plane = [static_friction, dynamic_friction, gravity, normal_xyz]
-    # normal_xyz = "0;1;0"
-    # env_conditions_tilted = [static_friction, dynamic_friction, gravity, normal_xyz]
-    # env_conditions = [env_conditions_plane, env_conditions_tilted]
-
-    static_friction = 1.0
-    dynamic_friction = 1.0
-    gravity = "0;0;-9.81"
-    normal_xyz = "0;0;1"
-    env_conditions_plane = [static_friction, dynamic_friction, gravity, normal_xyz]
-    env_conditions = [env_conditions_plane]
+    # TODO: config cyclic conditions without redundant logging
 
     args = Config()._get_params()
 
@@ -41,6 +24,16 @@ async def main() -> None:
     )
 
     logging.info(f"Starting optimization")
+
+    # prepares params for environmental conditions
+    seasonal_conditions_parsed = []
+    seasonal_conditions = args.seasons_conditions.split('|')
+    print(seasonal_conditions)
+    for seasonal_condition in seasonal_conditions:
+        print(seasonal_condition)
+        params = seasonal_condition.split('_')
+        seasonal_conditions_parsed.append([params[0], params[1], params[2]])
+    print(seasonal_conditions_parsed)
 
     # random number generator
     rng = Random()
@@ -98,7 +91,7 @@ async def main() -> None:
             mutation_prob=args.mutation_prob,
             substrate_radius=args.substrate_radius,
             run_simulation=args.run_simulation,
-            env_conditions=env_conditions
+            env_conditions=seasonal_conditions_parsed
         )
     
     logging.info("Starting optimization process..")

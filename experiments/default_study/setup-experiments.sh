@@ -5,13 +5,13 @@
 
 study="default_study"
 # DO NOT use _
-experiments=("speed")
-fitness_measure=("speed_x")
-runs=20
+experiments=("speedtilted5" "speedtilted10")
+seasons_conditions=("1.0_1.0_5" "1.0_1.0_10")
+runs=10
 num_generations="200"
 
-# before recommended 10-15? 20 now?
-num_terminals=20
+# recommended 10-15
+num_terminals=10
 
 mkdir data/${study}
 
@@ -107,7 +107,7 @@ while true
         idx_fit=$( echo ${experiments[@]/${exp}//} | cut -d/ -f1 | wc -w | tr -d ' ' )
 
         # nice -n19 python3  experiments/${study}/optimize.py
-        screen -d -m -S screen_${free_screens[$p]}_${to_d} -L -Logfile /storage/karine/${study}/${exp}_${run}".log" python3  experiments/${study}/optimize.py --experiment_name ${exp} --fitness_measure ${fitness_measure[$idx_fit]} --run ${run};
+        screen -d -m -S screen_${free_screens[$p]}_${to_d} -L -Logfile /storage/karine/${study}/${exp}_${run}".log" python3  experiments/${study}/optimize.py --experiment_name ${exp} --seasons_conditions ${seasons_conditions[$idx_fit]} --run ${run};
 
         printf "\n >> (re)starting screen_${free_screens[$p]}_${to_d} \n\n"
         p=$((${p}+1))

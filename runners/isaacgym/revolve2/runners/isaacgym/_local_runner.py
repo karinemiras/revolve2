@@ -86,11 +86,16 @@ class LocalRunner(Runner):
             # let the user create static object, rendering the group plane redundant.
             # But for now we keep it because it's easy for our first test release.
             plane_params = gymapi.PlaneParams()
-
-            static_friction, dynamic_friction, gravity, normal_xyz = self._env_conditions
-            normal_xyz = normal_xyz.split(';')
-            #print('runner conds',static_friction, dynamic_friction, float(normal_xyz[0]), float(normal_xyz[1]), float(normal_xyz[2]))
-            plane_params.normal = gymapi.Vec3(float(normal_xyz[0]), float(normal_xyz[1]), float(normal_xyz[2]))
+            print('runner self._env_conditions', self._env_conditions)
+            static_friction, dynamic_friction, y_rotation_degrees = self._env_conditions
+            y_rotation_degrees = float(y_rotation_degrees)
+            static_friction = float(static_friction)
+            dynamic_friction = float(dynamic_friction)
+            # adds (possible) rotation to the y-axis
+            # ps: because camera is also rotated, we see the hill raising from the center to the right of the screen
+            plane_params.normal = gymapi.Vec3(0.0,
+                                              -np.sin(y_rotation_degrees*np.pi/180),
+                                              np.cos(y_rotation_degrees*np.pi/180))
             plane_params.distance = 0
             plane_params.static_friction = static_friction
             plane_params.dynamic_friction = dynamic_friction
@@ -209,10 +214,10 @@ class LocalRunner(Runner):
                 raise RuntimeError()
             num_per_row = math.sqrt(len(self._batch.environments))
             cam_pos = gymapi.Vec3(
-                num_per_row / 2.0 - 0.5, num_per_row / 2.0 + 0.5, num_per_row
+                num_per_row / 2.0 + 0.5, num_per_row / 2.0 - 0.5, num_per_row
             )
             cam_target = gymapi.Vec3(
-                num_per_row / 2.0 - 0.5, num_per_row / 2.0 + 0.5 - 1, 0.0
+                num_per_row / 2.0 + 0.5 - 1, num_per_row / 2.0 - 0.5, 0.0
             )
             self._gym.viewer_camera_look_at(viewer, None, cam_pos, cam_target)
 
@@ -356,10 +361,6 @@ class LocalRunner(Runner):
     _sim_params: gymapi.SimParams
     _headless: bool
     _real_time: bool
-    _static_friction: float
-    _dynamic_friction: float
-    _gravity: List
-    _normal_xyz: List
 
     def __init__(
         self,
@@ -379,7 +380,7 @@ class LocalRunner(Runner):
         sim_params.dt = 0.02
         sim_params.substeps = 2
         sim_params.up_axis = gymapi.UP_AXIS_Z
-        # TODO: get values from  self.gravity
+        # TODO: get values from config
         sim_params.gravity = gymapi.Vec3(0.0, 0.0, -9.81)
 
         sim_params.physx.solver_type = 1

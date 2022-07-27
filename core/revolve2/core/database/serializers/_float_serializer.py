@@ -28,7 +28,7 @@ class FloatSerializer(Serializer[float]):
         # TODO: set attributes dynamically
         items = [DbFloat(
                          birth=f['birth'],
-                         speed_x=f['speed_x'],
+                         speed_y=f['speed_y'],
                          average_z=f['average_z'],
                          head_balance=f['head_balance'],
                          modules_count=f['modules_count'],
@@ -48,7 +48,7 @@ class FloatSerializer(Serializer[float]):
                          proportion=f['proportion'],
                          symmetry=f['symmetry'],
                          displacement=f['displacement'],
-                         relative_speed_x=f['relative_speed_x'],
+                         relative_speed_y=f['relative_speed_y'],
                          hinge_ratio=f['hinge_ratio'],
                          )
                  for f in objects]
@@ -77,7 +77,7 @@ class FloatSerializer(Serializer[float]):
             measures = {}
             # TODO: do this dynamically using measures_names
             measures['birth'] = items[i].birth
-            measures['speed_x'] = items[i].speed_x
+            measures['speed_y'] = items[i].speed_y
             measures['average_z'] = items[i].average_z
             measures['head_balance'] = items[i].head_balance
             measures['modules_count'] = items[i].modules_count
@@ -96,7 +96,7 @@ class FloatSerializer(Serializer[float]):
             measures['coverage'] = items[i].coverage
             measures['proportion'] = items[i].proportion
             measures['symmetry'] = items[i].symmetry
-            measures['relative_speed_x'] = items[i].relative_speed_x
+            measures['relative_speed_y'] = items[i].relative_speed_y
             measures['displacement'] = items[i].displacement
             measures['hinge_ratio'] = items[i].hinge_ratio
 
@@ -115,8 +115,8 @@ class DbFloat(DbBase):
         sqlalchemy.Integer, nullable=False, primary_key=True, autoincrement=True
     )
     birth = sqlalchemy.Column(sqlalchemy.Float, nullable=True)
-    speed_x = sqlalchemy.Column(sqlalchemy.Float, nullable=True)
-    relative_speed_x = sqlalchemy.Column(sqlalchemy.Float, nullable=True)
+    speed_y = sqlalchemy.Column(sqlalchemy.Float, nullable=True)
+    relative_speed_y = sqlalchemy.Column(sqlalchemy.Float, nullable=True)
     displacement = sqlalchemy.Column(sqlalchemy.Float, nullable=True)
     average_z = sqlalchemy.Column(sqlalchemy.Float, nullable=True)
     head_balance = sqlalchemy.Column(sqlalchemy.Float, nullable=True)
