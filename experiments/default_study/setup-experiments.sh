@@ -5,13 +5,13 @@
 
 study="default_study"
 # DO NOT use _
-experiments=("speedtilted5" "speedtilted10")
-seasons_conditions=("1.0_1.0_5" "1.0_1.0_10")
-runs=10
+experiments=("plane" "tilted5" "tilted10")
+seasons_conditions=("1.0_1.0_0" "1.0_1.0_5" "1.0_1.0_10")
+runs=20
 num_generations="200"
 
 # recommended 10-15
-num_terminals=10
+num_terminals=15
 
 mkdir data/${study}
 

@@ -25,7 +25,7 @@ from revolve2.core.physics.running import (
 
 class LocalRunner(Runner):
     class _Simulator:
-        ENV_SIZE = 0.5
+        ENV_SIZE = 0.0
 
         @dataclass
         class GymEnv:

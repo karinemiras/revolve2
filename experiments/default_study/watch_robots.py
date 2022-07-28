@@ -10,7 +10,7 @@ from revolve2.core.physics.running import ActorControl, Batch, Environment, Pose
 from sqlalchemy.ext.asyncio.session import AsyncSession
 from revolve2.core.database import open_async_database_sqlite
 from sqlalchemy.future import select
-from revolve2.core.optimization.ea.generic_ea import DbEAOptimizerGeneration, DbEAOptimizerIndividual, DbEAOptimizer
+from revolve2.core.optimization.ea.generic_ea import DbEAOptimizerGeneration, DbEAOptimizerIndividual, DbEAOptimizer, DbEnvconditions
 from genotype import GenotypeSerializer, develop
 from optimizer import DbOptimizerState
 import sys
@@ -18,7 +18,7 @@ from revolve2.core.modular_robot.render.render import Render
 from revolve2.core.modular_robot import Measure
 from revolve2.core.database.serializers import DbFloat
 import pprint
-import numpy
+from ast import literal_eval
 
 if sys.platform == "linux" or sys.platform == "linux2":
     from revolve2.runners.isaacgym import LocalRunner
@@ -33,15 +33,15 @@ class Simulator:
 
         # nice one: speed20_10
         self.study = 'default_study'
-        self.experiments_name = ['speed20']
-        self.runs = [2]#list(range(1, 20+1))
-        self.generations = [200]
+        self.experiments_name = ['default_experiment']
+        self.runs = [1]#list(range(1, 20+1))
+        self.generations = [1]
         self.bests = 1
-        self.specific_robot = 1
+        self.specific_robot = 3
         # 'all' selects best from the whole experiment
         # 'gens' selects best from chosen generations
         # 'specific' selects teh robot provided in specific_robot
-        self.bests_type = 'all'
+        self.bests_type = 'specific'
 
         for experiment_name in self.experiments_name:
             print('\n', experiment_name)
@@ -81,6 +81,13 @@ class Simulator:
             control_frequency = rows[0].DbOptimizerState.control_frequency
             simulation_time = rows[0].DbOptimizerState.simulation_time
 
+            rows = (
+                (await session.execute(select(DbEnvconditions))).all()
+            )
+            env_conditions = {}
+            for c_row in rows:
+                env_conditions[c_row[0].id] = literal_eval(c_row[0].conditions)
+
             # TODO: make queries more reusable...
             if gen == -1:
                 if self.bests_type == 'specific':
@@ -90,17 +97,17 @@ class Simulator:
                 else:
                     rows = ((await session.execute(select(DbEAOptimizerGeneration, DbEAOptimizerIndividual, DbFloat)
                                                .filter((DbEAOptimizerGeneration.individual_id == DbEAOptimizerIndividual.individual_id)
-                                               & (DbFloat.id == DbEAOptimizerIndividual.float_id)).order_by(DbFloat.speed_x.desc()) )).all())
+                                               & (DbFloat.id == DbEAOptimizerIndividual.float_id)).order_by(DbFloat.speed_y.desc()) )).all())
             else:
                 rows = ((await session.execute(select(DbEAOptimizerGeneration, DbEAOptimizerIndividual, DbFloat)
                                            .filter(DbEAOptimizerGeneration.generation_index.in_([gen]))
                                            .filter((DbEAOptimizerGeneration.individual_id == DbEAOptimizerIndividual.individual_id)
-                                          & (DbFloat.id == DbEAOptimizerIndividual.float_id)).order_by(DbFloat.speed_x.desc()) )).all())
+                                          & (DbFloat.id == DbEAOptimizerIndividual.float_id)).order_by(DbFloat.speed_y.desc()) )).all())
 
             for idx, r in enumerate(rows[0:self.bests]):
                 print(f'\n    rank:{idx} id:{r.DbEAOptimizerIndividual.individual_id} ' \
                       f' birth:{r.DbFloat.birth} ' \
-                      f' speed_x:{r.DbFloat.speed_x}' \
+                      f' speed_y:{r.DbFloat.speed_y}' \
                       )
                 genotype = (
                     await GenotypeSerializer.from_database(
@@ -135,14 +142,7 @@ class Simulator:
                  )
                 batch.environments.append(env)
                 if sys.platform == "linux" or sys.platform == "linux2":
-                    # TODO: take values from database
-                    static_friction = 1.0
-                    dynamic_friction = 1.0
-                    gravity = "0;0;-9.81"
-                    y_rotation_degrees = "15"
-                    env_conditions_plane = [static_friction, dynamic_friction, gravity, y_rotation_degrees]
-                    env_conditions = [env_conditions_plane]
-                    runner = LocalRunner(LocalRunner.SimParams(), env_conditions=env_conditions[0])
+                    runner = LocalRunner(LocalRunner.SimParams(), env_conditions=env_conditions[1])
                 else:
                     runner = LocalRunner()
                 states = await runner.run_batch(batch)

@@ -141,7 +141,7 @@ class Config():
             required=False,
             default='1.0_1.0_0',
             type=str,
-            # seasons separated by '|' and their params separated by '_'
+            # seasons separated by '#' and their params separated by '_': params order matters!
             help="staticfriction_dynamicfriction_yrotationdegrees|staticfriction_dynamicfriction_yrotationdegrees|...",
         )
         args = parser.parse_args()

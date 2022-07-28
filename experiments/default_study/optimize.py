@@ -27,7 +27,7 @@ async def main() -> None:
 
     # prepares params for environmental conditions
     seasonal_conditions_parsed = []
-    seasonal_conditions = args.seasons_conditions.split('|')
+    seasonal_conditions = args.seasons_conditions.split('#')
     print(seasonal_conditions)
     for seasonal_condition in seasonal_conditions:
         print(seasonal_condition)

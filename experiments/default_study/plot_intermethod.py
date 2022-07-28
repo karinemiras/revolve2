@@ -30,7 +30,7 @@ class Analysis:
         self.experiments = experiments
         self.inner_metrics = ['median', 'max']
         self.runs = runs
-        self.include_max = True
+        self.include_max = False
         self.merge_lines = True
         self.final_gen = 200
         self.gens_boxes = [200]
@@ -43,13 +43,11 @@ class Analysis:
         self.measures = {
             'pop_diversity': ['Diversity', 0, 1],
             'pool_diversity': ['Pool Diversity', 0, 1],
-             'dominated_quality_youth': ['Dominated individuals', 0, 1],
-             'fullydominated_quality_youth': ['Fully dominated individuals', 0, 1],
-         #   'pool_dominated_individuals': ['Dominated individuals', 0, 1],
-        #    'pool_fulldominated_individuals': ['Fully dominated individuals', 0, 1],
+            'dominated_quality_youth': ['Dominated individuals', 0, 1],
+            'fullydominated_quality_youth': ['Fully dominated individuals', 0, 1],
             'age': ['Age', 0, 1],
-            'speed_x': ['Speed (cm/s)', 0, 1],
-            'relative_speed_x': ['Relative speed (cm/s)', 0, 1],
+            'speed_y': ['Speed (cm/s)', 0, 1],
+            'relative_speed_y': ['Relative speed (cm/s)', 0, 1],
             'displacement': ['Total displacement (m)', 0, 1],
             'average_z': ['Z', 0, 1],
             'head_balance': ['Balance', 0, 1],
@@ -299,8 +297,8 @@ class Analysis:
 args = Config()._get_params()
 study = 'default_study'
 # make sure to provide experiments names in alphabetic order
-experiments = ["speed60", "speed5", "speed20"]
-runs = list(range(1, 13+1))
+experiments = ["speedtilted5", "speedtilted10"]
+runs = list(range(1, 5+1))
 
 # TODO: break by environment
 analysis = Analysis(args, study, experiments, runs)

@@ -13,8 +13,8 @@ import os
 async def main() -> None:
 
     study = 'default_study'
-    experiments_name = ["speed60", "speed5", "speed20"]
-    runs = list(range(1, 13+1))
+    experiments_name = ["speedtilted5", "speedtilted10"]
+    runs = list(range(1, 5+1))
     generations = [200]
 
     for experiment_name in experiments_name:
@@ -50,7 +50,7 @@ async def main() -> None:
                                                    .filter((DbEAOptimizerGeneration.individual_id == DbEAOptimizerIndividual.individual_id)
                                                            & (DbFloat.id == DbEAOptimizerIndividual.float_id)
                                                            )
-                                                   .order_by(DbFloat.speed_x.desc())
+                                                   .order_by(DbFloat.speed_y.desc())
 
 
                             )).all()

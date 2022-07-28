@@ -88,8 +88,8 @@ class Measure:
         if displacement >= 10:
             self._measures['speed_y'] = -math.inf
         else:
-            # speed on the y-axis (to the right is higher/better)
-            displacement_y = float((end_state.position[1]-begin_state.position[1])*-1)
+            # speed on the y-axis (to the right [uphill] is higher/better)
+            displacement_y = float((end_state.position[1]-begin_state.position[1]))
             self._measures['speed_y'] = float((displacement_y/self._simulation_time)*100)
 
         # average z
