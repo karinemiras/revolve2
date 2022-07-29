@@ -34,7 +34,7 @@ Genotype = TypeVar("Genotype")
 Measure = TypeVar("Measure")
 
 
-class EAOptimizer(Process, Generic[Genotype, Measure]):
+class EAOptimizerNew(Process, Generic[Genotype, Measure]):
 
     @abstractmethod
     async def _evaluate_generation(
@@ -465,23 +465,17 @@ class EAOptimizer(Process, Generic[Genotype, Measure]):
                 initial_states[cond] = None
                 initial_relative_measures[cond] = None
 
-        pprint.pprint(initial_measures)
-        print('---')
-        pprint.pprint(initial_states)
-        print('---')
-        pprint.pprint(initial_relative_measures)
-        print('---')
-        sys.exit()
-
         while self.__safe_must_do_next_gen():
 
             self.__generation_index += 1
 
+            any_cond = list(self.__env_conditions.keys())[0]
             for cond in self.__env_conditions:
                 self._pool_and_time_relative_measures(self.__latest_population, self.__latest_measures[cond])
+            self._pool_seasonal_relative_measures(self.__latest_population, self.__latest_measures)
 
             # let user select parents
-            latest_fitnesses = self.collect_key_value(self.__latest_measures,
+            latest_fitnesses = self.collect_key_value(self.__latest_measures[any_cond],
                                                       self.__fitness_measure)
 
             parent_selections = self.__safe_select_parents(
@@ -523,11 +517,15 @@ class EAOptimizer(Process, Generic[Genotype, Measure]):
                 individual.id = self.__gen_next_individual_id()
 
             pool_individuals = self.__latest_population + new_individuals
-            pool_measures = self.__latest_measures + new_measures
-            self._pool_and_time_relative_measures(pool_individuals, pool_measures)
+
+            pool_measures = {}
+            for cond in self.__env_conditions:
+                pool_measures[cond] = self.__latest_measures[cond] + new_measures[cond]
+                self._pool_and_time_relative_measures(pool_individuals, pool_measures[cond])
+            self._pool_seasonal_relative_measures(pool_individuals, pool_measures)
 
             # let user select survivors between old and new individuals
-            new_fitnesses = self.collect_key_value(new_measures, self.__fitness_measure)
+            new_fitnesses = self.collect_key_value(new_measures[any_cond], self.__fitness_measure)
             old_survivors, new_survivors = self.__safe_select_survivors(
                 [i.genotype for i in self.__latest_population],
                 latest_fitnesses,
@@ -537,30 +535,36 @@ class EAOptimizer(Process, Generic[Genotype, Measure]):
             )
 
             survived_new_individuals = [new_individuals[i] for i in new_survivors]
-            survived_new_measures = [new_measures[i] for i in new_survivors]
-            if self.__run_simulation:
-                survived_new_states = [new_states[i] for i in new_survivors]
+            survived_new_measures = {}
+            survived_new_states = {}
+            for cond in self.__env_conditions:
+                survived_new_measures[cond] = [new_measures[cond][i] for i in new_survivors]
+                if self.__run_simulation:
+                    survived_new_states[cond] = [new_states[cond][i] for i in new_survivors]
 
             # combine old and new and store as the new generation
             self.__latest_population = [
                 self.__latest_population[i] for i in old_survivors
             ] + survived_new_individuals
 
-            self.__latest_measures = [
-                self.__latest_measures[i] for i in old_survivors
-            ] + survived_new_measures
+            for cond in self.__env_conditions:
+                self.__latest_measures[cond] = [
+                    self.__latest_measures[cond][i] for i in old_survivors
+                ] + survived_new_measures[cond]
 
-            if self.__run_simulation:
-                self.__latest_states = [
-                    self.__latest_states[i] for i in old_survivors
-                ] + survived_new_states
+                if self.__run_simulation:
+                    self.__latest_states[cond] = [
+                        self.__latest_states[cond][i] for i in old_survivors
+                    ] + survived_new_states[cond]
 
             self._pop_relative_measures()
 
-            latest_relative_measures = []
-            for i in range(len(self.__latest_population)):
-                latest_relative_measures.append(MeasureRelative(
-                    genotype_measures=self.__latest_measures[i])._return_only_relative())
+            latest_relative_measures = {}
+            for cond in self.__env_conditions:
+                latest_relative_measures[cond] = []
+                for i in range(len(self.__latest_population)):
+                    latest_relative_measures[cond].append(MeasureRelative(
+                        genotype_measures=self.__latest_measures[cond][i])._return_only_relative())
 
             # save generation and possibly measures of initial population
             # and let user save their state
@@ -600,7 +604,7 @@ class EAOptimizer(Process, Generic[Genotype, Measure]):
 
     def _pool_and_time_relative_measures(self, pool_individuals, pool_measures):
 
-        # populationall-interdependent measures must be calculated sequentially (for after for)
+        # populational-interdependent measures must be calculated sequentially (for after for)
         for i in range(len(pool_individuals)):
             pool_measures[i] = MeasureRelative(genotype_measures=pool_measures[i],
                                                neighbours_measures=pool_measures).\
@@ -612,6 +616,18 @@ class EAOptimizer(Process, Generic[Genotype, Measure]):
         for i in range(len(pool_individuals)):
             pool_measures[i] = MeasureRelative(genotype_measures=pool_measures[i],
                                                neighbours_measures=pool_measures)._pool_dominated_individuals()
+
+    # consolidates dominance among seasons
+    def _pool_seasonal_relative_measures(self, pool_individuals, pool_measures):
+
+        for i in range(len(pool_individuals)):
+            pool_measures_conds = {}
+            for cond in pool_measures:
+                pool_measures_conds[cond] = pool_measures[cond][i]
+            seasonal_dominated = MeasureRelative(genotype_measures=pool_measures_conds,
+                                               neighbours_measures=pool_measures)._pool_seasonal_dominated_individuals()
+            for cond in pool_measures:
+                pool_measures[cond][i]['seasonal_dominated'] = seasonal_dominated
 
     @property
     def generation_index(self) -> Optional[int]:
@@ -726,76 +742,78 @@ class EAOptimizer(Process, Generic[Genotype, Measure]):
         if initial_measures is not None:
             assert initial_population is not None
 
-            measures_ids = await self.__measures_serializer.to_database(
-                session, initial_measures
-            )
-            assert len(measures_ids) == len(initial_measures)
+            for cond in self.__env_conditions:
+                measures_ids = await self.__measures_serializer.to_database(
+                    session, initial_measures[cond]
+                )
+                assert len(measures_ids) == len(initial_measures[cond])
 
-            states_ids = await self.__states_serializer.to_database(
-                session, initial_states
-            )
-            assert len(states_ids) == len(initial_states)
+                states_ids = await self.__states_serializer.to_database(
+                    session, initial_states[cond]
+                )
+                assert len(states_ids) == len(initial_states[cond])
+                # TODO: continue from here...
 
-            rows = (
-                (
-                    await session.execute(
-                        select(DbEAOptimizerIndividual)
-                            .filter(
-                            (
-                                    DbEAOptimizerIndividual.ea_optimizer_id
-                                    == self.__ea_optimizer_id
-                            )
-                            & (
-                                DbEAOptimizerIndividual.individual_id.in_(
-                                    [i.id for i in initial_population]
+                rows = (
+                    (
+                        await session.execute(
+                            select(DbEAOptimizerIndividual)
+                                .filter(
+                                (
+                                        DbEAOptimizerIndividual.ea_optimizer_id
+                                        == self.__ea_optimizer_id
+                                )
+                                & (
+                                    DbEAOptimizerIndividual.individual_id.in_(
+                                        [i.id for i in initial_population]
+                                    )
                                 )
                             )
+                                .order_by(DbEAOptimizerIndividual.individual_id)
                         )
-                            .order_by(DbEAOptimizerIndividual.individual_id)
                     )
+                        .scalars()
+                        .all()
                 )
-                    .scalars()
-                    .all()
-            )
-            if len(rows) != len(initial_population):
-                raise IncompatibleError()
+                if len(rows) != len(initial_population):
+                    raise IncompatibleError()
 
-            for i, row in enumerate(rows):
-                row.float_id = measures_ids[i]
-                if self.__run_simulation:
-                    row.states_id = states_ids[i]
+                for i, row in enumerate(rows):
+                    row.float_id = measures_ids[i]
+                    if self.__run_simulation:
+                        row.states_id = states_ids[i]
 
-            rows = (
-                (
-                    await session.execute(
-                        select(DbEAOptimizerGeneration)
-                            .filter(
-                            (
-                                    DbEAOptimizerGeneration.ea_optimizer_id
-                                    == self.__ea_optimizer_id
-                            )
-                            & (
-                                DbEAOptimizerGeneration.individual_id.in_(
-                                    [i.id for i in initial_population]
+                rows = (
+                    (
+                        await session.execute(
+                            select(DbEAOptimizerGeneration)
+                                .filter(
+                                (
+                                        DbEAOptimizerGeneration.ea_optimizer_id
+                                        == self.__ea_optimizer_id
+                                )
+                                & (
+                                    DbEAOptimizerGeneration.individual_id.in_(
+                                        [i.id for i in initial_population]
+                                    )
                                 )
                             )
+                                .order_by(DbEAOptimizerGeneration.individual_id)
                         )
-                            .order_by(DbEAOptimizerGeneration.individual_id)
                     )
+                        .scalars()
+                        .all()
                 )
-                    .scalars()
-                    .all()
-            )
-            if len(rows) != len(initial_population):
-                raise IncompatibleError()
+                if len(rows) != len(initial_population):
+                    raise IncompatibleError()
 
-            for i, row in enumerate(rows):
-                row.pop_diversity = initial_relative_measures[i]['pop_diversity']
-                row.pool_diversity = initial_relative_measures[i]['pool_diversity']
-                row.dominated_quality_youth = initial_relative_measures[i]['dominated_quality_youth']
-                row.fullydominated_quality_youth = initial_relative_measures[i]['fullydominated_quality_youth']
-                row.age = initial_relative_measures[i]['age']
-                row.inverse_age = initial_relative_measures[i]['inverse_age']
+                for i, row in enumerate(rows):
+                    row.pop_diversity = initial_relative_measures[i]['pop_diversity']
+                    row.pool_diversity = initial_relative_measures[i]['pool_diversity']
+                    row.dominated_quality_youth = initial_relative_measures[i]['dominated_quality_youth']
+                    row.fullydominated_quality_youth = initial_relative_measures[i]['fullydominated_quality_youth']
+                    row.age = initial_relative_measures[i]['age']
+                    row.inverse_age = initial_relative_measures[i]['inverse_age']
 
         # save current optimizer state
         session.add(

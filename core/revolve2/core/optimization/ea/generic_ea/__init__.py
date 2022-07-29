@@ -8,6 +8,9 @@ from ._database import (
 )
 from ._optimizer import EAOptimizer
 
+#TMP!
+from ._optimizer_new import EAOptimizerNew
+
 __all__ = [
     "EAOptimizer",
     "DbEAOptimizer",
@@ -15,5 +18,7 @@ __all__ = [
     "DbEAOptimizerIndividual",
     "DbEAOptimizerParent",
     "DbEAOptimizerState",
-    "DbEnvconditions"
+    "DbEnvconditions",
+
+    "EAOptimizerNew"
 ]

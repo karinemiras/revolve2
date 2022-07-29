@@ -19,11 +19,12 @@ class MeasureRelative:
     def _return_only_relative(self):
         # pool measures used for parent selection are not being saved.
         # they are overwritten, and only the values of survival selection are persisted.
-        # persisted it in the future?
+        # persist it in the future?
         relative_measures = ['pop_diversity',
                              'pool_diversity',
                              'dominated_quality_youth',
                              'fullydominated_quality_youth',
+                             'seasonal_dominated',
                              'age',
                              'inverse_age']
 
@@ -84,9 +85,7 @@ class MeasureRelative:
     # an individual a dominates an individual b if a is better in at least one measure and not worse in any measure
     # better=higher > maximization
     def _pool_dominated_individuals(self):
-        # TODO: get quality from param instead of only speed_y
         self._pareto_dominance(['speed_y', 'inverse_age'], 'quality_youth')
-
         return self._genotype_measures
 
     def _pareto_dominance(self, which_measures, type):
@@ -107,6 +106,21 @@ class MeasureRelative:
 
         self._genotype_measures[f'dominated_{type}'] = pool_dominated_individuals
         self._genotype_measures[f'fullydominated_{type}'] = pool_fulldominated_individuals
+
+    def _pool_seasonal_dominated_individuals(self):
+        which_measure = "symmetry"#"speed_y"
+        pool_dominated_individuals = 0
+        for i in range(0, len(self._neighbours_measures[1])):
+            better = 0
+            worse = 0
+            for cond in self._genotype_measures:
+                if self._genotype_measures[cond][which_measure] > self._neighbours_measures[cond][i][which_measure]:
+                    better += 1
+                if self._genotype_measures[cond][which_measure] < self._neighbours_measures[cond][i][which_measure]:
+                    worse += 1
+            if better > 0 and worse == 0:
+                pool_dominated_individuals += 1
+        return pool_dominated_individuals
 
     def _age(self, generation_index):
 
