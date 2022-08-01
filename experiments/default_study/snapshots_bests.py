@@ -13,9 +13,9 @@ import os
 async def main() -> None:
 
     study = 'default_study'
-    experiments_name = ["plane", "tilted5", "tilted10"]
-    runs = list(range(1, 5+1))
-    generations = [110]
+    experiments_name = ["plane", "tilted5", "tilted10", "tilted15"]
+    runs = list(range(1, 12+1))
+    generations = [200]
 
     for experiment_name in experiments_name:
         print(experiment_name)

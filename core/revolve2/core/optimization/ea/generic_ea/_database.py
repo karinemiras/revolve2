@@ -40,6 +40,7 @@ class DbEAOptimizerGeneration(DbBase):
     __tablename__ = "ea_optimizer_generation"
 
     ea_optimizer_id = Column(Integer, nullable=False, primary_key=True)
+    env_conditions_id = Column(Integer, primary_key=True)
     generation_index = Column(Integer, nullable=False, primary_key=True)
     individual_index = Column(Integer, nullable=False, primary_key=True)
     individual_id = Column(Integer, nullable=False)
@@ -49,6 +50,7 @@ class DbEAOptimizerGeneration(DbBase):
     fullydominated_quality_youth = Column(Float, nullable=True)
     age = Column(Float, nullable=True)
     inverse_age = Column(Float, nullable=True)
+    seasonal_dominated = Column(Float, nullable=True)
 
 
 # all history of born individuals
@@ -57,6 +59,7 @@ class DbEAOptimizerIndividual(DbBase):
 
     ea_optimizer_id = Column(Integer, nullable=False, primary_key=True)
     individual_id = Column(Integer, nullable=False, primary_key=True)
+    env_conditions_id = Column(Integer, primary_key=True)
     genotype_id = Column(Integer, nullable=False)
     float_id = Column(Integer, nullable=True)
     states_id = Column(Integer, nullable=True)

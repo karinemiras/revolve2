@@ -4,7 +4,7 @@
 
 
 study="default_study"
-experiments=("plane" "tilted5" "tilted10")
+experiments=("seasonal")
 runs=10
 num_generations="200"
 

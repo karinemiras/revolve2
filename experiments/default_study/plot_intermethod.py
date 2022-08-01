@@ -32,7 +32,6 @@ class Analysis:
         self.runs = runs
         self.include_max = False
         self.merge_lines = True
-        self.final_gen = 110
         self.gens_boxes = [200]
         self.clrs = ['#009900',
                      '#EE8610',
@@ -69,108 +68,12 @@ class Analysis:
             'proportion': ['Proportion', 0, 1],
             'symmetry': ['Symmetry', 0, 1]}
 
-    def consolidate(self):
-        print('consolidating...')
-
-        if not os.path.exists(self.path):
-            os.makedirs(self.path)
-        if not os.path.exists(f'{self.path}/analysis/basic_plots'):
-            os.makedirs(f'{self.path}/analysis/basic_plots')
-
-        all_df = None
-        for experiment in self.experiments:
-            for run in self.runs:
-                print(experiment, run)
-                db = open_database_sqlite(f'{self.path}/{experiment}/run_{run}')
-
-                # read the optimizer data into a pandas dataframe
-                df = pandas.read_sql(
-                    select(
-                        DbEAOptimizerIndividual,
-                        DbEAOptimizerGeneration,
-                        DbFloat
-                    ).filter(
-                        (DbEAOptimizerGeneration.individual_id == DbEAOptimizerIndividual.individual_id)
-                        & (DbFloat.id == DbEAOptimizerIndividual.float_id)
-                    ),
-                    db,
-                )
-                df["experiment"] = experiment
-                df["run"] = run
-
-                # TODO: convert metrics?
-
-                if all_df is None:
-                    all_df = df
-                else:
-                    all_df = pandas.concat([all_df, df], axis=0)
-
-        all_df = all_df[all_df['generation_index'] <= self.final_gen]
-
-        keys = ['experiment', 'run', 'generation_index']
-
-        def renamer(col):
-            if col not in keys:
-                if inspect.ismethod(metric):
-                    sulfix = metric.__name__
-                else:
-                    sulfix = metric
-                return col + '_' + sulfix
-            else:
-                return col
-
-        def groupby(data, measures, metric, keys):
-            expr = {x: metric for x in measures}
-            df_inner_group = data.groupby(keys).agg(expr).reset_index()
-            df_inner_group = df_inner_group.rename(mapper=renamer, axis='columns')
-            return df_inner_group
-
-        # inner measurements (within runs)
-
-        df_inner = {}
-        for metric in self.inner_metrics:
-            df_inner[metric] = groupby(all_df, self.measures.keys(), metric, keys)
-
-        df_inner = pandas.merge(df_inner[self.inner_metrics[0]], df_inner[self.inner_metrics[1]], on=keys)
-
-        # outer measurements (among runs)
-
-        measures_inner = []
-        for measure in self.measures.keys():
-            for metric in self.inner_metrics:
-                measures_inner.append(f'{measure}_{metric}')
-
-        keys = ['experiment', 'generation_index']
-        metric = 'median'
-        df_outer_median = groupby(df_inner, measures_inner, metric, keys)
-
-        metric = self.q25
-        df_outer_q25 = groupby(df_inner, measures_inner, metric, keys)
-
-        metric = self.q75
-        df_outer_q75 = groupby(df_inner, measures_inner, metric, keys)
-
-        df_outer = pandas.merge(df_outer_median, df_outer_q25, on=keys)
-        df_outer = pandas.merge(df_outer, df_outer_q75, on=keys)
-
-        all_df.to_csv(f'{self.path}/analysis/all_df.csv', index=True)
-        df_inner.to_csv(f'{self.path}/analysis/df_inner.csv', index=True)
-        df_outer.to_csv(f'{self.path}/analysis/df_outer.csv', index=True)
-
-        print('consolidated!')
-
-    def q25(self, x):
-        return x.quantile(0.25)
-
-    def q75(self, x):
-        return x.quantile(0.75)
-
     def plots(self):
 
         df_inner = pandas.read_csv(f'{self.path}/analysis/df_inner.csv')
         df_outer = pandas.read_csv(f'{self.path}/analysis/df_outer.csv')
 
-        self.plot_lines(df_outer)
+      #  self.plot_lines(df_outer)
         self.plot_boxes(df_inner)
 
     def plot_lines(self, df_outer):
@@ -188,7 +91,6 @@ class Analysis:
             plt.ylabel(f'{self.measures[measure][0]}')
             for idx_experiment, experiment in enumerate(self.experiments):
                 data = df_outer[df_outer['experiment'] == experiment]
-                print(f'{experiment}_{self.inner_metrics[0]}')
                 ax.plot(data['generation_index'], data[f'{measure}_{self.inner_metrics[0]}_median'],
                         label=f'{experiment}_{self.inner_metrics[0]}', c=self.clrs[idx_experiment])
                 ax.fill_between(data['generation_index'],
@@ -225,7 +127,7 @@ class Analysis:
     def plot_boxes(self, df_inner):
         print('plotting boxes...')
         for gen_boxes in self.gens_boxes:
-            df_inner2 = df_inner[df_inner['generation_index'] == gen_boxes]
+            df_inner2 = df_inner[(df_inner['generation_index'] == gen_boxes) & (df_inner['run'] <= max(self.runs))]
             #self.min_max_inner(df_inner)
             plt.clf()
 
@@ -294,15 +196,17 @@ class Analysis:
     #         self.measures[measure][2] = max*1.05
 
 
-args = Config()._get_params()
-study = 'default_study'
-# make sure to provide experiments names in alphabetic order
-experiments = ["plane" ,"tilted5", "tilted10"]
-runs = list(range(1, 5+1))
+parser = argparse.ArgumentParser()
+parser.add_argument("study")
+parser.add_argument("experiments")
+parser.add_argument("runs")
+args = parser.parse_args()
 
+study = args.study
+experiments = [args.experiments]
+runs = list(range(1, int(args.runs)+1))
 # TODO: break by environment
 analysis = Analysis(args, study, experiments, runs)
-analysis.consolidate()
 analysis.plots()
 
 

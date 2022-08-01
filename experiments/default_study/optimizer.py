@@ -331,7 +331,7 @@ class Optimizer(EAOptimizer[Genotype, float]):
                                 0].serialize()
             envs_states_genotypes[cond] = states_genotypes
 
-        return envs_measures_genotypes[1], envs_states_genotypes[1]
+        return envs_measures_genotypes, envs_states_genotypes
 
     def _control(self, dt: float, control: ActorControl) -> None:
         for control_i, controller in enumerate(self._controllers):
