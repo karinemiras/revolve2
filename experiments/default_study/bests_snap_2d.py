@@ -2,15 +2,18 @@ import os
 import cv2
 import pprint
 import math
-import numpy as np
+import argparse
 
 
 async def main() -> None:
 
-    study = 'default_study'
-    experiments_name = ["plane", "tilted5", "tilted10", "tilted15"]
-    runs = list(range(1, 10+1))
-    generations = [200]
+    args = parser.parse_args()
+
+    study = args.study
+    experiments_name = args.experiments.split(',')
+    runs = list(range(1, int(args.runs)+1))
+    generations = list(map(int, args.generations.split(',')))
+
     bests = 5
     path_out = f'/storage/karine/{study}/analysis/snapshots'
 
@@ -68,9 +71,15 @@ async def main() -> None:
             cv2.imwrite(f'{path_out}/bests_{experiment_name}_{gen}.png', vertical)
 
 
+
 if __name__ == "__main__":
     import asyncio
 
-    asyncio.run(main())
+    parser = argparse.ArgumentParser()
+    parser.add_argument("study")
+    parser.add_argument("experiments")
+    parser.add_argument("runs")
+    parser.add_argument("generations")
+    asyncio.run(main(parser))
 
 # can be run from root

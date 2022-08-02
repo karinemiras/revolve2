@@ -13,8 +13,9 @@ num_generations="200"
 
 # recommended 10-15
 num_terminals=10
+mainpath="/storage/karine"
 
-mkdir data/${study}
+mkdir ${mainpath}/${study}/analysis
 
 possible_screens=()
 
@@ -67,7 +68,7 @@ while true
         do
 
          printf  "\n${experiment}_${run} \n"
-         file="/storage/karine/${study}/${experiment}_${run}.log";
+         file="${mainpath}/${study}/${experiment}_${run}.log";
 
          #check experiments status
          if [[ -f "$file" ]]; then
@@ -75,7 +76,7 @@ while true
               lastgen=$(grep -c "Finished generation" $file);
               echo "latest finished gen ${lastgen}";
 
-             if [ "$lastgen" != "$num_generations" ]; then
+             if [ "$lastgen" -lt "$num_generations" ]; then
 
                 # only if not already running
                 if [[ ! " ${active_experiments[@]} " =~ " ${experiment}_${run} " ]]; then
@@ -114,6 +115,22 @@ while true
         p=$((${p}+1))
 
     done
+
+   # if all experiments are finished, makes video
+   if [ -z "$to_do" ]; then
+       file="${mainpath}/${study}/analysis/video_bests.mpg";
+
+     if [ -f "$file" ]; then
+        printf ""
+     else
+         printf " \n making video..."
+         screen -d -m -S videos ffmpeg -f x11grab -r 25 -i :1 -qscale 0 $file;
+         python3 experiments/${study}/watch_robots.py;
+         killall screen;
+         printf " \n finished video!"
+      fi
+    fi
+
 
     sleep 1800;
 

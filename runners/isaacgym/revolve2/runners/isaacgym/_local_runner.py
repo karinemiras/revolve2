@@ -213,6 +213,10 @@ class LocalRunner(Runner):
             if viewer is None:
                 raise RuntimeError()
             num_per_row = math.sqrt(len(self._batch.environments))
+
+            # TEMP adjustment of camera position
+            num_per_row = num_per_row*1.7
+
             cam_pos = gymapi.Vec3(
                 num_per_row / 2.0 + 0.5, num_per_row / 2.0 - 0.5, num_per_row
             )

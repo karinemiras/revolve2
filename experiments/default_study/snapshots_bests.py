@@ -3,19 +3,22 @@ from revolve2.core.database import open_async_database_sqlite
 from sqlalchemy.future import select
 from revolve2.core.optimization.ea.generic_ea import DbEAOptimizerGeneration, DbEAOptimizerIndividual, DbEAOptimizer
 from revolve2.core.modular_robot.render.render import Render
-#TODO: make import based on param and move file to anal_resources
 from genotype import GenotypeSerializer, develop
 from revolve2.core.database.serializers import DbFloat
 
 import os
+import sys
+import argparse
 
 
-async def main() -> None:
+async def main(parser) -> None:
 
-    study = 'default_study'
-    experiments_name = ["plane", "tilted5", "tilted10", "tilted15"]
-    runs = list(range(1, 12+1))
-    generations = [200]
+    args = parser.parse_args()
+
+    study = args.study
+    experiments_name = args.experiments.split(',')
+    runs = list(range(1, int(args.runs)+1))
+    generations = list(map(int, args.generations.split(',')))
 
     for experiment_name in experiments_name:
         print(experiment_name)
@@ -72,6 +75,11 @@ async def main() -> None:
 if __name__ == "__main__":
     import asyncio
 
-    asyncio.run(main())
+    parser = argparse.ArgumentParser()
+    parser.add_argument("study")
+    parser.add_argument("experiments")
+    parser.add_argument("runs")
+    parser.add_argument("generations")
+    asyncio.run(main(parser))
 
 # can be run from root

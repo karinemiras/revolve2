@@ -24,9 +24,6 @@ from revolve2.genotypes.cppnwin.modular_robot.brain_genotype_cpg_v1 import (
     random_v1 as brain_random,
 )
 
-from revolve2.core.config import Config
-args = Config()._get_params()
-
 
 def _make_multineat_params() -> multineat.Parameters:
     multineat_params = multineat.Parameters()

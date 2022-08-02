@@ -19,17 +19,21 @@ from revolve2.core.optimization.ea.generic_ea._database import (
     DbEAOptimizerGeneration,
     DbEAOptimizerIndividual
 )
-from revolve2.core.config import Config
 
 
 class Analysis:
 
-    def __init__(self, study, experiments, runs):
+    def __init__(self, args):
+
+        study = args.study
+        experiments_name = args.experiments.split(',')
+        runs = list(range(1, int(args.runs) + 1))
+
         self.study = study
-        self.experiments = experiments
+        self.experiments = experiments_name
         self.inner_metrics = ['median', 'max']
         self.runs = runs
-        self.final_gen = 200
+        self.final_gen = args.final_gen
 
         self.path = f'/storage/karine/{study}'
 
@@ -163,14 +167,11 @@ parser = argparse.ArgumentParser()
 parser.add_argument("study")
 parser.add_argument("experiments")
 parser.add_argument("runs")
+parser.add_argument("final_gen")
 args = parser.parse_args()
 
-study = args.study
-experiments = [args.experiments]
-runs = list(range(1, int(args.runs)+1))
-
 # TODO: break by environment
-analysis = Analysis( study, experiments, runs)
+analysis = Analysis(args)
 #analysis.consolidate()
 
 
