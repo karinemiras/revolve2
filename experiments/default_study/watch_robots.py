@@ -29,7 +29,7 @@ class Simulator:
     async def simulate(self) -> None:
 
         self.study = 'default_study'
-        self.experiments_name = ['plane']
+        self.experiments_name = ['seasonal']
         self.runs = list(range(1, 10+1))
         self.generations = [200]
         self.bests = 1
@@ -150,7 +150,7 @@ class Simulator:
                          control=self._control,
                      )
                     batch.environments.append(env)
-                    runner = LocalRunner(LocalRunner.SimParams(), headless=False, env_conditions=env_conditions[env_conditions_id])
+                    runner = LocalRunner(LocalRunner.SimParams(), headless=True, env_conditions=env_conditions[env_conditions_id])
                     states = await runner.run_batch(batch)
 
                     m = Measure(states=states, genotype_idx=0, phenotype=phenotype,

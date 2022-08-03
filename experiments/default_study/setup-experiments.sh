@@ -60,6 +60,7 @@ while true
     # discover unfinished experiments
 
     to_do=()
+    unfinished=()
     for i in $(seq $runs)
     do
         run=$(($i))
@@ -77,6 +78,7 @@ while true
               echo "latest finished gen ${lastgen}";
 
              if [ "$lastgen" -lt "$num_generations" ]; then
+                 unfinished+=("${experiment}_${run}")
 
                 # only if not already running
                 if [[ ! " ${active_experiments[@]} " =~ " ${experiment}_${run} " ]]; then
@@ -86,7 +88,8 @@ while true
          else
              # not started yet
              echo " None";
-              # only if not already running
+               unfinished+=("${experiment}_${run}")
+               # only if not already running
                 if [[ ! " ${active_experiments[@]} " =~ " ${experiment}_${run} " ]]; then
                    to_do+=("${experiment}_${run}")
                 fi
@@ -99,10 +102,10 @@ while true
     # spawns N experiments (N is according to free screens)
 
     max_fs=${#free_screens[@]}
-    to_do=("${to_do[@]:0:$max_fs}")
+    to_do_now=("${to_do[@]:0:$max_fs}")
 
     p=0
-    for to_d in "${to_do[@]}"; do
+    for to_d in "${to_do_now[@]}"; do
 
         exp=$(cut -d'_' -f1 <<<"${to_d}")
         run=$(cut -d'_' -f2 <<<"${to_d}")
@@ -117,7 +120,7 @@ while true
     done
 
    # if all experiments are finished, makes video
-   if [ -z "$to_do" ]; then
+   if [ -z "$unfinished" ]; then
        file="${mainpath}/${study}/analysis/video_bests.mpg";
 
      if [ -f "$file" ]; then

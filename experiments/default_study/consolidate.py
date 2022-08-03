@@ -33,7 +33,7 @@ class Analysis:
         self.experiments = experiments_name
         self.inner_metrics = ['median', 'max']
         self.runs = runs
-        self.final_gen = args.final_gen
+        self.final_gen = int(args.final_gen)
 
         self.path = f'/storage/karine/{study}'
 
@@ -42,6 +42,7 @@ class Analysis:
             'pool_diversity': ['Pool Diversity', 0, 1],
             'dominated_quality_youth': ['Dominated individuals', 0, 1],
             'fullydominated_quality_youth': ['Fully dominated individuals', 0, 1],
+            'seasonal_dominated': ['Seasonal Dominated', 0, 1],
             'age': ['Age', 0, 1],
             'speed_y': ['Speed (cm/s)', 0, 1],
             'relative_speed_y': ['Relative speed (cm/s)', 0, 1],
@@ -102,7 +103,7 @@ class Analysis:
 
         all_df = all_df[all_df['generation_index'] <= self.final_gen]
 
-        keys = ['experiment', 'run', 'generation_index']
+        keys = ['experiment', 'run', 'generation_index', 'env_conditions_id']
 
         def renamer(col):
             if col not in keys:
@@ -135,7 +136,7 @@ class Analysis:
             for metric in self.inner_metrics:
                 measures_inner.append(f'{measure}_{metric}')
 
-        keys = ['experiment', 'generation_index']
+        keys = ['experiment', 'generation_index', 'env_conditions_id']
         metric = 'median'
         df_outer_median = groupby(df_inner, measures_inner, metric, keys)
 
@@ -172,7 +173,7 @@ args = parser.parse_args()
 
 # TODO: break by environment
 analysis = Analysis(args)
-#analysis.consolidate()
+analysis.consolidate()
 
 
 

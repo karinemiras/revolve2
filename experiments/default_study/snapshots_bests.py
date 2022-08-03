@@ -1,7 +1,7 @@
 from sqlalchemy.ext.asyncio.session import AsyncSession
 from revolve2.core.database import open_async_database_sqlite
 from sqlalchemy.future import select
-from revolve2.core.optimization.ea.generic_ea import DbEAOptimizerGeneration, DbEAOptimizerIndividual, DbEAOptimizer
+from revolve2.core.optimization.ea.generic_ea import DbEAOptimizerGeneration, DbEAOptimizerIndividual, DbEAOptimizer, DbEnvconditions
 from revolve2.core.modular_robot.render.render import Render
 from genotype import GenotypeSerializer, develop
 from revolve2.core.database.serializers import DbFloat
@@ -9,6 +9,7 @@ from revolve2.core.database.serializers import DbFloat
 import os
 import sys
 import argparse
+from ast import literal_eval
 
 
 async def main(parser) -> None:
@@ -41,23 +42,32 @@ async def main(parser) -> None:
 
                     async with AsyncSession(db) as session:
 
+                        rows = ((await session.execute(select(DbEnvconditions).order_by(DbEnvconditions.id))).all())
+                        env_conditions = {}
+                        for c_row in rows:
+                            env_conditions[c_row[0].id] = literal_eval(c_row[0].conditions)
+                            os.makedirs(f'{path}/gen_{gen}/{"_".join(literal_eval(c_row[0].conditions))}')
+
                         rows = (
                             (await session.execute(select(DbEAOptimizer))).all()
                         )
                         max_modules = rows[0].DbEAOptimizer.max_modules
                         substrate_radius = rows[0].DbEAOptimizer.substrate_radius
 
-                        rows = (
-                            (await session.execute(select(DbEAOptimizerGeneration, DbEAOptimizerIndividual, DbFloat)
-                                                   .filter(DbEAOptimizerGeneration.generation_index.in_([gen]))
+                        query = select(DbEAOptimizerGeneration, DbEAOptimizerIndividual, DbFloat)\
+                            .filter(DbEAOptimizerGeneration.generation_index.in_([gen])) \
                                                    .filter((DbEAOptimizerGeneration.individual_id == DbEAOptimizerIndividual.individual_id)
+                                                           & (DbEAOptimizerGeneration.env_conditions_id == DbEAOptimizerIndividual.env_conditions_id)
                                                            & (DbFloat.id == DbEAOptimizerIndividual.float_id)
                                                            )
-                                                   .order_by(DbFloat.speed_y.desc())
+                        if len(env_conditions) > 1:
+                            query = query.order_by(DbEAOptimizerGeneration.seasonal_dominated.desc(),
+                                                   DbEAOptimizerGeneration.individual_id.asc(),
+                                                   DbEAOptimizerGeneration.env_conditions_id.asc())
+                        else:
+                            query = query.order_by(DbFloat.speed_y.desc())
 
-
-                            )).all()
-                        )
+                        rows = ((await session.execute(query)).all())
 
                         for idx, r in enumerate(rows):
                             #print('geno',r.DbEAOptimizerIndividual.genotype_id)
@@ -69,7 +79,8 @@ async def main(parser) -> None:
 
                             phenotype = develop(genotype, genotype.mapping_seed, max_modules, substrate_radius)
                             render = Render()
-                            img_path = f'{path_gen}/{idx}_{r.DbEAOptimizerIndividual.individual_id}.png'
+                            img_path = f'{path_gen}/{"_".join(env_conditions[r.DbEAOptimizerGeneration.env_conditions_id])}/' \
+                                       f'{idx}_{r.DbEAOptimizerIndividual.individual_id}.png'
                             render.render_robot(phenotype.body.core, img_path)
 
 if __name__ == "__main__":
