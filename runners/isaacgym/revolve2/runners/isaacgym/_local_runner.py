@@ -86,7 +86,6 @@ class LocalRunner(Runner):
             # let the user create static object, rendering the group plane redundant.
             # But for now we keep it because it's easy for our first test release.
             plane_params = gymapi.PlaneParams()
-            print('runner self._env_conditions', self._env_conditions)
             static_friction, dynamic_friction, y_rotation_degrees = self._env_conditions
             y_rotation_degrees = float(y_rotation_degrees)
             static_friction = float(static_friction)
@@ -392,6 +391,10 @@ class LocalRunner(Runner):
         sim_params.physx.num_velocity_iterations = 1
         sim_params.physx.num_threads = 1
         sim_params.physx.use_gpu = True
+
+        # increase if memory errors persist
+        max_gpu_contact_pairs_boast = 20
+        sim_params.physx.max_gpu_contact_pairs = sim_params.physx.max_gpu_contact_pairs * max_gpu_contact_pairs_boast
 
         return sim_params
 

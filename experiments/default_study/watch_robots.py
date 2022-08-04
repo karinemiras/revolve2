@@ -150,7 +150,7 @@ class Simulator:
                          control=self._control,
                      )
                     batch.environments.append(env)
-                    runner = LocalRunner(LocalRunner.SimParams(), headless=True, env_conditions=env_conditions[env_conditions_id])
+                    runner = LocalRunner(LocalRunner.SimParams(), headless=False, env_conditions=env_conditions[env_conditions_id])
                     states = await runner.run_batch(batch)
 
                     m = Measure(states=states, genotype_idx=0, phenotype=phenotype,

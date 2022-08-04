@@ -62,6 +62,8 @@ class Optimizer(EAOptimizer[Genotype, float]):
     _substrate_radius: str
     _run_simulation: bool
     _env_conditions: List
+    _plastic_body = int
+    _plastic_brain = int
 
     async def ainit_new(  # type: ignore # TODO for now ignoring mypy complaint about LSP problem, override parent's ainit
         self,
@@ -86,6 +88,8 @@ class Optimizer(EAOptimizer[Genotype, float]):
         substrate_radius: str,
         run_simulation: bool,
         env_conditions: List,
+        plastic_body: int,
+        plastic_brain: int
     ) -> None:
         await super().ainit_new(
             database=database,
@@ -107,6 +111,8 @@ class Optimizer(EAOptimizer[Genotype, float]):
             substrate_radius=substrate_radius,
             run_simulation=run_simulation,
             env_conditions=env_conditions,
+            plastic_body=plastic_body,
+            plastic_brain=plastic_brain
         )
 
         self._process_id = process_id
@@ -126,6 +132,8 @@ class Optimizer(EAOptimizer[Genotype, float]):
         self._crossover_prob = crossover_prob
         self._mutation_prob = mutation_prob
         self._substrate_radius = substrate_radius
+        self._plastic_body = plastic_body,
+        self._plastic_brain = plastic_brain
         self._run_simulation = run_simulation
 
         # create database structure if not exists
@@ -179,6 +187,7 @@ class Optimizer(EAOptimizer[Genotype, float]):
         # if this happens something is wrong with the database
         if opt_row is None:
             raise IncompatibleError
+            raise IncompatibleError
 
         self._simulation_time = opt_row.simulation_time
         self._sampling_frequency = opt_row.sampling_frequency
@@ -199,7 +208,6 @@ class Optimizer(EAOptimizer[Genotype, float]):
     def _init_runner(self) -> None:
         self._runner = {}
         for env in self.env_conditions:
-            #print(env, self.env_conditions[env])
             self._runner[env] = (LocalRunner(LocalRunner.SimParams(), headless=True, env_conditions=self.env_conditions[env]))
 
     def _select_parents(
@@ -271,7 +279,6 @@ class Optimizer(EAOptimizer[Genotype, float]):
         envs_measures_genotypes = {}
         envs_states_genotypes = {}
         for cond in self.env_conditions:
-            print('envvvvv', cond)
 
             batch = Batch(
                 simulation_time=self._simulation_time,
@@ -284,7 +291,8 @@ class Optimizer(EAOptimizer[Genotype, float]):
             phenotypes = []
 
             for genotype in genotypes:
-                phenotype = develop(genotype, genotype.mapping_seed, self.max_modules, self.substrate_radius)
+                phenotype = develop(genotype, genotype.mapping_seed, self.max_modules, self.substrate_radius,
+                                    self.env_conditions[cond], self.plastic_body, self.plastic_brain)
                 phenotypes.append(phenotype)
                 actor, controller = phenotype.make_actor_and_controller()
                 bounding_box = actor.calc_aabb()

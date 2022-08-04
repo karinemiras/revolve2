@@ -28,12 +28,9 @@ async def main() -> None:
     # prepares params for environmental conditions
     seasonal_conditions_parsed = []
     seasonal_conditions = args.seasons_conditions.split('#')
-    print(seasonal_conditions)
     for seasonal_condition in seasonal_conditions:
-        print(seasonal_condition)
         params = seasonal_condition.split('_')
         seasonal_conditions_parsed.append([params[0], params[1], params[2]])
-    print(seasonal_conditions_parsed)
 
     # random number generator
     rng = Random()
@@ -67,7 +64,8 @@ async def main() -> None:
     else:
 
         initial_population = [
-            random_genotype(innov_db_body, innov_db_brain, rng, args.num_initial_mutations)
+            random_genotype(innov_db_body, innov_db_brain, rng, args.num_initial_mutations,
+                            args.plastic_body, args.plastic_brain)
             for _ in range(args.population_size)
         ]
 
@@ -91,7 +89,9 @@ async def main() -> None:
             mutation_prob=args.mutation_prob,
             substrate_radius=args.substrate_radius,
             run_simulation=args.run_simulation,
-            env_conditions=seasonal_conditions_parsed
+            env_conditions=seasonal_conditions_parsed,
+            plastic_body=args.plastic_body,
+            plastic_brain=args.plastic_brain
         )
     
     logging.info("Starting optimization process..")

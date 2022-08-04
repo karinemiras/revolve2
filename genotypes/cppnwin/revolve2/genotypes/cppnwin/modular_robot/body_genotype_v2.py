@@ -15,27 +15,41 @@ def random_v1(
     multineat_params: multineat.Parameters,
     output_activation_func: multineat.ActivationFunction,
     num_initial_mutations: int,
+    plastic_body: int,
 ) -> Genotype:
-    return base_random_v1(
-        innov_db,
-        rng,
-        multineat_params,
-        output_activation_func,
-        3,  # bias(always 1), pos_x, pos_y
-        4,  # brick, activehinge, rot0, rot90
-        num_initial_mutations,
-    )
+    if plastic_body == 0:
+        return base_random_v1(
+            innov_db,
+            rng,
+            multineat_params,
+            output_activation_func,
+            3,  # bias(always 1), pos_x, pos_y
+            4,  # brick, activehinge, rot0, rot90
+            num_initial_mutations,
+        )
+    else:
+        return base_random_v1(
+            innov_db,
+            rng,
+            multineat_params,
+            output_activation_func,
+            4,  # bias(always 1), pos_x, pos_y, inclined
+            4,  # brick, activehinge, rot0, rot90
+            num_initial_mutations,
+        )
 
 
 class Develop:
 
-    def __init__(self, max_modules, substrate_radius, genotype, querying_seed):
+    def __init__(self, max_modules, substrate_radius, genotype, querying_seed, env_condition, plastic_body):
 
         self.max_modules = max_modules
         self.quantity_modules = 0
         self.substrate_radius = substrate_radius
         self.genotype = genotype
         self.querying_seed = querying_seed
+        self.env_condition = env_condition
+        self.plastic_body = plastic_body
         self.development_seed = None
         self.random = None
         self.cppn = None
@@ -46,22 +60,10 @@ class Develop:
         self.outputs_count = {
             'b_module': 0,
             'a_module': 0}
-        self.environmental_conditions = {}
 
     def develop(self):
 
-        # Applies regulation according to environmental conditions.
-        # if self.conf.plastic:
-        #
-        #     # This check-block is a shortcut to save computational time,
-        #     # but the imu sensors could for sure tell if the floor is inclined=1 or not_inclined=0.
-        #     if environment == 'plane':
-        #         self.environmental_conditions['inclined'] = 0
-        #     if environment == 'tilted3':
-        #         self.environmental_conditions['inclined'] = 15
-
         self.random = random.Random(self.querying_seed)
-
         self.quantity_nodes = 0
         # the queried substrate
         self.queried_substrate = {}
@@ -224,12 +226,29 @@ class Develop:
     
     def query_body_part(self, x_dest, y_dest):
 
-        # if self.conf.plastic:
-        #     outputs = cppn.activate((self.environmental_conditions['inclined'], x_dest, y_dest))
-        # else:
-        self.cppn.Input(
-            [1.0, x_dest, y_dest]
-        )  # 1.0 is the bias input
+        # # Applies regulation according to environmental conditions.
+        if self.plastic_body == 0:
+
+            self.cppn.Input(
+                [1.0, x_dest, y_dest]
+            )  # 1.0 is the bias input
+
+        else:
+
+            staticfriction, dynamicfriction, yrotationdegrees = \
+                float(self.env_condition[0]), float(self.env_condition[1]), float(self.env_condition[2])
+
+            # TODO: make conditions-checking dynamic
+            # if inclined
+            if yrotationdegrees > 0:
+                inclined = -1
+            else:
+                inclined = 1
+
+            self.cppn.Input(
+                [1.0, x_dest, y_dest, inclined]
+            )  # 1.0 is the bias input
+
         self.cppn.ActivateAllLayers()
         outputs = self.cppn.Output()
 

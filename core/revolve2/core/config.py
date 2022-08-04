@@ -46,6 +46,22 @@ class Config():
         )
 
         parser.add_argument(
+            "--plastic_body",
+            required=False,
+            default=0,
+            type=int,
+            help="0 is not plastic, 1 is plastic",
+        )
+
+        parser.add_argument(
+            "--plastic_brain",
+            required=False,
+            default=0,
+            type=int,
+            help="0 is not plastic, 1 is plastic",
+        )
+
+        parser.add_argument(
             "--body_substrate_dimensions",
             required=False,
             default='2d',

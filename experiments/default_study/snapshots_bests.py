@@ -53,6 +53,8 @@ async def main(parser) -> None:
                         )
                         max_modules = rows[0].DbEAOptimizer.max_modules
                         substrate_radius = rows[0].DbEAOptimizer.substrate_radius
+                        plastic_body = rows[0].DbEAOptimizer.plastic_body
+                        plastic_brain = rows[0].DbEAOptimizer.plastic_brain
 
                         query = select(DbEAOptimizerGeneration, DbEAOptimizerIndividual, DbFloat)\
                             .filter(DbEAOptimizerGeneration.generation_index.in_([gen])) \
@@ -77,7 +79,8 @@ async def main(parser) -> None:
                                 )
                             )[0]
 
-                            phenotype = develop(genotype, genotype.mapping_seed, max_modules, substrate_radius)
+                            phenotype = develop(genotype, genotype.mapping_seed, max_modules, substrate_radius,
+                                                env_conditions[r.DbEAOptimizerGeneration.env_conditions_id], plastic_body, plastic_brain)
                             render = Render()
                             img_path = f'{path_gen}/{"_".join(env_conditions[r.DbEAOptimizerGeneration.env_conditions_id])}/' \
                                        f'{idx}_{r.DbEAOptimizerIndividual.individual_id}.png'

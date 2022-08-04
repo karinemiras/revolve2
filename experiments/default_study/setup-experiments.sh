@@ -6,13 +6,15 @@
 study="default_study"
 # DO NOT use _
 
-experiments=("seasonal")
-seasons_conditions=("1.0_1.0_0#1.0_1.0_15")
+experiments=("seasonal" "seasonalplastic")
+seasons_conditions=("1.0_1.0_0#1.0_1.0_15" "1.0_1.0_0#1.0_1.0_15")
+fitness_measure=("seasonal_dominated" "seasonal_dominated")
+plastic_body=(0 1)
+plastic_brain=(0 1)
 runs=10
 num_generations="200"
 
-# recommended 10-15
-num_terminals=10
+num_terminals=2
 mainpath="/storage/karine"
 
 mkdir ${mainpath}/${study}/analysis
@@ -109,10 +111,12 @@ while true
 
         exp=$(cut -d'_' -f1 <<<"${to_d}")
         run=$(cut -d'_' -f2 <<<"${to_d}")
-        idx_fit=$( echo ${experiments[@]/${exp}//} | cut -d/ -f1 | wc -w | tr -d ' ' )
+        idx=$( echo ${experiments[@]/${exp}//} | cut -d/ -f1 | wc -w | tr -d ' ' )
 
         # nice -n19 python3  experiments/${study}/optimize.py
-        screen -d -m -S screen_${free_screens[$p]}_${to_d} -L -Logfile /storage/karine/${study}/${exp}_${run}".log" python3  experiments/${study}/optimize.py --experiment_name ${exp} --seasons_conditions ${seasons_conditions[$idx_fit]} --run ${run};
+        screen -d -m -S screen_${free_screens[$p]}_${to_d} -L -Logfile /storage/karine/${study}/${exp}_${run}".log" python3  experiments/${study}/optimize.py \
+               --experiment_name ${exp} --seasons_conditions ${seasons_conditions[$idx]} --run ${run} --fitness_measure ${fitness_measure[$idx]} \
+               --plastic_body ${plastic_body[$idx]} --plastic_brain ${plastic_brain[$idx]};
 
         printf "\n >> (re)starting screen_${free_screens[$p]}_${to_d} \n\n"
         p=$((${p}+1))

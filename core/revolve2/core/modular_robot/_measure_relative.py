@@ -65,7 +65,7 @@ class MeasureRelative:
             k = len(self._neighbours_measures)
         else:
             # TODO: make it a param
-            k = 3#10+1
+            k = 10+1
 
         # distances from neighbors
         distances, indexes = kdt.query([genotype_measures], k=k)
@@ -108,7 +108,7 @@ class MeasureRelative:
         self._genotype_measures[f'fullydominated_{type}'] = pool_fulldominated_individuals
 
     def _pool_seasonal_dominated_individuals(self):
-        which_measure = "symmetry"#"speed_y"
+        which_measure = "speed_y"
         pool_dominated_individuals = 0
         for i in range(0, len(self._neighbours_measures[1])):
             better = 0

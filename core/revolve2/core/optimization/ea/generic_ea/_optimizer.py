@@ -143,6 +143,8 @@ class EAOptimizer(Process, Generic[Genotype, Measure]):
     __mutation_prob: float
     __run_simulation: bool
     __env_conditions: List
+    __plastic_body: int
+    __plastic_brain: int
 
     async def ainit_new(
         self,
@@ -165,6 +167,8 @@ class EAOptimizer(Process, Generic[Genotype, Measure]):
         substrate_radius: str,
         run_simulation: bool,
         env_conditions: List,
+        plastic_body: int,
+        plastic_brain: int
     ) -> None:
         """
         :id: Unique id between all EAOptimizers in this database.
@@ -190,6 +194,8 @@ class EAOptimizer(Process, Generic[Genotype, Measure]):
         self.__substrate_radius = substrate_radius
         self.__run_simulation = run_simulation
         self.__env_conditions = env_conditions
+        self.__plastic_body = plastic_body
+        self.__plastic_brain = plastic_brain
 
         self.__latest_population = [
             _Individual(self.__gen_next_individual_id(), g, [])
@@ -212,7 +218,9 @@ class EAOptimizer(Process, Generic[Genotype, Measure]):
             max_modules=self.__max_modules,
             crossover_prob=self.__crossover_prob,
             mutation_prob=self.__mutation_prob,
-            substrate_radius=self.__substrate_radius
+            substrate_radius=self.__substrate_radius,
+            plastic_body=self.__plastic_body,
+            plastic_brain=self.__plastic_brain,
         )
         session.add(new_opt)
         await session.flush()
@@ -254,6 +262,14 @@ class EAOptimizer(Process, Generic[Genotype, Measure]):
     @property
     def env_conditions(self):
         return self.__env_conditions
+
+    @property
+    def plastic_body(self):
+        return self.__plastic_body
+
+    @property
+    def plastic_brain(self):
+        return self.__plastic_brain
 
     async def ainit_from_database(
         self,
@@ -301,6 +317,8 @@ class EAOptimizer(Process, Generic[Genotype, Measure]):
         self.__crossover_prob = eo_row.crossover_prob
         self.__mutation_prob = eo_row.mutation_prob
         self.__substrate_radius = eo_row.substrate_radius
+        self.__plastic_body = eo_row.plastic_body
+        self.__plastic_brain = eo_row.plastic_brain
 
         c_rows = ((await session.execute(
                     select(DbEnvconditions).filter(
@@ -467,9 +485,6 @@ class EAOptimizer(Process, Generic[Genotype, Measure]):
             initial_states = None
             initial_relative_measures = None
             # for cond in self.__env_conditions:
-            #     initial_measures[cond] = None
-            #     initial_states[cond] = None
-            #     initial_relative_measures[cond] = None
 
         while self.__safe_must_do_next_gen():
 

@@ -25,6 +25,8 @@ class DbEAOptimizer(DbBase):
     substrate_radius = Column(Integer, nullable=True)
     crossover_prob = Column(Float, nullable=True)
     mutation_prob = Column(Float, nullable=True)
+    plastic_body = Column(Integer, nullable=True)
+    plastic_brain = Column(Integer, nullable=True)
 
 
 class DbEAOptimizerState(DbBase):
