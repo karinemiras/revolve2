@@ -11,7 +11,7 @@ seasons_conditions=("1.0_1.0_0")
 runs=10
 num_generations="100"
 
-num_terminals=2
+num_terminals=10
 mainpath="/storage/karine"
 
 mkdir ${mainpath}/${study}/analysis
