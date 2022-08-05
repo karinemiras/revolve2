@@ -112,7 +112,7 @@ while true
 
         # nice -n19 python3  experiments/${study}/optimize.py
         screen -d -m -S screen_${free_screens[$p]}_${to_d} -L -Logfile /storage/karine/${study}/${exp}_${run}".log" python3  experiments/${study}/optimize.py \
-               --experiment_name ${exp} --seasons_conditions ${seasons_conditions[$idx]} --run ${run} --num_generations ${num_generations};
+               --experiment_name ${exp} --seasons_conditions ${seasons_conditions[$idx]} --run ${run} --study=${study} --num_generations ${num_generations};
 
         printf "\n >> (re)starting screen_${free_screens[$p]}_${to_d} \n\n"
         p=$((${p}+1))

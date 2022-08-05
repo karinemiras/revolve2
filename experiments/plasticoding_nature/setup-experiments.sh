@@ -115,7 +115,7 @@ while true
 
         # nice -n19 python3  experiments/${study}/optimize.py
         screen -d -m -S screen_${free_screens[$p]}_${to_d} -L -Logfile /storage/karine/${study}/${exp}_${run}".log" python3  experiments/${study}/optimize.py \
-               --experiment_name ${exp} --seasons_conditions ${seasons_conditions[$idx]} --run ${run} --fitness_measure ${fitness_measure[$idx]} \
+               --experiment_name ${exp}  --study=${study}  --seasons_conditions ${seasons_conditions[$idx]} --run ${run} --fitness_measure ${fitness_measure[$idx]} \
                --plastic_body ${plastic_body[$idx]} --plastic_brain ${plastic_brain[$idx]};
 
         printf "\n >> (re)starting screen_${free_screens[$p]}_${to_d} \n\n"
