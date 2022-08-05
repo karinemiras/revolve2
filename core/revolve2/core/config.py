@@ -110,7 +110,7 @@ class Config():
         parser.add_argument(
             "--experiment_name",
             required=False,
-            default="default_experiment",
+            default="defaultexperiment",
             type=str,
             help="Name of the experiment.",
         )

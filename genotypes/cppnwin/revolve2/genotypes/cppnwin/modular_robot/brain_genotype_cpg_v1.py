@@ -21,7 +21,7 @@ def random_v1(
     assert output_activation_func == multineat.ActivationFunction.SIGNED_SINE
 
     if plastic_brain == 0:
-        #print('7')
+
         return base_random_v1(
             innov_db,
             rng,
@@ -32,7 +32,6 @@ def random_v1(
             num_initial_mutations,
         )
     else:
-        #print('8')
         return base_random_v1(
             innov_db,
             rng,

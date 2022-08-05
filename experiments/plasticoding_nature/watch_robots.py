@@ -28,10 +28,10 @@ class Simulator:
 
     async def simulate(self) -> None:
 
-        self.study = 'default_study'
-        self.experiments_name = ['defaultexperiment']
+        self.study = 'plasticoding_nature'
+        self.experiments_name = ['seasonal']
         self.runs = list(range(1, 10+1))
-        self.generations = [100]
+        self.generations = [200]
         self.bests = 1
         self.specific_robot = 2
         # 'all' selects best from all individuals

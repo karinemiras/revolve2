@@ -26,7 +26,6 @@ class BrainCpgNetworkNeighbourV1(ModularRobotBrainCpgNetworkNeighbour):
         self._genotype.BuildPhenotype(brain_net)
 
         if self._plastic_brain == 0:
-         #   print('quetu 7')
 
             internal_weights = [
                 self._evaluate_network(
@@ -66,7 +65,7 @@ class BrainCpgNetworkNeighbourV1(ModularRobotBrainCpgNetworkNeighbour):
             ]
 
         else:
-       #     print('quetu 8')
+
             staticfriction, dynamicfriction, yrotationdegrees = \
                 float(self._env_condition[0]), float(self._env_condition[1]), float(self._env_condition[2])
 

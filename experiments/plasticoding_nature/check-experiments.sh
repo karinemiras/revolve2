@@ -3,10 +3,10 @@
 #set -x
 
 # arrays use spaces
-study="default_study"
-experiments=("defaultexperiment")
+study="plasticoding_nature"
+experiments=("seasonal" "seasonalplastic")
 runs=10
-mainpath="karine"
+
 
 # discover unfinished experiments
 
@@ -19,7 +19,7 @@ do
     do
 
      printf  "\n${experiment}_${run} \n"
-     file="/storage/${mainpath}/${study}/${experiment}_${run}.log";
+     file="/storage/karine/${study}/${experiment}_${run}.log";
 
      #check experiments status
      if [[ -f "$file" ]]; then
