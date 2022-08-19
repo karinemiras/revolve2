@@ -28,10 +28,9 @@ mainpath = args.mainpath
 
 study = study
 experiments = experiments_name
-#median
-inner_metrics = ['mean', 'max']
+inner_metrics = ['median', 'max']
 runs = runs
-include_max = False
+include_max = True #False
 merge_lines = True
 gens_boxes = generations
 clrs = ['#009900',

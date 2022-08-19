@@ -647,10 +647,11 @@ class EAOptimizer(Process, Generic[Genotype, Measure]):
             pool_measures_conds = {}
             for cond in pool_measures:
                 pool_measures_conds[cond] = pool_measures[cond][i]
-            seasonal_dominated = MeasureRelative(genotype_measures=pool_measures_conds,
+            seasonal_dominated, seasonal_fullydominated = MeasureRelative(genotype_measures=pool_measures_conds,
                                                neighbours_measures=pool_measures)._pool_seasonal_dominated_individuals()
             for cond in pool_measures:
                 pool_measures[cond][i]['seasonal_dominated'] = seasonal_dominated
+                pool_measures[cond][i]['seasonal_fullydominated'] = seasonal_fullydominated
 
     @property
     def generation_index(self) -> Optional[int]:
@@ -840,6 +841,7 @@ class EAOptimizer(Process, Generic[Genotype, Measure]):
                     row.age = initial_relative_measures[cond][i]['age']
                     row.inverse_age = initial_relative_measures[cond][i]['inverse_age']
                     row.seasonal_dominated = initial_relative_measures[cond][i]['seasonal_dominated']
+                    row.seasonal_fullydominated = initial_relative_measures[cond][i]['seasonal_fullydominated']
 
         # save current optimizer state
         session.add(
@@ -938,6 +940,7 @@ class EAOptimizer(Process, Generic[Genotype, Measure]):
                     age = None
                     inverse_age = None
                     seasonal_dominated = None
+                    seasonal_fullydominated = None
                 else:
                     pop_diversity = latest_relative_measures[cond][index]['pop_diversity']
                     pool_diversity = latest_relative_measures[cond][index]['pool_diversity']
@@ -946,6 +949,7 @@ class EAOptimizer(Process, Generic[Genotype, Measure]):
                     age = latest_relative_measures[cond][index]['age']
                     inverse_age = latest_relative_measures[cond][index]['inverse_age']
                     seasonal_dominated = latest_relative_measures[cond][index]['seasonal_dominated']
+                    seasonal_fullydominated = latest_relative_measures[cond][index]['seasonal_fullydominated']
 
                 session.add(
                         DbEAOptimizerGeneration(
@@ -961,6 +965,7 @@ class EAOptimizer(Process, Generic[Genotype, Measure]):
                             age=age,
                             inverse_age=inverse_age,
                             seasonal_dominated=seasonal_dominated,
+                            seasonal_fullydominated=seasonal_fullydominated,
                         )
                 )
 

@@ -2,9 +2,9 @@
 #set -e
 #set -x
 
-# arrays use spaces
 study="plasticoding_nature"
-experiments=("seasonal" "seasonalplastic")
+# arrays delimiter is space
+experiments=("seasonal.200.300.150" "plastic.200.300.150")
 runs=10
 mainpath="karine"
 

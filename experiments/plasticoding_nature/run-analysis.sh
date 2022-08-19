@@ -1,14 +1,19 @@
 #!/bin/bash
 
-study="plasticoding_nature"
-# make sure to provide experiments names in alphabetic order
-# arrays use comas in this case
-#experiments=("exp1,epx2")
-experiments=("seasonal,seasonalplastic")
-mainpath="karine"
+# delimiter is comma, example:
+#experiments="exp1,epx2"
+# exps order is the same for all params
+
+experiments="seasonal.200.300.150.full,plastic.200.300.150.full"
+
+# these params are the same for all exps
+# gens for boxplots and snapshots
+generations=(150)
+#gen for lineplots
+final_gen=150
 runs=10
-generations=(200)
-final_gen=200
+mainpath="karine"
+study="plasticoding_nature"
 
 python experiments/${study}/snapshots_bests.py $study $experiments $runs $generations $mainpath;
 python experiments/${study}/bests_snap_2d.py $study $experiments $runs $generations $mainpath;

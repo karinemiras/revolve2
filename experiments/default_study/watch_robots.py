@@ -69,6 +69,8 @@ class Simulator:
             )
             max_modules = rows[0].DbEAOptimizer.max_modules
             substrate_radius = rows[0].DbEAOptimizer.substrate_radius
+            plastic_body = rows[0].DbEAOptimizer.plastic_body
+            plastic_brain = rows[0].DbEAOptimizer.plastic_brain
 
             rows = (
                 (await session.execute(select(DbOptimizerState))).all()
@@ -119,7 +121,8 @@ class Simulator:
                         )
                     )[0]
 
-                    phenotype = develop(genotype, genotype.mapping_seed, max_modules, substrate_radius)
+                    phenotype = develop(genotype, genotype.mapping_seed, max_modules, env_conditions[env_conditions_id],
+                                        substrate_radius, plastic_body, plastic_brain)
                     render = Render()
                     img_path = f'{path}/analysis/currentinsim.png'
                     render.render_robot(phenotype.body.core, img_path)

@@ -4,8 +4,12 @@
 
 
 study="default_study"
-# arrays use spaces
-# DO NOT use _
+
+# DO NOT use underline ( _ ) in the experiments names
+# delimiter is space, example:
+#experiments=("exp1" "epx2")
+# exps order is the same for all params
+
 experiments=("defaultexperiment")
 seasons_conditions=("1.0_1.0_0")
 runs=10

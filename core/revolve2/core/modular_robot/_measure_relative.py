@@ -25,6 +25,7 @@ class MeasureRelative:
                              'dominated_quality_youth',
                              'fullydominated_quality_youth',
                              'seasonal_dominated',
+                             'seasonal_fullydominated',
                              'age',
                              'inverse_age']
 
@@ -110,6 +111,7 @@ class MeasureRelative:
     def _pool_seasonal_dominated_individuals(self):
         which_measure = "speed_y"
         pool_dominated_individuals = 0
+        pool_fulldominated_individuals = 0
         for i in range(0, len(self._neighbours_measures[1])):
             better = 0
             worse = 0
@@ -120,7 +122,9 @@ class MeasureRelative:
                     worse += 1
             if better > 0 and worse == 0:
                 pool_dominated_individuals += 1
-        return pool_dominated_individuals
+            if better == len(self._genotype_measures):
+                pool_fulldominated_individuals += 1
+        return pool_dominated_individuals, pool_fulldominated_individuals
 
     def _age(self, generation_index):
 

@@ -2,8 +2,9 @@
 #set -e
 #set -x
 
-# arrays use spaces
+
 study="default_study"
+# arrays delimiter is space
 experiments=("defaultexperiment")
 runs=10
 mainpath="karine"

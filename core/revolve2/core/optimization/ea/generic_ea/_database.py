@@ -53,6 +53,7 @@ class DbEAOptimizerGeneration(DbBase):
     age = Column(Float, nullable=True)
     inverse_age = Column(Float, nullable=True)
     seasonal_dominated = Column(Float, nullable=True)
+    seasonal_fullydominated = Column(Float, nullable=True)
 
 
 # all history of born individuals

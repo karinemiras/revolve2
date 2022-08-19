@@ -4,15 +4,38 @@
 
 
 study="plasticoding_nature"
-# arrays use spaces
-# DO NOT use _
-experiments=("seasonal" "seasonalplastic")
-seasons_conditions=("1.0_1.0_0#1.0_1.0_15" "1.0_1.0_0#1.0_1.0_15")
+
+# DO NOT use underline ( _ ) in the experiments names
+# delimiter is space, example:
+#experiments=("exp1" "epx2")
+# exps order is the same for all params
+
+#experiments=("seasonal.100.100.250" "plastic.100.100.250")
+#population_size=100
+#offspring_size=100
+#num_generations="250"
+
+#experiments=("seasonal.200.200.150" "plastic.200.200.150")
+#population_size=200
+#offspring_size=200
+#num_generations="150"
+
+#experiments=("seasonal.100.200.150" "plastic.100.200.150")
+#population_size=100
+#offspring_size=200
+#num_generations="150"
+
+experiments=("seasonal.200.300.150" "plastic.200.300.150")
+population_size=200
+offspring_size=300
+num_generations="150"
+
+
 fitness_measure=("seasonal_dominated" "seasonal_dominated")
+seasons_conditions=("1.0_1.0_0#1.0_1.0_15" "1.0_1.0_0#1.0_1.0_15")
 plastic_body=(0 1)
 plastic_brain=(0 1)
 runs=10
-num_generations="200"
 
 num_terminals=2
 mainpath="/storage/karine"
@@ -116,7 +139,8 @@ while true
         # nice -n19 python3  experiments/${study}/optimize.py
         screen -d -m -S screen_${free_screens[$p]}_${to_d} -L -Logfile /storage/karine/${study}/${exp}_${run}".log" python3  experiments/${study}/optimize.py \
                --experiment_name ${exp}  --study=${study}  --seasons_conditions ${seasons_conditions[$idx]} --run ${run} --fitness_measure ${fitness_measure[$idx]} \
-               --plastic_body ${plastic_body[$idx]} --plastic_brain ${plastic_brain[$idx]};
+               --plastic_body ${plastic_body[$idx]} --plastic_brain ${plastic_brain[$idx]} --num_generations ${num_generations} \
+               --offspring_size ${offspring_size} --population_size ${population_size};
 
         printf "\n >> (re)starting screen_${free_screens[$p]}_${to_d} \n\n"
         p=$((${p}+1))
@@ -139,7 +163,7 @@ while true
     fi
 
 
-    sleep 1800;
+    sleep 600;
 
 done
 

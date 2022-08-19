@@ -1,14 +1,19 @@
 #!/bin/bash
 
-study="default_study"
-# make sure to provide experiments names in alphabetic order
-# arrays use comas in this case
-#experiments=("exp1,epx2")
+# delimiter is comma, example:
+#experiments="exp1,epx2"
+# exps order is the same for all params
+
 experiments=("defaultexperiment")
-mainpath="karine"
-runs=10
+
+# these params are the same for all exps
+# gens for boxplots and snapshots
 generations=(100)
+#gen for lineplots
 final_gen=100
+runs=10
+mainpath="karine"
+study="default_study"
 
 python experiments/${study}/snapshots_bests.py $study $experiments $runs $generations $mainpath;
 python experiments/${study}/bests_snap_2d.py $study $experiments $runs $generations $mainpath;
