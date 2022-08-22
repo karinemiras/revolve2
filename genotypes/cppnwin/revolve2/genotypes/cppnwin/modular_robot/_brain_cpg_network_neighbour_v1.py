@@ -11,9 +11,10 @@ from revolve2.core.modular_robot.brains import (
 class BrainCpgNetworkNeighbourV1(ModularRobotBrainCpgNetworkNeighbour):
     _genotype: multineat.Genome
 
-    def __init__(self, genotype: multineat.Genome, env_condition: list, plastic_brain: int):
+    def __init__(self, genotype: multineat.Genome, env_condition: list, n_env_conditions: int, plastic_brain: int):
         self._genotype = genotype
         self._env_condition = env_condition
+        self._n_env_conditions = n_env_conditions
         self._plastic_brain = plastic_brain
 
     def _make_weights(
@@ -25,8 +26,7 @@ class BrainCpgNetworkNeighbourV1(ModularRobotBrainCpgNetworkNeighbour):
         brain_net = multineat.NeuralNetwork()
         self._genotype.BuildPhenotype(brain_net)
 
-        if self._plastic_brain == 0:
-
+        if self._n_env_conditions == 0:
             internal_weights = [
                 self._evaluate_network(
                     brain_net,
@@ -65,14 +65,16 @@ class BrainCpgNetworkNeighbourV1(ModularRobotBrainCpgNetworkNeighbour):
             ]
 
         else:
+            if self._plastic_brain == 1:
+                staticfriction, dynamicfriction, yrotationdegrees = \
+                    float(self._env_condition[0]), float(self._env_condition[1]), float(self._env_condition[2])
 
-            staticfriction, dynamicfriction, yrotationdegrees = \
-                float(self._env_condition[0]), float(self._env_condition[1]), float(self._env_condition[2])
-
-            # TODO: make conditions-checking dynamic
-            # if inclined
-            if yrotationdegrees > 0:
-                inclined = -1
+                # TODO: make conditions-checking dynamic
+                # if inclined
+                if yrotationdegrees > 0:
+                    inclined = -1
+                else:
+                    inclined = 1
             else:
                 inclined = 1
 

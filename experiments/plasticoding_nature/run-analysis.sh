@@ -4,7 +4,7 @@
 #experiments="exp1,epx2"
 # exps order is the same for all params
 
-experiments="seasonal.200.300.150.full,plastic.200.300.150.full"
+experiments="seasonale.200.200.150,plastice.200.200.150"
 
 # these params are the same for all exps
 # gens for boxplots and snapshots

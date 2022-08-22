@@ -65,7 +65,7 @@ async def main() -> None:
 
         initial_population = [
             random_genotype(innov_db_body, innov_db_brain, rng, args.num_initial_mutations,
-                            args.plastic_body, args.plastic_brain)
+                            len(seasonal_conditions_parsed), args.plastic_body, args.plastic_brain)
             for _ in range(args.population_size)
         ]
 

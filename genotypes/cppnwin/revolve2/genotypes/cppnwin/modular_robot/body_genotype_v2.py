@@ -15,9 +15,10 @@ def random_v1(
     multineat_params: multineat.Parameters,
     output_activation_func: multineat.ActivationFunction,
     num_initial_mutations: int,
+    n_env_conditions: int,
     plastic_body: int,
 ) -> Genotype:
-    if plastic_body == 0:
+    if n_env_conditions == 1:
         return base_random_v1(
             innov_db,
             rng,
@@ -41,7 +42,7 @@ def random_v1(
 
 class Develop:
 
-    def __init__(self, max_modules, substrate_radius, genotype, querying_seed, env_condition, plastic_body):
+    def __init__(self, max_modules, substrate_radius, genotype, querying_seed, env_condition, n_env_conditions, plastic_body):
 
         self.max_modules = max_modules
         self.quantity_modules = 0
@@ -49,6 +50,7 @@ class Develop:
         self.genotype = genotype
         self.querying_seed = querying_seed
         self.env_condition = env_condition
+        self.n_env_conditions = n_env_conditions
         self.plastic_body = plastic_body
         self.development_seed = None
         self.random = None
@@ -78,7 +80,7 @@ class Develop:
         self.develop_body()
         self.phenotype_body.finalize()
 
-        return self.phenotype_body
+        return self.phenotype_body, self.queried_substrate
 
     def develop_body(self):
 
@@ -227,21 +229,23 @@ class Develop:
     def query_body_part(self, x_dest, y_dest):
 
         # # Applies regulation according to environmental conditions.
-        if self.plastic_body == 0:
+        if self.n_env_conditions == 0:
 
             self.cppn.Input(
                 [1.0, x_dest, y_dest]
             )  # 1.0 is the bias input
-
         else:
 
-            staticfriction, dynamicfriction, yrotationdegrees = \
-                float(self.env_condition[0]), float(self.env_condition[1]), float(self.env_condition[2])
+            if self.plastic_body == 1:
+                staticfriction, dynamicfriction, yrotationdegrees = \
+                    float(self.env_condition[0]), float(self.env_condition[1]), float(self.env_condition[2])
 
-            # TODO: make conditions-checking dynamic
-            # if inclined
-            if yrotationdegrees > 0:
-                inclined = -1
+                # TODO: make conditions-checking dynamic
+                # if inclined
+                if yrotationdegrees > 0:
+                    inclined = -1
+                else:
+                    inclined = 1
             else:
                 inclined = 1
 

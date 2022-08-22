@@ -4,7 +4,7 @@
 
 study="plasticoding_nature"
 # arrays delimiter is space
-experiments=("seasonal.200.300.150" "plastic.200.300.150")
+experiments=("seasonale.200.200.150" "plastice.200.200.150")
 runs=10
 mainpath="karine"
 

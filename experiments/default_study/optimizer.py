@@ -278,6 +278,8 @@ class Optimizer(EAOptimizer[Genotype, float]):
 
         envs_measures_genotypes = {}
         envs_states_genotypes = {}
+        envs_queried_substrates = {}
+
         for cond in self.env_conditions:
 
             batch = Batch(
@@ -289,11 +291,16 @@ class Optimizer(EAOptimizer[Genotype, float]):
 
             self._controllers = []
             phenotypes = []
+            queried_substrates = []
 
             for genotype in genotypes:
-                phenotype = develop(genotype, genotype.mapping_seed, self.max_modules, self.substrate_radius,
-                                    self.env_conditions[cond], self.plastic_body, self.plastic_brain)
+                phenotype, queried_substrate = develop(genotype, genotype.mapping_seed, self.max_modules,
+                                                       self.substrate_radius,
+                                                       self.env_conditions[cond], len(self.env_conditions),
+                                                       self.plastic_body, self.plastic_brain)
                 phenotypes.append(phenotype)
+                queried_substrates.append(queried_substrate)
+
                 actor, controller = phenotype.make_actor_and_controller()
                 bounding_box = actor.calc_aabb()
                 self._controllers.append(controller)
@@ -317,6 +324,8 @@ class Optimizer(EAOptimizer[Genotype, float]):
                 )
                 batch.environments.append(env)
 
+            envs_queried_substrates[cond] = queried_substrates
+
             if self._run_simulation:
                 states = await self._runner[cond].run_batch(batch)
             else:
@@ -339,7 +348,29 @@ class Optimizer(EAOptimizer[Genotype, float]):
                                 0].serialize()
             envs_states_genotypes[cond] = states_genotypes
 
+        self.measure_plasticity(envs_queried_substrates, envs_measures_genotypes)
+
         return envs_measures_genotypes, envs_states_genotypes
+
+    def measure_plasticity(self, envs_queried_substrates, envs_measures_genotypes):
+        # TODO: this works only for two seasons
+        first_cond = list(self.env_conditions.keys())[0]
+        second_cond = list(self.env_conditions.keys())[1]
+        for idg in range(0, len(envs_queried_substrates[first_cond])):
+
+            keys_first = set(envs_queried_substrates[first_cond][idg].keys())
+            keys_second = set(envs_queried_substrates[second_cond][idg].keys())
+            intersection = keys_first & keys_second
+            disjunct_first = [a for a in keys_first if a not in intersection]
+            disjunct_second = [b for b in keys_second if b not in intersection]
+            body_changes = len(disjunct_first) + len(disjunct_second)
+
+            for i in intersection:
+                if type(envs_queried_substrates[first_cond][idg][i]) != type(envs_queried_substrates[second_cond][idg][i]):
+                    body_changes += 1
+
+            envs_measures_genotypes[first_cond][idg]['body_changes'] = body_changes
+            envs_measures_genotypes[second_cond][idg]['body_changes'] = body_changes
 
     def _control(self, dt: float, control: ActorControl) -> None:
         for control_i, controller in enumerate(self._controllers):

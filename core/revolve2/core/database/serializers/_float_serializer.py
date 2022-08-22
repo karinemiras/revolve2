@@ -50,6 +50,7 @@ class FloatSerializer(Serializer[float]):
                          displacement=f['displacement'],
                          relative_speed_y=f['relative_speed_y'],
                          hinge_ratio=f['hinge_ratio'],
+                         body_changes=f['body_changes'],
                          )
                  for f in objects]
 
@@ -99,6 +100,7 @@ class FloatSerializer(Serializer[float]):
             measures['relative_speed_y'] = items[i].relative_speed_y
             measures['displacement'] = items[i].displacement
             measures['hinge_ratio'] = items[i].hinge_ratio
+            measures['body_changes'] = items[i].body_changes
 
             measures_genotypes.append(measures)
 
@@ -137,4 +139,6 @@ class DbFloat(DbBase):
     proportion = sqlalchemy.Column(sqlalchemy.Float, nullable=True)
     symmetry = sqlalchemy.Column(sqlalchemy.Float, nullable=True)
     hinge_ratio = sqlalchemy.Column(sqlalchemy.Float, nullable=True)
+    body_changes = sqlalchemy.Column(sqlalchemy.Float, nullable=True)
+
 

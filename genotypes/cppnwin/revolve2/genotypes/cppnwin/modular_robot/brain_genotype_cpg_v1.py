@@ -13,6 +13,7 @@ def random_v1(
     multineat_params: multineat.Parameters,
     output_activation_func: multineat.ActivationFunction,
     num_initial_mutations: int,
+    n_env_conditions: int,
     plastic_brain: int,
 ) -> Genotype:
     assert multineat_params.MutateOutputActivationFunction == False
@@ -20,7 +21,7 @@ def random_v1(
     # if you want another one, make sure it's output is between -1 and 1.
     assert output_activation_func == multineat.ActivationFunction.SIGNED_SINE
 
-    if plastic_brain == 0:
+    if n_env_conditions == 1:
 
         return base_random_v1(
             innov_db,
@@ -43,5 +44,6 @@ def random_v1(
         )
 
 
-def develop_v1(genotype: Genotype, body: Body, env_condition: int, plastic_brain: int) -> BrainCpgNetworkNeighbourV1:
-    return BrainCpgNetworkNeighbourV1(genotype.genotype, env_condition, plastic_brain)
+def develop_v1(genotype: Genotype, body: Body, env_condition: int,
+               n_env_conditions: int, plastic_brain: int) -> BrainCpgNetworkNeighbourV1:
+    return BrainCpgNetworkNeighbourV1(genotype.genotype, env_condition, n_env_conditions, plastic_brain)

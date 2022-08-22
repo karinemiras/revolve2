@@ -10,26 +10,10 @@ study="plasticoding_nature"
 #experiments=("exp1" "epx2")
 # exps order is the same for all params
 
-#experiments=("seasonal.100.100.250" "plastic.100.100.250")
-#population_size=100
-#offspring_size=100
-#num_generations="250"
-
-#experiments=("seasonal.200.200.150" "plastic.200.200.150")
-#population_size=200
-#offspring_size=200
-#num_generations="150"
-
-#experiments=("seasonal.100.200.150" "plastic.100.200.150")
-#population_size=100
-#offspring_size=200
-#num_generations="150"
-
-experiments=("seasonal.200.300.150" "plastic.200.300.150")
+experiments=("seasonale.200.200.150" "plastice.200.200.150")
 population_size=200
-offspring_size=300
+offspring_size=200
 num_generations="150"
-
 
 fitness_measure=("seasonal_dominated" "seasonal_dominated")
 seasons_conditions=("1.0_1.0_0#1.0_1.0_15" "1.0_1.0_0#1.0_1.0_15")

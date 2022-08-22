@@ -28,6 +28,7 @@ async def main(parser) -> None:
             print(' run: ', run)
 
             path = f'/storage/{mainpath}/{study}/analysis/snapshots/{experiment_name}/run_{run}'
+
             if not os.path.exists(path):
                 os.makedirs(path)
 
@@ -80,8 +81,9 @@ async def main(parser) -> None:
                                 )
                             )[0]
 
-                            phenotype = develop(genotype, genotype.mapping_seed, max_modules, substrate_radius,
-                                                env_conditions[r.DbEAOptimizerGeneration.env_conditions_id], plastic_body, plastic_brain)
+                            phenotype, queried_substrate = develop(genotype, genotype.mapping_seed, max_modules, substrate_radius,
+                                                env_conditions[r.DbEAOptimizerGeneration.env_conditions_id],
+                                                                   len(env_conditions), plastic_body, plastic_brain)
                             render = Render()
                             img_path = f'{path_gen}/{"_".join(env_conditions[r.DbEAOptimizerGeneration.env_conditions_id])}/' \
                                        f'{idx}_{r.DbEAOptimizerIndividual.individual_id}.png'

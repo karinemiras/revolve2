@@ -151,6 +151,7 @@ def random(
     innov_db_brain: multineat.InnovationDatabase,
     rng: Random,
     num_initial_mutations: int,
+    n_env_conditions: int,
     plastic_body: int,
     plastic_brain: int,
 ) -> Genotype:
@@ -162,6 +163,7 @@ def random(
         _MULTINEAT_PARAMS,
         multineat.ActivationFunction.TANH,
         num_initial_mutations,
+        n_env_conditions,
         plastic_body,
     )
 
@@ -171,7 +173,8 @@ def random(
         _MULTINEAT_PARAMS,
         multineat.ActivationFunction.SIGNED_SINE,
         num_initial_mutations,
-        plastic_brain
+        n_env_conditions,
+        plastic_brain,
     )
 
     mapping_seed = rng.randint(0, 2 ** 31)
@@ -223,11 +226,11 @@ def crossover(
 
 
 def develop(genotype: Genotype, querying_seed: int, max_modules: int, substrate_radius: str, env_condition: list,
-            plastic_body: int, plastic_brain: int) -> ModularRobot:
-    body = body_develop(max_modules, substrate_radius, genotype.body, querying_seed,
-                        env_condition, plastic_body).develop()
-    brain = brain_develop(genotype.brain, body, env_condition, plastic_brain)
-    return ModularRobot(body, brain)
+            n_env_conditions: int, plastic_body: int, plastic_brain: int) -> ModularRobot:
+    body, queried_substrate = body_develop(max_modules, substrate_radius, genotype.body, querying_seed,
+                        env_condition, n_env_conditions, plastic_body).develop()
+    brain = brain_develop(genotype.brain, body, env_condition, n_env_conditions, plastic_brain)
+    return ModularRobot(body, brain), queried_substrate
 
 
 def _multineat_rng_from_random(rng: Random) -> multineat.RNG:
