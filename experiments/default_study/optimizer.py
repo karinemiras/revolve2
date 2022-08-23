@@ -348,7 +348,7 @@ class Optimizer(EAOptimizer[Genotype, float]):
                                 0].serialize()
             envs_states_genotypes[cond] = states_genotypes
 
-        self.measure_plasticity(envs_queried_substrates, envs_measures_genotypes)
+        envs_measures_genotypes = self.measure_plasticity(envs_queried_substrates, envs_measures_genotypes)
 
         return envs_measures_genotypes, envs_states_genotypes
 
@@ -377,6 +377,8 @@ class Optimizer(EAOptimizer[Genotype, float]):
             any_cond = list(self.env_conditions.keys())[0]
             for idg in range(0, len(envs_queried_substrates[any_cond])):
                 envs_measures_genotypes[any_cond][idg]['body_changes'] = 0
+
+        return envs_measures_genotypes
 
     def _control(self, dt: float, control: ActorControl) -> None:
         for control_i, controller in enumerate(self._controllers):

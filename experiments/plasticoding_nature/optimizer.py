@@ -347,7 +347,6 @@ class Optimizer(EAOptimizer[Genotype, float]):
             envs_states_genotypes[cond] = states_genotypes
 
         envs_measures_genotypes = self.measure_plasticity(envs_queried_substrates, envs_measures_genotypes)
-        pprint.pprint(envs_measures_genotypes)
 
         return envs_measures_genotypes, envs_states_genotypes
 
