@@ -22,7 +22,6 @@ def random_v1(
     assert output_activation_func == multineat.ActivationFunction.SIGNED_SINE
 
     if n_env_conditions == 1:
-
         return base_random_v1(
             innov_db,
             rng,

@@ -353,24 +353,30 @@ class Optimizer(EAOptimizer[Genotype, float]):
         return envs_measures_genotypes, envs_states_genotypes
 
     def measure_plasticity(self, envs_queried_substrates, envs_measures_genotypes):
-        # TODO: this works only for two seasons
-        first_cond = list(self.env_conditions.keys())[0]
-        second_cond = list(self.env_conditions.keys())[1]
-        for idg in range(0, len(envs_queried_substrates[first_cond])):
 
-            keys_first = set(envs_queried_substrates[first_cond][idg].keys())
-            keys_second = set(envs_queried_substrates[second_cond][idg].keys())
-            intersection = keys_first & keys_second
-            disjunct_first = [a for a in keys_first if a not in intersection]
-            disjunct_second = [b for b in keys_second if b not in intersection]
-            body_changes = len(disjunct_first) + len(disjunct_second)
+        if len(self.env_conditions) > 1:
+            # TODO: this works only for two seasons
+            first_cond = list(self.env_conditions.keys())[0]
+            second_cond = list(self.env_conditions.keys())[1]
+            for idg in range(0, len(envs_queried_substrates[first_cond])):
 
-            for i in intersection:
-                if type(envs_queried_substrates[first_cond][idg][i]) != type(envs_queried_substrates[second_cond][idg][i]):
-                    body_changes += 1
+                keys_first = set(envs_queried_substrates[first_cond][idg].keys())
+                keys_second = set(envs_queried_substrates[second_cond][idg].keys())
+                intersection = keys_first & keys_second
+                disjunct_first = [a for a in keys_first if a not in intersection]
+                disjunct_second = [b for b in keys_second if b not in intersection]
+                body_changes = len(disjunct_first) + len(disjunct_second)
 
-            envs_measures_genotypes[first_cond][idg]['body_changes'] = body_changes
-            envs_measures_genotypes[second_cond][idg]['body_changes'] = body_changes
+                for i in intersection:
+                    if type(envs_queried_substrates[first_cond][idg][i]) != type(envs_queried_substrates[second_cond][idg][i]):
+                        body_changes += 1
+
+                envs_measures_genotypes[first_cond][idg]['body_changes'] = body_changes
+                envs_measures_genotypes[second_cond][idg]['body_changes'] = body_changes
+        else:
+            any_cond = list(self.env_conditions.keys())[0]
+            for idg in range(0, len(envs_queried_substrates[any_cond])):
+                envs_measures_genotypes[any_cond][idg]['body_changes'] = 0
 
     def _control(self, dt: float, control: ActorControl) -> None:
         for control_i, controller in enumerate(self._controllers):

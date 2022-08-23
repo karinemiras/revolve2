@@ -26,7 +26,7 @@ class BrainCpgNetworkNeighbourV1(ModularRobotBrainCpgNetworkNeighbour):
         brain_net = multineat.NeuralNetwork()
         self._genotype.BuildPhenotype(brain_net)
 
-        if self._n_env_conditions == 0:
+        if self._n_env_conditions == 1:
             internal_weights = [
                 self._evaluate_network(
                     brain_net,

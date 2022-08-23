@@ -229,8 +229,7 @@ class Develop:
     def query_body_part(self, x_dest, y_dest):
 
         # # Applies regulation according to environmental conditions.
-        if self.n_env_conditions == 0:
-
+        if self.n_env_conditions == 1:
             self.cppn.Input(
                 [1.0, x_dest, y_dest]
             )  # 1.0 is the bias input
