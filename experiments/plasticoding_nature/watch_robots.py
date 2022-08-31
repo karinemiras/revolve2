@@ -29,9 +29,9 @@ class Simulator:
     async def simulate(self) -> None:
 
         self.study = 'plasticoding_nature'
-        self.experiments_name = ['seasonal2']
-        self.runs = [1] #list(range(1, 10+1))
-        self.generations = [150]
+        self.experiments_name = ['seasonal', 'plastic']
+        self.runs = list(range(1, 10+1))
+        self.generations = [100]
         self.bests = 1
         self.specific_robot = 2
         # 'all' selects best from all individuals
@@ -121,7 +121,8 @@ class Simulator:
                         )
                     )[0]
 
-                    phenotype, queried_substrate = develop(genotype, genotype.mapping_seed, max_modules, substrate_radius, env_conditions[env_conditions_id],
+                    phenotype, queried_substrate = develop(genotype, genotype.mapping_seed, max_modules,
+                                                           substrate_radius, env_conditions[env_conditions_id],
                                                             len(env_conditions), plastic_body, plastic_brain)
                     render = Render()
                     img_path = f'{path}/analysis/currentinsim.png'

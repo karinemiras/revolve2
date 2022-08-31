@@ -4,13 +4,13 @@
 #experiments="exp1,epx2"
 # exps order is the same for all params
 
-experiments="seasonale.200.200.150,plastice.200.200.150"
+experiments="seasonal,plastic"
 
 # these params are the same for all exps
 # gens for boxplots and snapshots
-generations=(150)
+generations=(100)
 #gen for lineplots
-final_gen=150
+final_gen=100
 runs=10
 mainpath="karine"
 study="plasticoding_nature"

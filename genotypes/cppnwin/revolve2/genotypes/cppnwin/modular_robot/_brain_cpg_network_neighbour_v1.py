@@ -26,12 +26,12 @@ class BrainCpgNetworkNeighbourV1(ModularRobotBrainCpgNetworkNeighbour):
         brain_net = multineat.NeuralNetwork()
         self._genotype.BuildPhenotype(brain_net)
 
-        if self._n_env_conditions == 1:
+        if self._plastic_brain == 0:
             internal_weights = [
                 self._evaluate_network(
                     brain_net,
                     [
-                        1.0,
+                        #1.0,
                         float(pos.x),
                         float(pos.y),
                         float(pos.z),
@@ -49,7 +49,7 @@ class BrainCpgNetworkNeighbourV1(ModularRobotBrainCpgNetworkNeighbour):
                 self._evaluate_network(
                     brain_net,
                     [
-                        1.0,
+                        #1.0,
                         float(pos1.x),
                         float(pos1.y),
                         float(pos1.z),
@@ -65,16 +65,14 @@ class BrainCpgNetworkNeighbourV1(ModularRobotBrainCpgNetworkNeighbour):
             ]
 
         else:
-            if self._plastic_brain == 1:
-                staticfriction, dynamicfriction, yrotationdegrees = \
-                    float(self._env_condition[0]), float(self._env_condition[1]), float(self._env_condition[2])
 
-                # TODO: make conditions-checking dynamic
-                # if inclined
-                if yrotationdegrees > 0:
-                    inclined = -1
-                else:
-                    inclined = 1
+            staticfriction, dynamicfriction, yrotationdegrees = \
+                float(self._env_condition[0]), float(self._env_condition[1]), float(self._env_condition[2])
+
+            # TODO: make conditions-checking dynamic
+            # if inclined
+            if yrotationdegrees > 0:
+                inclined = -1
             else:
                 inclined = 1
 
@@ -82,7 +80,7 @@ class BrainCpgNetworkNeighbourV1(ModularRobotBrainCpgNetworkNeighbour):
                 self._evaluate_network(
                     brain_net,
                     [
-                        1.0,
+                        # 1.0,
                         float(pos.x),
                         float(pos.y),
                         float(pos.z),
@@ -101,7 +99,7 @@ class BrainCpgNetworkNeighbourV1(ModularRobotBrainCpgNetworkNeighbour):
                 self._evaluate_network(
                     brain_net,
                     [
-                        1.0,
+                        # 1.0,
                         float(pos1.x),
                         float(pos1.y),
                         float(pos1.z),

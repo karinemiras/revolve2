@@ -18,13 +18,14 @@ def random_v1(
     n_env_conditions: int,
     plastic_body: int,
 ) -> Genotype:
-    if n_env_conditions == 1:
+    if plastic_body == 0:
         return base_random_v1(
             innov_db,
             rng,
             multineat_params,
             output_activation_func,
-            3,  # bias(always 1), pos_x, pos_y
+            #3,  # bias(always 1), pos_x, pos_y
+            2,  # pos_x, pos_y
             4,  # brick, activehinge, rot0, rot90
             num_initial_mutations,
         )
@@ -34,7 +35,8 @@ def random_v1(
             rng,
             multineat_params,
             output_activation_func,
-            4,  # bias(always 1), pos_x, pos_y, inclined
+            # 4,  # bias(always 1), pos_x, pos_y, inclined
+            3,  #   pos_x, pos_y, inclined
             4,  # brick, activehinge, rot0, rot90
             num_initial_mutations,
         )
@@ -229,28 +231,25 @@ class Develop:
     def query_body_part(self, x_dest, y_dest):
 
         # # Applies regulation according to environmental conditions.
-        if self.n_env_conditions == 1:
-            self.cppn.Input(
-                [1.0, x_dest, y_dest]
-            )  # 1.0 is the bias input
+        if self.plastic_body == 0:
+            # self.cppn.Input(  [1.0, x_dest, y_dest]  )  # 1.0 is the bias input
+            self.cppn.Input([x_dest, y_dest])
         else:
 
-            if self.plastic_body == 1:
-                staticfriction, dynamicfriction, yrotationdegrees = \
-                    float(self.env_condition[0]), float(self.env_condition[1]), float(self.env_condition[2])
+            staticfriction, dynamicfriction, yrotationdegrees = \
+                float(self.env_condition[0]), float(self.env_condition[1]), float(self.env_condition[2])
 
-                # TODO: make conditions-checking dynamic
-                # if inclined
-                if yrotationdegrees > 0:
-                    inclined = -1
-                else:
-                    inclined = 1
+            # TODO: make conditions-checking dynamic
+            # if inclined
+            if yrotationdegrees > 0:
+                inclined = -1
             else:
                 inclined = 1
 
             self.cppn.Input(
-                [1.0, x_dest, y_dest, inclined]
-            )  # 1.0 is the bias input
+                [x_dest, y_dest, inclined]
+                #   [1.0, x_dest, y_dest, inclined]  # 1.0 is the bias input
+            )
 
         self.cppn.ActivateAllLayers()
         outputs = self.cppn.Output()

@@ -21,13 +21,14 @@ def random_v1(
     # if you want another one, make sure it's output is between -1 and 1.
     assert output_activation_func == multineat.ActivationFunction.SIGNED_SINE
 
-    if n_env_conditions == 1:
+    if plastic_brain == 0:
         return base_random_v1(
             innov_db,
             rng,
             multineat_params,
             output_activation_func,
-            7,  # bias(always 1), x1, y1, z1, x2, y2, z2
+            # 7,  # bias(always 1), x1, y1, z1, x2, y2, z2
+            6, # x1, y1, z1, x2, y2, z2
             1,  # weight
             num_initial_mutations,
         )
@@ -37,7 +38,8 @@ def random_v1(
             rng,
             multineat_params,
             output_activation_func,
-            8,  # bias(always 1), x1, y1, z1, x2, y2, z2, inclined
+            # 8,  # bias(always 1), x1, y1, z1, x2, y2, z2, inclined
+            7, # x1, y1, z1, x2, y2, z2, inclined
             1,  # weight
             num_initial_mutations,
         )

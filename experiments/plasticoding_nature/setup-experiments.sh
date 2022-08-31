@@ -10,10 +10,10 @@ study="plasticoding_nature"
 #experiments=("exp1" "epx2")
 # exps order is the same for all params
 
-experiments=("seasonale.200.200.150" "plastice.200.200.150")
+experiments=("seasonal" "plastic")
 population_size=200
 offspring_size=200
-num_generations="150"
+num_generations="100"
 
 fitness_measure=("seasonal_dominated" "seasonal_dominated")
 seasons_conditions=("1.0_1.0_0#1.0_1.0_15" "1.0_1.0_0#1.0_1.0_15")

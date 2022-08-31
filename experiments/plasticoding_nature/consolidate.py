@@ -66,7 +66,9 @@ class Analysis:
             'height': ['Height', 0, 1],
             'coverage': ['Coverage', 0, 1],
             'proportion': ['Proportion', 0, 1],
-            'symmetry': ['Symmetry', 0, 1]}
+            'symmetry': ['Symmetry', 0, 1],
+            'body_changes': ['Body Changes', 0, 1]
+        }
 
     def consolidate(self):
         print('consolidating...')
