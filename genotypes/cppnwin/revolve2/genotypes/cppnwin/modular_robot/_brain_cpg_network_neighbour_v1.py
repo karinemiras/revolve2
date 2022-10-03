@@ -66,15 +66,24 @@ class BrainCpgNetworkNeighbourV1(ModularRobotBrainCpgNetworkNeighbour):
 
         else:
 
-            staticfriction, dynamicfriction, yrotationdegrees = \
-                float(self._env_condition[0]), float(self._env_condition[1]), float(self._env_condition[2])
+            staticfriction, dynamicfriction, yrotationdegrees, platform, toxic = \
+                float(self._env_condition[0]), \
+                float(self._env_condition[1]), \
+                float(self._env_condition[2]), \
+                float(self._env_condition[3]), \
+                float(self._env_condition[4])
 
             # TODO: make conditions-checking dynamic
             # if inclined
-            if yrotationdegrees > 0:
-                inclined = -1
+            # if yrotationdegrees > 0:
+            #     inclined = -1
+            # else:
+            #     inclined = 1
+
+            if toxic > 0:
+                toxicenv = 1
             else:
-                inclined = 1
+                toxicenv = -1
 
             internal_weights = [
                 self._evaluate_network(
@@ -87,7 +96,8 @@ class BrainCpgNetworkNeighbourV1(ModularRobotBrainCpgNetworkNeighbour):
                         float(pos.x),
                         float(pos.y),
                         float(pos.z),
-                        inclined,
+                        #inclined,
+                        toxicenv,
                     ],
                 )
                 for pos in [
@@ -106,7 +116,8 @@ class BrainCpgNetworkNeighbourV1(ModularRobotBrainCpgNetworkNeighbour):
                         float(pos2.x),
                         float(pos2.y),
                         float(pos2.z),
-                        inclined,
+                        #inclined,
+                        toxicenv,
                     ],
                 )
                 for (pos1, pos2) in [

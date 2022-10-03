@@ -3,21 +3,24 @@
 #set -x
 
 
-study="default_studyy"
+study="plasticoding_toxins"
 
 # DO NOT use underline ( _ ) in the experiments names
 # delimiter is space, example:
 #experiments=("exp1" "epx2")
 # exps order is the same for all params
 
-experiments=("defaultexperiment")
-experiments=("plane" "tilted")
+experiments=("toxinsall")
+population_size=11
+offspring_size=1
+num_generations="1"
 
-#seasons_conditions=("1.0_1.0_0")
-seasons_conditions=("1.0_1.0_0" "1.0_1.0_15")
 
-runs=30
-num_generations="100"
+fitness_measure=("toxins_dominated")
+seasons_conditions=("1.0_1.0_0_1_0#1.0_1.0_0_1_1")
+plastic_body=(0)
+plastic_brain=(1)
+runs=1
 
 num_terminals=2
 mainpath="/storage/karine"
@@ -119,8 +122,10 @@ while true
         idx=$( echo ${experiments[@]/${exp}//} | cut -d/ -f1 | wc -w | tr -d ' ' )
 
         # nice -n19 python3  experiments/${study}/optimize.py
-        screen -d -m -S screen_${free_screens[$p]}_${to_d} -L -Logfile /storage/karine/${study}/${exp}_${run}".log" python3  experiments/${study}/optimize.py \
-               --experiment_name ${exp} --seasons_conditions ${seasons_conditions[$idx]} --run ${run} --study=${study} --num_generations ${num_generations};
+      echo  screen -d -m -S screen_${free_screens[$p]}_${to_d} -L -Logfile /storage/karine/${study}/${exp}_${run}".log" python3  experiments/${study}/optimize.py \
+               --experiment_name ${exp}  --study=${study}  --seasons_conditions ${seasons_conditions[$idx]} --run ${run} --fitness_measure ${fitness_measure[$idx]} \
+               --plastic_body ${plastic_body[$idx]} --plastic_brain ${plastic_brain[$idx]} --num_generations ${num_generations} \
+               --offspring_size ${offspring_size} --population_size ${population_size} --run_simulation 0;
 
         printf "\n >> (re)starting screen_${free_screens[$p]}_${to_d} \n\n"
         p=$((${p}+1))
@@ -143,7 +148,7 @@ while true
     fi
 
 
-    sleep 1800;
+    sleep 600;
 
 done
 

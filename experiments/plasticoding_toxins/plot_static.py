@@ -11,27 +11,25 @@ parser.add_argument("study")
 parser.add_argument("experiments")
 parser.add_argument("runs")
 parser.add_argument("generations")
-parser.add_argument("mainpath")
 args = parser.parse_args()
 
 study = args.study
 experiments_name = args.experiments.split(',')
 runs = list(range(1, int(args.runs) + 1))
 generations = list(map(int, args.generations.split(',')))
-mainpath = args.mainpath
 
 study = study
 experiments = experiments_name
 inner_metrics = ['median', 'max']
 runs = runs
-include_max = True#False
+include_max = False
 merge_lines = True
 gens_boxes = generations
 clrs = ['#009900',
         '#EE8610',
         '#7550ff',
         '#876044']
-path = f'/storage/{mainpath}/{study}'
+path = f'/storage/karine/{study}'
 
 measures = {
     'pop_diversity': ['Diversity', 0, 1],

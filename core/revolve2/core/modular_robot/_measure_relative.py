@@ -26,6 +26,7 @@ class MeasureRelative:
                              'fullydominated_quality_youth',
                              'seasonal_dominated',
                              'seasonal_fullydominated',
+                             'toxins_dominated',
                              'age',
                              'inverse_age']
 
@@ -125,6 +126,29 @@ class MeasureRelative:
             if better == len(self._genotype_measures):
                 pool_fulldominated_individuals += 1
         return pool_dominated_individuals, pool_fulldominated_individuals
+
+    def _pool_toxins_dominated_individuals(self):
+        which_measure = "speed_y"
+        pool_dominated_individuals = 0
+        for i in range(0, len(self._neighbours_measures[1])):
+            better = 0
+            worse = 0
+            for cond in self._genotype_measures:
+                value_individual = self._genotype_measures[cond][which_measure]
+                value_neighbour = self._neighbours_measures[cond][i][which_measure]
+
+                # this isn(sadly) hardcoded. cond=2 means the toxic setup, when target direction gets inverted
+                if cond == 2:
+                    value_individual = value_individual * -1
+                    value_neighbour = value_neighbour * -1
+
+                if value_individual > value_neighbour:
+                    better += 1
+                if value_individual < value_neighbour:
+                    worse += 1
+            if better > 0 and worse == 0:
+                pool_dominated_individuals += 1
+        return pool_dominated_individuals
 
     def _age(self, generation_index):
 

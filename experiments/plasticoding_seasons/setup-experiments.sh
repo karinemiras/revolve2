@@ -3,7 +3,7 @@
 #set -x
 
 
-study="plasticoding_nature"
+study="plasticoding_seasons"
 
 # DO NOT use underline ( _ ) in the experiments names
 # delimiter is space, example:
@@ -15,11 +15,12 @@ population_size=200
 offspring_size=200
 num_generations="100"
 
+
 fitness_measure=("seasonal_dominated" "seasonal_dominated")
 seasons_conditions=("1.0_1.0_0#1.0_1.0_15" "1.0_1.0_0#1.0_1.0_15")
 plastic_body=(0 1)
 plastic_brain=(0 1)
-runs=10
+runs=20
 
 num_terminals=2
 mainpath="/storage/karine"

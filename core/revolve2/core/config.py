@@ -155,11 +155,12 @@ class Config():
         parser.add_argument(
             "--seasons_conditions",
             required=False,
-            default='1.0_1.0_0',
+            default='1.0_1.0_0_0_0',
             type=str,
             # seasons separated by '#' and their params separated by '_': params order matters!
-            help="staticfriction_dynamicfriction_yrotationdegrees|"
-                 "staticfriction_dynamicfriction_yrotationdegrees|...",
+            # order: staticfriction, dynamicfriction, yrotationdegrees, platform, toxic
+            help="param1_param2...#"
+                 "param1_param2...#...",
         )
         args = parser.parse_args()
 

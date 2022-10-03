@@ -28,7 +28,7 @@ mainpath = args.mainpath
 
 study = study
 experiments = experiments_name
-inner_metrics = ['median', 'max']
+inner_metrics = ['mean', 'max'] #median
 runs = runs
 include_max = False
 merge_lines = True
@@ -67,7 +67,9 @@ measures = {
     'height': ['Height', 0, 1],
     'coverage': ['Coverage', 0, 1],
     'proportion': ['Proportion', 0, 1],
-    'symmetry': ['Symmetry', 0, 1]}
+    'symmetry': ['Symmetry', 0, 1],
+    'body_changes': ['Body Changes', 0, 1]
+}
 
 env_conditions = {}
 

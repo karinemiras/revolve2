@@ -86,7 +86,7 @@ class LocalRunner(Runner):
             # let the user create static object, rendering the group plane redundant.
             # But for now we keep it because it's easy for our first test release.
             plane_params = gymapi.PlaneParams()
-            static_friction, dynamic_friction, y_rotation_degrees = self._env_conditions
+            static_friction, dynamic_friction, y_rotation_degrees, platform, toxic = self._env_conditions
             y_rotation_degrees = float(y_rotation_degrees)
             static_friction = float(static_friction)
             dynamic_friction = float(dynamic_friction)

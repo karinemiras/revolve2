@@ -2,13 +2,10 @@
 #set -e
 #set -x
 
-
-study="default_study"
+study="plasticoding_nature"
 # arrays delimiter is space
-#experiments=("defaultexperiment")
-experiments=("plane" "tilted")
-
-runs=30
+experiments=("seasonal" "plastic")
+runs=10
 mainpath="karine"
 
 # discover unfinished experiments

@@ -28,7 +28,7 @@ class Simulator:
 
     async def simulate(self) -> None:
 
-        self.study = 'plasticoding_nature'
+        self.study = 'plasticoding_seasons'
         self.experiments_name = ['seasonal', 'plastic']
         self.runs = list(range(1, 10+1))
         self.generations = [100]
