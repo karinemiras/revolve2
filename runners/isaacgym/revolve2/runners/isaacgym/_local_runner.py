@@ -114,6 +114,22 @@ class LocalRunner(Runner):
                 gymenv = self.GymEnv(env, [])
                 gymenvs.append(gymenv)
 
+                # add platform to env
+                if int(platform) == 1:
+                    sizex = 4
+                    sizey = 2
+                    sizez = 1
+                    platform_asset = self._gym.create_box(self._sim, sizex, sizey, sizez)
+                    pose = gymapi.Transform()
+                    pose.p = gymapi.Vec3(0,  0,   0, )
+                    plat1_handle = self._gym.create_actor(env, platform_asset, pose, "plat", env_index, 1)
+                    pose = gymapi.Transform()
+                    # this 0.025 value is added coz (bizarrely) x=0 for plat1 does not align perfectly to x=0 in plat2
+                    pose.p = gymapi.Vec3(0.025, sizey, 0, )
+                    plat2_handle = self._gym.create_actor(env, platform_asset, pose, "plat2", env_index, 1)
+                    self._gym.set_rigid_body_color(env, plat1_handle, 0, gymapi.MESH_VISUAL, gymapi.Vec3(0.1, 0.1, 0.1))
+                    self._gym.set_rigid_body_color(env, plat2_handle, 0, gymapi.MESH_VISUAL, gymapi.Vec3(0, 1, 0))
+
                 for actor_index, posed_actor in enumerate(env_descr.actors):
                     # sadly isaac gym can only read robot descriptions from a file,
                     # so we create a temporary file.
@@ -171,6 +187,7 @@ class LocalRunner(Runner):
                         env_index,
                         0,
                     )
+
                     gymenv.actors.append(actor_handle)
 
                     self._gym.end_aggregate(env)
@@ -181,7 +198,7 @@ class LocalRunner(Runner):
                     props["stiffness"].fill(1.0)
                     props["damping"].fill(0.05)
                     self._gym.set_actor_dof_properties(env, actor_handle, props)
-
+                    self._gym.create_box(self._sim, 100, 100, 100)
                     all_rigid_props = self._gym.get_actor_rigid_shape_properties(
                         env, actor_handle
                     )

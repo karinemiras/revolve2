@@ -2,9 +2,9 @@
 #set -e
 #set -x
 
-study="plasticoding_nature"
+study="plasticoding_toxins"
 # arrays delimiter is space
-experiments=("seasonal" "plastic")
+experiments=("toxinsall")
 runs=10
 mainpath="karine"
 

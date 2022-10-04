@@ -28,9 +28,9 @@ class Simulator:
 
     async def simulate(self) -> None:
 
-        self.study = 'plasticoding_seasons'
-        self.experiments_name = ['seasonal', 'plastic']
-        self.runs = list(range(1, 10+1))
+        self.study = 'plasticoding_toxins_test'
+        self.experiments_name = ['toxinsall']
+        self.runs = [3]#list(range(1, 10+1))
         self.generations = [100]
         self.bests = 1
         self.specific_robot = 2
@@ -97,7 +97,7 @@ class Simulator:
 
                 # if seasonal setup, criteria is seasonal pareto
                 if len(rows) > 1:
-                    query = query.order_by(DbEAOptimizerGeneration.seasonal_dominated.desc(),
+                    query = query.order_by(DbEAOptimizerGeneration.toxins_dominated.desc(),
                                            DbEAOptimizerGeneration.individual_id.asc(),
                                            DbEAOptimizerGeneration.env_conditions_id.asc())
                 else:
@@ -111,7 +111,7 @@ class Simulator:
                     print(f'\n  id:{r.DbEAOptimizerIndividual.individual_id} ' \
                                                     f' birth:{r.DbFloat.birth} ' \
                              f' cond:{env_conditions_id} ' \
-                             f' dom:{r.DbEAOptimizerGeneration.seasonal_dominated} ' \
+                             f' dom:{r.DbEAOptimizerGeneration.toxins_dominated} ' \
                              f' speed_y:{r.DbFloat.speed_y} \n' \
                           )
 
@@ -134,11 +134,17 @@ class Simulator:
                     env = Environment()
                     x_rotation_degrees = float(env_conditions[env_conditions_id][2])
                     robot_rotation = x_rotation_degrees * np.pi / 180
+                    platform = float(env_conditions[env_conditions_id][3])
+                    print('wat plat', platform)
 
                     env.actors.append(
                         PosedActor(
                             actor,
-                            Vector3([0.0, 0.0,  bounding_box.size.z / 2.0 - bounding_box.offset.z]),
+                            Vector3([
+                                0.0,
+                                0.0,
+                                bounding_box.size.z / 2.0 - bounding_box.offset.z + platform,
+                            ]),
                             Quaternion.from_eulers([robot_rotation, 0, 0]),
                             [0.0 for _ in self._controller.get_dof_targets()],
                         )

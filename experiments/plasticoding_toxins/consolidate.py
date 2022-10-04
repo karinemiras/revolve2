@@ -32,7 +32,7 @@ class Analysis:
 
         self.study = study
         self.experiments = experiments_name
-        self.inner_metrics = ['mean', 'max'] #median
+        self.inner_metrics = ['median', 'max']
         self.runs = runs
         self.final_gen = int(args.final_gen)
 

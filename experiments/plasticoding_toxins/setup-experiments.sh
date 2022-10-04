@@ -11,16 +11,17 @@ study="plasticoding_toxins"
 # exps order is the same for all params
 
 experiments=("toxinsall")
-population_size=11
-offspring_size=1
-num_generations="1"
+population_size=200
+offspring_size=200
+num_generations="100"
 
 
 fitness_measure=("toxins_dominated")
 seasons_conditions=("1.0_1.0_0_1_0#1.0_1.0_0_1_1")
 plastic_body=(0)
 plastic_brain=(1)
-runs=1
+simulation_time=60
+runs=20
 
 num_terminals=2
 mainpath="/storage/karine"
@@ -122,10 +123,10 @@ while true
         idx=$( echo ${experiments[@]/${exp}//} | cut -d/ -f1 | wc -w | tr -d ' ' )
 
         # nice -n19 python3  experiments/${study}/optimize.py
-      echo  screen -d -m -S screen_${free_screens[$p]}_${to_d} -L -Logfile /storage/karine/${study}/${exp}_${run}".log" python3  experiments/${study}/optimize.py \
+        screen -d -m -S screen_${free_screens[$p]}_${to_d} -L -Logfile /storage/karine/${study}/${exp}_${run}".log" python3  experiments/${study}/optimize.py \
                --experiment_name ${exp}  --study=${study}  --seasons_conditions ${seasons_conditions[$idx]} --run ${run} --fitness_measure ${fitness_measure[$idx]} \
                --plastic_body ${plastic_body[$idx]} --plastic_brain ${plastic_brain[$idx]} --num_generations ${num_generations} \
-               --offspring_size ${offspring_size} --population_size ${population_size} --run_simulation 0;
+               --offspring_size ${offspring_size} --population_size ${population_size} --simulation_time ${simulation_time};
 
         printf "\n >> (re)starting screen_${free_screens[$p]}_${to_d} \n\n"
         p=$((${p}+1))

@@ -281,7 +281,7 @@ class Optimizer(EAOptimizer[Genotype, float]):
         envs_queried_substrates = {}
 
         for cond in self.env_conditions:
-            print('cond', cond)
+      
             batch = Batch(
                 simulation_time=self._simulation_time,
                 sampling_frequency=self._sampling_frequency,
@@ -306,6 +306,8 @@ class Optimizer(EAOptimizer[Genotype, float]):
 
                 x_rotation_degrees = float(self.env_conditions[cond][2])
                 robot_rotation = x_rotation_degrees * np.pi / 180
+                platform = float(self.env_conditions[cond][3])
+
                 env.actors.append(
                     PosedActor(
                         actor,
@@ -313,7 +315,7 @@ class Optimizer(EAOptimizer[Genotype, float]):
                             [
                                 0.0,
                                 0.0,
-                                (bounding_box.size.z / 2.0 - bounding_box.offset.z),
+                                (bounding_box.size.z / 2.0 - bounding_box.offset.z) + platform,
                             ]
                         ),
                         Quaternion.from_eulers([robot_rotation, 0, 0]),
