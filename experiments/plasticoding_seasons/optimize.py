@@ -30,7 +30,7 @@ async def main() -> None:
     seasonal_conditions = args.seasons_conditions.split('#')
     for seasonal_condition in seasonal_conditions:
         params = seasonal_condition.split('_')
-        seasonal_conditions_parsed.append([params[0], params[1], params[2]])
+        seasonal_conditions_parsed.append([params[0], params[1], params[2], params[3], params[4]])
 
     # random number generator
     rng = Random()

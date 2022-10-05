@@ -4,8 +4,8 @@
 
 study="plasticoding_toxins"
 # arrays delimiter is space
-experiments=("toxinsall")
-runs=10
+experiments=("nonplastictoxinsall" "plastictoxinsall")
+runs=20
 mainpath="karine"
 
 # discover unfinished experiments

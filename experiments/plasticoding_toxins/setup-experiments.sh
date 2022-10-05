@@ -10,22 +10,23 @@ study="plasticoding_toxins"
 #experiments=("exp1" "epx2")
 # exps order is the same for all params
 
-experiments=("toxinsall")
+experiments=("nonplastictoxinsall" "plastictoxinsall")
 population_size=200
 offspring_size=200
 num_generations="100"
 
 
-fitness_measure=("toxins_dominated")
-seasons_conditions=("1.0_1.0_0_1_0#1.0_1.0_0_1_1")
-plastic_body=(0)
-plastic_brain=(1)
-simulation_time=60
+fitness_measure=("toxins_dominated" "toxins_dominated")
+seasons_conditions=("1.0_1.0_0_1_0#1.0_1.0_0_1_1" "1.0_1.0_0_1_0#1.0_1.0_0_1_1")
+plastic_body=(0 0)
+plastic_brain=(0 1)
+simulation_time=70
 runs=20
 
 num_terminals=2
 mainpath="/storage/karine"
 
+mkdir ${mainpath}/${study}
 mkdir ${mainpath}/${study}/analysis
 
 possible_screens=()

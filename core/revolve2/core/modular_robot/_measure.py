@@ -16,7 +16,8 @@ class Measure:
 
     _states: List[Tuple[float, ActorState]]
 
-    def __init__(self, states=None, genotype_idx=-1, phenotype=None, generation=None, simulation_time=None):
+    def __init__(self, states=None, genotype_idx=-1, phenotype=None, generation=None,
+                 simulation_time=None, env_conditions=None):
         self._states = states
         # TODO: _genotype_idx: obsolete variable
         self._genotype_idx = genotype_idx
@@ -24,6 +25,7 @@ class Measure:
         self._phenotype_brain = phenotype.brain
         self._generation = generation
         self._simulation_time = simulation_time
+        self._env_conditions = env_conditions
         self._orientations = []
 
     def measure_all_non_relative(self):
@@ -90,6 +92,14 @@ class Measure:
         else:
             # speed on the y-axis (to the right [uphill] is higher/better)
             displacement_y = float((end_state.position[1]-begin_state.position[1]))
+
+            # if there is a platform, truncates displacement
+            if int(self._env_conditions[3]) == 1:
+                if displacement_y > 1:
+                    displacement_y = 1
+                if displacement_y < -1:
+                    displacement_y = -1
+
             self._measures['speed_y'] = float((displacement_y/self._simulation_time)*100)
 
         # average z

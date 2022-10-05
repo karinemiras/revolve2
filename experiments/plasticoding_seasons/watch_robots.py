@@ -36,7 +36,6 @@ class Simulator:
         self.specific_robot = 2
         # 'all' selects best from all individuals
         # 'gens' selects best from chosen generations
-        # 'specific' selects the robot provided in specific_robot
         self.bests_type = 'gens'
         mainpath = "karine"
 
@@ -56,10 +55,6 @@ class Simulator:
                 elif self.bests_type == 'all':
                     pass
                     # TODO: implement
-                    # print('  within all gens')
-                    #await self.recover(db, -1, path)
-                elif self.bests_type == 'specific':
-                    await self.recover(db, -1, path)
 
     async def recover(self, db, gen, path):
         async with AsyncSession(db) as session:
@@ -84,17 +79,16 @@ class Simulator:
             for c_row in rows:
                 env_conditions[c_row[0].id] = literal_eval(c_row[0].conditions)
 
-            if self.bests_type == 'specific':
-                rows = ((await session.execute(select(DbEAOptimizerIndividual, DbFloat)
-                                           .filter((DbFloat.id == DbEAOptimizerIndividual.float_id)
-                                           & (DbEAOptimizerIndividual.individual_id == self.specific_robot)))).all())
+            if self.bests_type == 'ALL':
+                pass
             elif self.bests_type == 'gens':
                 query = select(DbEAOptimizerGeneration, DbEAOptimizerIndividual, DbFloat) \
                     .filter((DbEAOptimizerGeneration.individual_id == DbEAOptimizerIndividual.individual_id)
                             & (DbEAOptimizerGeneration.env_conditions_id == DbEAOptimizerIndividual.env_conditions_id)
                             & (DbFloat.id == DbEAOptimizerIndividual.float_id)
-                            & DbEAOptimizerGeneration.generation_index.in_([gen]))
-
+                            & DbEAOptimizerGeneration.generation_index.in_([gen])
+                #     & (DbEAOptimizerIndividual.individual_id == 4910)
+                )
                 # if seasonal setup, criteria is seasonal pareto
                 if len(rows) > 1:
                     query = query.order_by(DbEAOptimizerGeneration.seasonal_dominated.desc(),

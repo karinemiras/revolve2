@@ -17,7 +17,7 @@ num_generations="100"
 
 
 fitness_measure=("seasonal_dominated" "seasonal_dominated")
-seasons_conditions=("1.0_1.0_0#1.0_1.0_15" "1.0_1.0_0#1.0_1.0_15")
+seasons_conditions=("1.0_1.0_0_0_0#1.0_1.0_15_0_0" "1.0_1.0_0_0_0#1.0_1.0_15_0_0")
 plastic_body=(0 1)
 plastic_brain=(0 1)
 runs=20
@@ -25,6 +25,7 @@ runs=20
 num_terminals=2
 mainpath="/storage/karine"
 
+mkdir ${mainpath}/${study}
 mkdir ${mainpath}/${study}/analysis
 
 possible_screens=()

@@ -22,6 +22,7 @@ num_generations="100"
 num_terminals=2
 mainpath="/storage/karine"
 
+mkdir ${mainpath}/${study}
 mkdir ${mainpath}/${study}/analysis
 
 possible_screens=()

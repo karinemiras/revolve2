@@ -333,8 +333,10 @@ class Optimizer(EAOptimizer[Genotype, float]):
 
             measures_genotypes = []
             for i, phenotype in enumerate(phenotypes):
+
                 m = Measure(states=states, genotype_idx=i, phenotype=phenotype, \
-                            generation=self.generation_index, simulation_time=self._simulation_time)
+                            generation=self.generation_index, simulation_time=self._simulation_time, \
+                            env_conditions=self.env_conditions[cond])
                 measures_genotypes.append(m.measure_all_non_relative())
             envs_measures_genotypes[cond] = measures_genotypes
 

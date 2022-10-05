@@ -116,16 +116,18 @@ class LocalRunner(Runner):
 
                 # add platform to env
                 if int(platform) == 1:
-                    sizex = 4
-                    sizey = 2
-                    sizez = 1
+                    sizex = 6.0
+                    sizey = 2.0
+                    sizez = 1.0
+                    platform_height_adjust = sizez/2.0
                     platform_asset = self._gym.create_box(self._sim, sizex, sizey, sizez)
                     pose = gymapi.Transform()
-                    pose.p = gymapi.Vec3(0,  0,   0, )
+                    pose.p = gymapi.Vec3(0,  0,   platform_height_adjust, )
+                    pose.r = gymapi.Quat(0, 0, 0, 1)
                     plat1_handle = self._gym.create_actor(env, platform_asset, pose, "plat", env_index, 1)
                     pose = gymapi.Transform()
-                    # this 0.025 value is added coz (bizarrely) x=0 for plat1 does not align perfectly to x=0 in plat2
-                    pose.p = gymapi.Vec3(0.025, sizey, 0, )
+                    pose.p = gymapi.Vec3(0, sizey, platform_height_adjust, )
+                    pose.r = gymapi.Quat(0, 0, 0, 1)
                     plat2_handle = self._gym.create_actor(env, platform_asset, pose, "plat2", env_index, 1)
                     self._gym.set_rigid_body_color(env, plat1_handle, 0, gymapi.MESH_VISUAL, gymapi.Vec3(0.1, 0.1, 0.1))
                     self._gym.set_rigid_body_color(env, plat2_handle, 0, gymapi.MESH_VISUAL, gymapi.Vec3(0, 1, 0))
@@ -187,6 +189,7 @@ class LocalRunner(Runner):
                         env_index,
                         0,
                     )
+                    self._gym.set_rigid_body_color(env, actor_handle, 0, gymapi.MESH_VISUAL, gymapi.Vec3(1, 0, 0))
 
                     gymenv.actors.append(actor_handle)
 
@@ -230,11 +233,22 @@ class LocalRunner(Runner):
                 raise RuntimeError()
             num_per_row = math.sqrt(len(self._batch.environments))
 
+            platform = self._env_conditions[3]
+            move_camzoom = 0
+            move_camroty = 0
+            move_camhight = 0
+            if int(platform) == 1:
+                move_camzoom = 0.5
+                move_camroty = -2.5
+                move_camhight = 2
+
             # TEMP adjustment of camera position
             num_per_row = num_per_row*1.7
 
             cam_pos = gymapi.Vec3(
-                num_per_row / 2.0 + 0.5, num_per_row / 2.0 - 0.5, num_per_row
+                num_per_row / 2.0 + 0.5 + move_camzoom,
+                num_per_row / 2.0 - 0.5 + move_camroty,
+                num_per_row + move_camhight
             )
             cam_target = gymapi.Vec3(
                 num_per_row / 2.0 + 0.5 - 1, num_per_row / 2.0 - 0.5, 0.0
@@ -255,9 +269,16 @@ class LocalRunner(Runner):
             # sample initial state
             self._append_states(results, 0.0)
 
+            self._gym.subscribe_viewer_keyboard_event(self._viewer, gymapi.KEY_SPACE, "space_shoot")
+
+            # VISUAL DEBUG2: set to false if you wanna use spacebar to start sim (and possibly the step by step)
+            do_physics_step = True
+
             while (
                 time := self._gym.get_sim_time(self._sim)
             ) < self._batch.simulation_time:
+                import time as _time
+                # _time.sleep(1)
                 # do control if it is time
                 if time >= last_control_time + control_step:
                     last_control_time = math.floor(time / control_step) * control_step
@@ -282,8 +303,20 @@ class LocalRunner(Runner):
                     last_sample_time = int(time / sample_step) * sample_step
                     self._append_states(results, time)
 
+                # Check if spacebar was pressed
+                for event in self._gym.query_viewer_action_events(self._viewer):
+                    if event.action == "space_shoot":
+                        if event.value > 0.5:
+                            do_physics_step = True
+                        break
+
                 # step simulation
-                self._gym.simulate(self._sim)
+                if do_physics_step:
+                    self._gym.simulate(self._sim)
+
+                # VISUAL DEBUG1: uncomment this line for step by step space-based physics visualization
+                #do_physics_step = False
+
                 self._gym.fetch_results(self._sim, True)
 
                 if self._viewer is not None:
@@ -361,6 +394,7 @@ class LocalRunner(Runner):
                     pose = self._gym.get_actor_rigid_body_states(
                         gymenv.env, actor_handle, gymapi.STATE_POS
                     )["pose"]
+
                     position = pose["p"][0]  # [0] is center of root element
                     orientation = pose["r"][0]
                     env_state.actor_states.append(
