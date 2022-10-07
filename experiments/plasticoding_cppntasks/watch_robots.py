@@ -28,9 +28,9 @@ class Simulator:
 
     async def simulate(self) -> None:
 
-        self.study = 'plasticoding_toxins'
-        self.experiments_name = ['toxinsall']
-        self.runs = [4]#list(range(1, 10+1))
+        self.study = 'plasticoding_cppntasks'
+        self.experiments_name = ["nonplasticforthright"]
+        self.runs = [1]#list(range(1, 10+1))
         self.generations = [100]
         self.bests = 1
         # 'all' selects best from all individuals

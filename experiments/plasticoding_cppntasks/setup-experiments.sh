@@ -3,24 +3,24 @@
 #set -x
 
 
-study="plasticoding_toxins"
+study="plasticoding_cppntasks"
 
 # DO NOT use underline ( _ ) in the experiments names
 # delimiter is space, example:
 #experiments=("exp1" "epx2")
 # exps order is the same for all params
 
-experiments=("nonplastictoxinsall" "plastictoxinsall")
+experiments=("nonplasticforthright" "plasticforthright" "nonplasticbackforth" "plasticbackforth")
 population_size=200
 offspring_size=200
 num_generations="100"
 
 
-fitness_measure=("toxins_dominated" "toxins_dominated")
-seasons_conditions=("1.0_1.0_0_1_0#1.0_1.0_0_1_1" "1.0_1.0_0_1_0#1.0_1.0_0_1_1")
-plastic_body=(0 0)
-plastic_brain=(0 1)
-simulation_time=70
+fitness_measure=("forthright_dominated" "forthright_dominated" "backforth_dominated" "backforth_dominated")
+seasons_conditions=("1.0_1.0_0_0_0#1.0_1.0_0_0_0" "1.0_1.0_0_0_0#1.0_1.0_0_0_0" "1.0_1.0_0_0_0#1.0_1.0_0_0_0" "1.0_1.0_0_0_0#1.0_1.0_0_0_0")
+plastic_body=(0 0 0 0)
+plastic_brain=(0 1 0 1)
+simulation_time=50
 runs=20
 
 num_terminals=2

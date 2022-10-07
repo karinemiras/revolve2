@@ -2,9 +2,9 @@
 #set -e
 #set -x
 
-study="plasticoding_toxins"
+study="plasticoding_cppntasks"
 # arrays delimiter is space
-experiments=("nonplastictoxinsall" "plastictoxinsall")
+experiments=("nonplasticforthright" "plasticforthright" "nonplasticbackforth" "plasticbackforth")
 runs=20
 mainpath="karine"
 

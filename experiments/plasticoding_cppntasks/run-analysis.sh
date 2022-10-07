@@ -5,14 +5,14 @@
 # exps order is the same for all params
 
 #experiments="seasonal,plastic"
-experiments="toxinsall"
+experiments="nonplastictoxinsall,plastictoxinsall"
 
 # these params are the same for all exps
 # gens for boxplots and snapshots
-generations=(100)
+generations=(66)
 #gen for lineplots
-final_gen=100
-runs=6
+final_gen=66
+runs=2
 mainpath="karine"
 study="plasticoding_toxins"
 

@@ -54,7 +54,8 @@ class DbEAOptimizerGeneration(DbBase):
     inverse_age = Column(Float, nullable=True)
     seasonal_dominated = Column(Float, nullable=True)
     seasonal_fullydominated = Column(Float, nullable=True)
-    toxins_dominated = Column(Float, nullable=True)
+    backforth_dominated = Column(Float, nullable=True)
+    forthright_dominated = Column(Float, nullable=True)
 
 
 # all history of born individuals

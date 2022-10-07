@@ -3,7 +3,7 @@
 #set -x
 
 
-study="default_studyy"
+study="default_study"
 
 # DO NOT use underline ( _ ) in the experiments names
 # delimiter is space, example:
@@ -11,10 +11,7 @@ study="default_studyy"
 # exps order is the same for all params
 
 experiments=("defaultexperiment")
-experiments=("plane" "tilted")
-
-#seasons_conditions=("1.0_1.0_0")
-seasons_conditions=("1.0_1.0_0" "1.0_1.0_15")
+seasons_conditions=("1.0_1.0_0_0_0")
 
 runs=30
 num_generations="100"

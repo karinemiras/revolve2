@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# run this script from the root (revolve folder): ./experiments/default_study/run-analysis.sh
+
 # delimiter is comma, example:
 #experiments="exp1,epx2"
 # exps order is the same for all params

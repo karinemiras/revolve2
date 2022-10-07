@@ -71,6 +71,7 @@ class Measure:
 
         if self._states is None:
             self._measures['speed_y'] = -math.inf
+            self._measures['speed_x'] = -math.inf
             self._measures['average_z'] = -math.inf
             self._measures['displacement'] = -math.inf
             return
@@ -89,9 +90,11 @@ class Measure:
         # TODO: check if outlier from pop avg
         if displacement >= 10:
             self._measures['speed_y'] = -math.inf
+            self._measures['speed_x'] = -math.inf
         else:
             # speed on the y-axis (to the right [uphill] is higher/better)
             displacement_y = float((end_state.position[1]-begin_state.position[1]))
+            displacement_x = float((end_state.position[0]-begin_state.position[0]))
 
             # if there is a platform, truncates displacement
             if int(self._env_conditions[3]) == 1:
@@ -100,7 +103,13 @@ class Measure:
                 if displacement_y < -1:
                     displacement_y = -1
 
+                if displacement_x > 1:
+                    displacement_x = 1
+                if displacement_x < -1:
+                    displacement_x = -1
+
             self._measures['speed_y'] = float((displacement_y/self._simulation_time)*100)
+            self._measures['speed_x'] = float((displacement_x/self._simulation_time)*100)
 
         # average z
         z = 0
