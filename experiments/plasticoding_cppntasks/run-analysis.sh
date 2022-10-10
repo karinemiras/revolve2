@@ -5,16 +5,17 @@
 # exps order is the same for all params
 
 #experiments="seasonal,plastic"
-experiments="nonplastictoxinsall,plastictoxinsall"
+experiments="nonplasticforthright,plasticforthright,nonplasticbackforth,plasticbackforth"
+experiments="plasticbackforth"
 
 # these params are the same for all exps
 # gens for boxplots and snapshots
-generations=(66)
+generations=(10)
 #gen for lineplots
-final_gen=66
-runs=2
+final_gen=10
+runs=1
 mainpath="karine"
-study="plasticoding_toxins"
+study="plasticoding_cppntasks"
 
 #python experiments/${study}/snapshots_bests.py $study $experiments $runs $generations $mainpath;
 #python experiments/${study}/bests_snap_2d.py $study $experiments $runs $generations $mainpath;

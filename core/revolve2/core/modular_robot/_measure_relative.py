@@ -173,7 +173,6 @@ class MeasureRelative:
                     worse += 1
             if better > 0 and worse == 0:
                 pool_dominated_individuals += 1
-
         return pool_dominated_individuals
 
     def _age(self, generation_index):

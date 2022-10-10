@@ -152,13 +152,14 @@ class Config():
             type=int,
         )
 
+        # provides params that define environmental conditions and/or task
         parser.add_argument(
             "--seasons_conditions",
             required=False,
             default='1.0_1.0_0_0_0',
             type=str,
             # seasons separated by '#' and their params separated by '_': params order matters!
-            # order: staticfriction, dynamicfriction, yrotationdegrees, platform, toxic
+            # order: staticfriction, dynamicfriction, yrotationdegrees, platform, direction
             help="param1_param2...#"
                  "param1_param2...#...",
         )
