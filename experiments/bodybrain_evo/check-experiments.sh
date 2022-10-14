@@ -3,13 +3,17 @@
 #set -x
 
 
-study="default_study"
-# arrays delimiter is space
-#experiments=("defaultexperiment")
-experiments=("plane" "tilted")
+DIR="$(dirname "${BASH_SOURCE[0]}")"
+study="$(basename $DIR)"
 
-runs=30
-mainpath="karine"
+if [ $# -eq 0 ]
+  then
+     params_file=paramsdefault
+  else
+    params_file=$1
+fi
+
+source $DIR/$params_file.sh
 
 # discover unfinished experiments
 
@@ -22,7 +26,7 @@ do
     do
 
      printf  "\n${experiment}_${run} \n"
-     file="/storage/${mainpath}/${study}/${experiment}_${run}.log";
+     file="${outputs_path}/${study}/${experiment}_${run}.log";
 
      #check experiments status
      if [[ -f "$file" ]]; then

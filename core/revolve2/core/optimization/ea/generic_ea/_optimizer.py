@@ -484,7 +484,6 @@ class EAOptimizer(Process, Generic[Genotype, Measure]):
             initial_measures = None
             initial_states = None
             initial_relative_measures = None
-            # for cond in self.__env_conditions:
 
         while self.__safe_must_do_next_gen():
 

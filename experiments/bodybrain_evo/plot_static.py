@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import seaborn as sb
 from statannot import add_stat_annotation
 import pprint
+import os
 import sys
 
 parser = argparse.ArgumentParser()
@@ -11,6 +12,7 @@ parser.add_argument("study")
 parser.add_argument("experiments")
 parser.add_argument("runs")
 parser.add_argument("generations")
+parser.add_argument("comparison")
 parser.add_argument("mainpath")
 args = parser.parse_args()
 
@@ -18,20 +20,19 @@ study = args.study
 experiments_name = args.experiments.split(',')
 runs = list(range(1, int(args.runs) + 1))
 generations = list(map(int, args.generations.split(',')))
+comparison = args.comparison
 mainpath = args.mainpath
 
-study = study
 experiments = experiments_name
 inner_metrics = ['median', 'max']
-runs = runs
-include_max = True#False
+include_max = False
 merge_lines = True
 gens_boxes = generations
 clrs = ['#009900',
         '#EE8610',
         '#7550ff',
         '#876044']
-path = f'/storage/{mainpath}/{study}'
+path = f'{mainpath}/{study}'
 
 measures = {
     'pop_diversity': ['Diversity', 0, 1],
@@ -65,6 +66,8 @@ measures = {
 
 
 def plots():
+    if not os.path.exists(f'{self.path}/analysis/{comparison}'):
+        os.makedirs(f'{self.path}/analysis/{comparison}')
 
     df_inner = pandas.read_csv(f'{path}/analysis/df_inner.csv')
     df_outer = pandas.read_csv(f'{path}/analysis/df_outer.csv')
@@ -109,14 +112,14 @@ def plot_lines(df_outer):
 
             ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.1),  fancybox=True, shadow=True, ncol=5, fontsize=10)
             if not merge_lines:
-                plt.savefig(f'{path}/analysis/basic_plots/line_{experiment}_{measure}.png', bbox_inches='tight')
+                plt.savefig(f'{path}/analysis/{comparison}/line_{experiment}_{measure}.png', bbox_inches='tight')
                 plt.clf()
                 plt.close(fig)
                 plt.rcParams.update(font)
                 fig, ax = plt.subplots()
 
         if merge_lines:
-            plt.savefig(f'{path}/analysis/basic_plots/line_{measure}.png', bbox_inches='tight')
+            plt.savefig(f'{path}/analysis/{comparison}/line_{measure}.png', bbox_inches='tight')
             plt.clf()
             plt.close(fig)
 
@@ -155,7 +158,7 @@ def plot_boxes(df_inner):
             #     plot.set_ylim(measures[measure][1], measures[measure][2])
             plt.xlabel('')
             plt.ylabel(f'{measures[measure][0]}')
-            plot.get_figure().savefig(f'{path}/analysis/basic_plots/box_{measure}_{gen_boxes}.png', bbox_inches='tight')
+            plot.get_figure().savefig(f'{path}/analysis/{comparison}/box_{measure}_{gen_boxes}.png', bbox_inches='tight')
             plt.clf()
             plt.close()
 

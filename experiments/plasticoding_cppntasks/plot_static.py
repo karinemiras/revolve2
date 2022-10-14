@@ -18,10 +18,8 @@ experiments_name = args.experiments.split(',')
 runs = list(range(1, int(args.runs) + 1))
 generations = list(map(int, args.generations.split(',')))
 
-study = study
 experiments = experiments_name
 inner_metrics = ['median', 'max']
-runs = runs
 include_max = False
 merge_lines = True
 gens_boxes = generations

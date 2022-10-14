@@ -32,11 +32,11 @@ class Analysis:
 
         self.study = study
         self.experiments = experiments_name
-        self.inner_metrics = ['mean', 'max'] #median
+        self.inner_metrics = ['median', 'max']
         self.runs = runs
         self.final_gen = int(args.final_gen)
 
-        self.path = f'/storage/{mainpath}/{study}'
+        self.path = f'{mainpath}/{study}'
 
         self.measures = {
             'pop_diversity': ['Diversity', 0, 1],
@@ -66,18 +66,14 @@ class Analysis:
             'height': ['Height', 0, 1],
             'coverage': ['Coverage', 0, 1],
             'proportion': ['Proportion', 0, 1],
-            'symmetry': ['Symmetry', 0, 1],
-            'body_changes': ['Body Changes', 0, 1]
-        }
+            'symmetry': ['Symmetry', 0, 1]}
 
     def consolidate(self):
         print('consolidating...')
 
         if not os.path.exists(self.path):
             os.makedirs(self.path)
-        if not os.path.exists(f'{self.path}/analysis/basic_plots'):
-            os.makedirs(f'{self.path}/analysis/basic_plots')
-
+            
         all_df = None
         for experiment in self.experiments:
             for run in self.runs:

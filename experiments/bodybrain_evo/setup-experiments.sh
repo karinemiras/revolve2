@@ -3,30 +3,21 @@
 #set -x
 
 
-study="plasticoding_seasons"
+DIR="$(dirname "${BASH_SOURCE[0]}")"
+study="$(basename $DIR)"
 
-# DO NOT use underline ( _ ) in the experiments names
-# delimiter is space, example:
-#experiments=("exp1" "epx2")
-# exps order is the same for all params
+if [ $# -eq 0 ]
+  then
+     params_file=paramsdefault
+  else
+    params_file=$1
+fi
 
-experiments=("seasonal" "plastic")
-population_size=200
-offspring_size=200
-num_generations="100"
+source $DIR/$params_file.sh
 
+mkdir ${outputs_path}/${study}
+mkdir ${outputs_path}/${study}/analysis
 
-fitness_measure=("seasonal_dominated" "seasonal_dominated")
-seasons_conditions=("1.0_1.0_0_0_0#1.0_1.0_15_0_0" "1.0_1.0_0_0_0#1.0_1.0_15_0_0")
-plastic_body=(0 1)
-plastic_brain=(0 1)
-runs=20
-
-num_terminals=2
-mainpath="/storage/karine"
-
-mkdir ${mainpath}/${study}
-mkdir ${mainpath}/${study}/analysis
 
 possible_screens=()
 
@@ -80,7 +71,7 @@ while true
         do
 
          printf  "\n${experiment}_${run} \n"
-         file="${mainpath}/${study}/${experiment}_${run}.log";
+         file="${outputs_path}/${study}/${experiment}_${run}.log";
 
          #check experiments status
          if [[ -f "$file" ]]; then
@@ -123,10 +114,10 @@ while true
         idx=$( echo ${experiments[@]/${exp}//} | cut -d/ -f1 | wc -w | tr -d ' ' )
 
         # nice -n19 python3  experiments/${study}/optimize.py
-        screen -d -m -S screen_${free_screens[$p]}_${to_d} -L -Logfile /storage/karine/${study}/${exp}_${run}".log" python3  experiments/${study}/optimize.py \
-               --experiment_name ${exp}  --study=${study}  --seasons_conditions ${seasons_conditions[$idx]} --run ${run} --fitness_measure ${fitness_measure[$idx]} \
-               --plastic_body ${plastic_body[$idx]} --plastic_brain ${plastic_brain[$idx]} --num_generations ${num_generations} \
-               --offspring_size ${offspring_size} --population_size ${population_size};
+        screen -d -m -S screen_${free_screens[$p]}_${to_d} -L -Logfile /storage/karine/${study}/${exp}_${run}".log" \
+               python3  experiments/${study}/optimize.py \
+               --experiment_name ${exp} --seasons_conditions ${seasons_conditions[$idx]} --run ${run} --study=${study} \
+               --num_generations ${num_generations} --population_size ${population_size} --offspring_size ${offspring_size};
 
         printf "\n >> (re)starting screen_${free_screens[$p]}_${to_d} \n\n"
         p=$((${p}+1))
@@ -134,8 +125,9 @@ while true
     done
 
    # if all experiments are finished, makes video
+   # (NOTE: IF THE SCREEN IS LOCKED, YOU JUST GET VIDEO WITH A LOCKED SCREEN...)
    if [ -z "$unfinished" ]; then
-       file="${mainpath}/${study}/analysis/video_bests.mpg";
+       file="${outputs_path}/${study}/analysis/video_bests.mpg";
 
      if [ -f "$file" ]; then
         printf ""
@@ -149,13 +141,9 @@ while true
     fi
 
 
-    sleep 600;
+    sleep 1800;
 
 done
 
-# run from revolve root
-# screen -ls  | egrep "^\s*[0-9]+.screen_" | awk -F "." '{print $1}' |  xargs kill
-# killall screen
-# screen -r naaameee
-# screen -list
+
 

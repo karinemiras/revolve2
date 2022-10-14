@@ -131,6 +131,14 @@ class Config():
         )
 
         parser.add_argument(
+            "--simulator",
+            required=False,
+            default="isaac",
+            type=str,
+            help="mujoco or isaac"
+        )
+
+        parser.add_argument(
             "--sampling_frequency",
             required=False,
             default=5,

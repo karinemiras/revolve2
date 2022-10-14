@@ -17,7 +17,7 @@ async def main(parser) -> None:
     mainpath = args.mainpath
 
     bests = 5
-    path_out = f'/storage/{mainpath}/{study}/analysis/snapshots'
+    path_out = f'{mainpath}/{study}/analysis/snapshots'
 
     for gen in generations:
         # TODO: change black background to white
@@ -25,8 +25,7 @@ async def main(parser) -> None:
             print(experiment_name)
             path = f'{path_out}/{experiment_name}/run_{runs[0]}/gen_{generations[0]}'
             envs = [i for i in os.listdir(path) if os.path.isdir(f'{path}/{i}')]
-            print(path)
-            print(envs)
+
             for env in envs:
                 horizontal = []
                 print(env)

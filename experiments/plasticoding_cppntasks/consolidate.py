@@ -46,6 +46,7 @@ class Analysis:
             'seasonal_dominated': ['Seasonal Dominated', 0, 1],
             'age': ['Age', 0, 1],
             'speed_y': ['Speed (cm/s)', 0, 1],
+            'speed_x': ['Speed (cm/s)', 0, 1],
             'relative_speed_y': ['Relative speed (cm/s)', 0, 1],
             'displacement': ['Total displacement (m)', 0, 1],
             'average_z': ['Z', 0, 1],
@@ -75,8 +76,6 @@ class Analysis:
 
         if not os.path.exists(self.path):
             os.makedirs(self.path)
-        if not os.path.exists(f'{self.path}/analysis/basic_plots'):
-            os.makedirs(f'{self.path}/analysis/basic_plots')
 
         all_df = None
         for experiment in self.experiments:

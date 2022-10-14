@@ -6,6 +6,7 @@ import seaborn as sb
 from statannot import add_stat_annotation
 import pprint
 import sys
+import os
 import asyncio
 from revolve2.core.database import open_async_database_sqlite
 from sqlalchemy.future import select
@@ -17,6 +18,7 @@ parser.add_argument("study")
 parser.add_argument("experiments")
 parser.add_argument("runs")
 parser.add_argument("generations")
+parser.add_argument("comparison")
 parser.add_argument("mainpath")
 args = parser.parse_args()
 
@@ -24,12 +26,11 @@ study = args.study
 experiments_name = args.experiments.split(',')
 runs = list(range(1, int(args.runs) + 1))
 generations = list(map(int, args.generations.split(',')))
+comparison = args.comparison
 mainpath = args.mainpath
 
-study = study
 experiments = experiments_name
 inner_metrics = ['median', 'max']
-runs = runs
 include_max = False
 merge_lines = True
 gens_boxes = generations
@@ -47,6 +48,7 @@ measures = {
     'seasonal_dominated': ['Seasonal Dominated', 0, 1],
     'age': ['Age', 0, 1],
     'speed_y': ['Speed (cm/s)', 0, 1],
+    'speed_x': ['Speed (cm/s)', 0, 1],
     'relative_speed_y': ['Relative speed (cm/s)', 0, 1],
     'displacement': ['Total displacement (m)', 0, 1],
     'average_z': ['Z', 0, 1],
@@ -75,6 +77,8 @@ env_conditions = {}
 
 
 async def main() -> None:
+    if not os.path.exists(f'{path}/analysis/{comparison}'):
+        os.makedirs(f'{path}/analysis/{comparison}')
 
     db = open_async_database_sqlite(f'/storage/{mainpath}/{study}/{experiments[0]}/run_{runs[0]}')
     async with AsyncSession(db) as session:
@@ -103,7 +107,7 @@ def plot_lines(df_outer):
         for measure in measures.keys():
 
             if len(env_conditions) > 1:
-                file_env = '_'+env_conditions[env]+'_'
+                file_env = '_'+str(env)+'_' # '_'+env_conditions[env]+'_'
             else:
                 file_env = '_'
 
@@ -136,14 +140,14 @@ def plot_lines(df_outer):
 
                 ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.1),  fancybox=True, shadow=True, ncol=5, fontsize=10)
                 if not merge_lines:
-                    plt.savefig(f'{path}/analysis/basic_plots/line_{experiment}{file_env}{measure}.png', bbox_inches='tight')
+                    plt.savefig(f'{path}/analysis/{comparison}/line_{experiment}{file_env}{measure}.png', bbox_inches='tight')
                     plt.clf()
                     plt.close(fig)
                     plt.rcParams.update(font)
                     fig, ax = plt.subplots()
 
             if merge_lines:
-                plt.savefig(f'{path}/analysis/basic_plots/line{file_env}{measure}.png', bbox_inches='tight')
+                plt.savefig(f'{path}/analysis/{comparison}/line{file_env}{measure}.png', bbox_inches='tight')
                 plt.clf()
                 plt.close(fig)
 
@@ -156,7 +160,7 @@ def plot_boxes(df_inner):
     for env in env_conditions:
 
         if len(env_conditions) > 1:
-            file_env = '_'+env_conditions[env]+'_'
+            file_env = '_'+str(env)+'_' #'_'+env_conditions[env]+'_'
         else:
             file_env = '_'
 
@@ -189,7 +193,7 @@ def plot_boxes(df_inner):
                 #     plot.set_ylim(measures[measure][1], measures[measure][2])
                 plt.xlabel('')
                 plt.ylabel(f'{measures[measure][0]}')
-                plot.get_figure().savefig(f'{path}/analysis/basic_plots/box{file_env}{measure}_{gen_boxes}.png', bbox_inches='tight')
+                plot.get_figure().savefig(f'{path}/analysis/{comparison}/box{file_env}{measure}_{gen_boxes}.png', bbox_inches='tight')
                 plt.clf()
                 plt.close()
 
