@@ -9,22 +9,18 @@ study="plasticoding_cppntasks"
 # delimiter is space, example:
 #experiments=("exp1" "epx2")
 # exps order is the same for all params
+# exps names should not be fully contained in each other
 
-experiments=("nonplasticforthright" "plasticforthright")
-#experiments=( "nonplasticbackforth" "plasticbackforth" "nonplasticforthright" "plasticforthright")
-population_size=200
-offspring_size=200
+experiments=("nonplasticforthright" "plasticforthright" "nonplasticbackforth" "plasticbackforth" "fullplasticforthright" "fullplasticbackforth" "onlyforth")
+population_size=(200 200 200 200 200 200 100)
+offspring_size=(200 200 200 200 200 200 100)
 num_generations="100"
 
 
-fitness_measure=("forthright_dominated" "forthright_dominated")
-#fitness_measure=("backforth_dominated" "backforth_dominated" "forthright_dominated" "forthright_dominated")
-seasons_conditions=("1.0_1.0_0_0_0#1.0_1.0_0_0_1" "1.0_1.0_0_0_0#1.0_1.0_0_0_1")
-#seasons_conditions=("1.0_1.0_0_0_0#1.0_1.0_0_0_1" "1.0_1.0_0_0_0#1.0_1.0_0_0_1" "1.0_1.0_0_0_0#1.0_1.0_0_0_1" "1.0_1.0_0_0_0#1.0_1.0_0_0_1")
-#plastic_body=(0 0 0 0)
-plastic_body=(0 0)
-#plastic_brain=(0 1 0 1)
-plastic_brain=(0 1)
+fitness_measure=("forthright_dominated" "forthright_dominated" "backforth_dominated" "backforth_dominated" "forthright_dominated" "backforth_dominated" "speed_y" )
+seasons_conditions=("1.0_1.0_0_0_0#1.0_1.0_0_0_1" "1.0_1.0_0_0_0#1.0_1.0_0_0_1" "1.0_1.0_0_0_0#1.0_1.0_0_0_1" "1.0_1.0_0_0_0#1.0_1.0_0_0_1"  "1.0_1.0_0_0_0#1.0_1.0_0_0_1" "1.0_1.0_0_0_0#1.0_1.0_0_0_1" "1.0_1.0_0_0_0")
+plastic_body=(0 0 0 0 1 1 0)
+plastic_brain=(0 1 0 1 1 1 0)
 
 simulation_time=30
 runs=20
@@ -130,10 +126,10 @@ while true
         idx=$( echo ${experiments[@]/${exp}//} | cut -d/ -f1 | wc -w | tr -d ' ' )
 
         # nice -n19 python3  experiments/${study}/optimize.py
-      screen -d -m -S screen_${free_screens[$p]}_${to_d} -L -Logfile /storage/karine/${study}/${exp}_${run}".log" python3  experiments/${study}/optimize.py \
+        screen -d -m -S screen_${free_screens[$p]}_${to_d} -L -Logfile /storage/karine/${study}/${exp}_${run}".log" python3  experiments/${study}/optimize.py \
                --experiment_name ${exp}  --study=${study}  --seasons_conditions ${seasons_conditions[$idx]} --run ${run} --fitness_measure ${fitness_measure[$idx]} \
                --plastic_body ${plastic_body[$idx]} --plastic_brain ${plastic_brain[$idx]} --num_generations ${num_generations} \
-               --offspring_size ${offspring_size} --population_size ${population_size} --simulation_time ${simulation_time};
+               --offspring_size ${offspring_size[$idx]} --population_size ${population_size[$idx]} --simulation_time ${simulation_time};
 
         printf "\n >> (re)starting screen_${free_screens[$p]}_${to_d} \n\n"
         p=$((${p}+1))

@@ -10,6 +10,7 @@ outputs_path="/storage/karine"
 # delimiter is space, example:
 #experiments=("exp1" "epx2")
 # exps order is the same for all params
+# exps names should not be fully contained in each other
 
 experiments=("defaultexperiment")
 seasons_conditions=("1.0_1.0_0_0_0")

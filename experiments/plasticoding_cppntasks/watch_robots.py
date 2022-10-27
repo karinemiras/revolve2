@@ -29,7 +29,7 @@ class Simulator:
     async def simulate(self) -> None:
 
         self.study = 'plasticoding_cppntasks'
-        self.experiments_name = ["nonplasticforthright"]
+        self.experiments_name = ["fullplasticbackforth"]
         self.runs = [1]#list(range(1, 10+1))
         self.generations = [100]
         self.bests = 1
@@ -93,11 +93,12 @@ class Simulator:
                 # if seasonal setup, criteria is seasonal pareto
                 if len(rows) > 1:
                     query = query.order_by(
-                       #                    DbEAOptimizerGeneration.backforth_dominated.desc(),
-                        DbEAOptimizerGeneration.forthright_dominated.desc(),
+                                           DbEAOptimizerGeneration.backforth_dominated.desc(),
+                      #  DbEAOptimizerGeneration.forthright_dominated.desc(),
                                            DbEAOptimizerGeneration.individual_id.asc(),
                                            DbEAOptimizerGeneration.env_conditions_id.asc())
                 else:
+                    print('cu')
                     query = query.order_by(DbFloat.speed_y.desc())
 
                 rows = ((await session.execute(query)).all())

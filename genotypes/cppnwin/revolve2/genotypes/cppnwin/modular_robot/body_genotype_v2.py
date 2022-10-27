@@ -236,18 +236,30 @@ class Develop:
             self.cppn.Input([x_dest, y_dest])
         else:
 
-            staticfriction, dynamicfriction, yrotationdegrees = \
-                float(self.env_condition[0]), float(self.env_condition[1]), float(self.env_condition[2])
+            staticfriction, dynamicfriction, yrotationdegrees, platform, toxic  = \
+                float(self.env_condition[0]), \
+                float(self.env_condition[1]), \
+                float(self.env_condition[2]), \
+                float(self.env_condition[3]), \
+                float(self.env_condition[4])
 
             # TODO: make conditions-checking dynamic
-            # if inclined
-            if yrotationdegrees > 0:
-                inclined = -1
-            else:
-                inclined = 1
 
+            # if inclined
+            # if yrotationdegrees > 0:
+            #     inclined = -1
+            # else:
+            #     inclined = 1
+
+            # obsolete name: toxic here means just a change in task
+            if toxic > 0:
+                toxicenv = 1
+            else:
+                toxicenv = -1
+            print('toxic', toxicenv)
             self.cppn.Input(
-                [x_dest, y_dest, inclined]
+                #[x_dest, y_dest, inclined]
+                [x_dest, y_dest, toxicenv]
                 #   [1.0, x_dest, y_dest, inclined]  # 1.0 is the bias input
             )
 

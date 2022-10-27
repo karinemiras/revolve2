@@ -80,6 +80,7 @@ class BrainCpgNetworkNeighbourV1(ModularRobotBrainCpgNetworkNeighbour):
             # else:
             #     inclined = 1
 
+            # obsolete name: toxic here means just a change in task
             if toxic > 0:
                 toxicenv = 1
             else:
