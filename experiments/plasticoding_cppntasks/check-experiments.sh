@@ -5,7 +5,6 @@
 study="plasticoding_cppntasks"
 # arrays delimiter is space
 experiments=("nonplasticforthright" "plasticforthright" "nonplasticbackforth" "plasticbackforth" "fullplasticforthright" "fullplasticbackforth" "onlyforth")
-experiments=( "onlyforth")
 
 runs=20
 mainpath="karine"

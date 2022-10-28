@@ -256,7 +256,7 @@ class Develop:
                 toxicenv = 1
             else:
                 toxicenv = -1
-            print('toxic', toxicenv)
+
             self.cppn.Input(
                 #[x_dest, y_dest, inclined]
                 [x_dest, y_dest, toxicenv]

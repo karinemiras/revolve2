@@ -29,6 +29,7 @@ class Simulator:
     async def simulate(self) -> None:
 
         self.study = 'plasticoding_cppntasks'
+        # REMEMBER to also change order by down there!!!!
         self.experiments_name = ["fullplasticbackforth"]
         self.runs = [1]#list(range(1, 10+1))
         self.generations = [100]
@@ -94,7 +95,7 @@ class Simulator:
                 if len(rows) > 1:
                     query = query.order_by(
                                            DbEAOptimizerGeneration.backforth_dominated.desc(),
-                      #  DbEAOptimizerGeneration.forthright_dominated.desc(),
+                       # DbEAOptimizerGeneration.forthright_dominated.desc(),
                                            DbEAOptimizerGeneration.individual_id.asc(),
                                            DbEAOptimizerGeneration.env_conditions_id.asc())
                 else:
