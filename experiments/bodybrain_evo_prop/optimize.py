@@ -10,11 +10,12 @@ from optimizer import Optimizer
 from revolve2.core.database import open_async_database_sqlite
 from revolve2.core.optimization import ProcessIdGen
 from revolve2.core.config import Config
-
+import pprint
 
 async def main() -> None:
     args = Config()._get_params()
-    mainpath = args.mainpath
+
+    mainpath = "/storage/karine"
 
     logging.basicConfig(
         level=logging.INFO,
@@ -29,10 +30,12 @@ async def main() -> None:
     for seasonal_condition in seasonal_conditions:
         params = seasonal_condition.split('_')
         seasonal_conditions_parsed.append([params[0], params[1], params[2], params[3], params[4]])
-
+    print(seasonal_conditions_parsed)
     # random number generator
     rng = Random()
-    rng.seed(random())
+    #rng.seed(random())
+    #TEMP!
+    rng.seed(10)
 
     # database
     database = open_async_database_sqlite(f'{mainpath}/{args.study_name}/{args.experiment_name}/run_{args.run}')

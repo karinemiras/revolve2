@@ -29,7 +29,7 @@ class Simulator:
         :param control_frequency: Control frequency for the simulator.
         """
         batch = Batch(
-            simulation_time=30,
+            simulation_time=1,
             sampling_frequency=0.0001,
             control_frequency=control_frequency,
             control=self._control,
@@ -55,13 +55,14 @@ class Simulator:
         )
         batch.environments.append(env)
 
-        runner = LocalRunner()
+        runner = LocalRunner(headless=True)
         await runner.run_batch(batch)
 
     def _control(
         self, env: int, dt: float, control: ActorControl
     ) -> None:
         self._controller.step(dt)
+        print(self._controller.get_dof_targets())
         control.set_dof_targets(env, 0, self._controller.get_dof_targets())
 
 
@@ -76,14 +77,14 @@ async def main() -> None:
     body.core.left._id = 2
     body.core.left.attachment = ActiveHinge(math.pi / 2.0)
     body.core.left.attachment._id = 3
-    body.core.left.attachment.attachment = Brick(0.0)
-    body.core.left.attachment.attachment._id = 4
-    body.core.right = ActiveHinge(math.pi / 2.0)
-    body.core.right._id = 5
-    body.core.right.attachment = ActiveHinge(math.pi / 2.0)
-    body.core.right.attachment._id = 6
-    body.core.right.attachment.attachment = Brick(0.0)
-    body.core.right.attachment.attachment._id = 7
+    # body.core.left.attachment.attachment = Brick(0.0)
+    # body.core.left.attachment.attachment._id = 4
+    # body.core.right = ActiveHinge(math.pi / 2.0)
+    # body.core.right._id = 5
+    # body.core.right.attachment = ActiveHinge(math.pi / 2.0)
+    # body.core.right.attachment._id = 6
+    # body.core.right.attachment.attachment = Brick(0.0)
+    # body.core.right.attachment.attachment._id = 7
     body.finalize()
 
     brain = BrainCpgNetworkNeighbourRandom(rng)

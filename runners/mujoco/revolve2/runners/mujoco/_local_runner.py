@@ -42,7 +42,7 @@ class LocalRunner(Runner):
 
     _headless: bool
 
-    def __init__(self, headless: bool = True):
+    def __init__(self, headless: bool = False):
         """
         Initialize this object.
 
@@ -123,8 +123,8 @@ class LocalRunner(Runner):
                 # step simulation
                 mujoco.mj_step(model, data)
 
-                # if not self._headless:
-                #     viewer.render()
+                if not self._headless:
+                    viewer.render()
 
             if not self._headless:
                 viewer.close()

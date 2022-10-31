@@ -97,16 +97,16 @@ class Measure:
             displacement_x = float((end_state.position[0]-begin_state.position[0]))
 
             # if there is a platform, truncates displacement
-            if int(self._env_conditions[3]) == 1:
-                if displacement_y > 1:
-                    displacement_y = 1
-                if displacement_y < -1:
-                    displacement_y = -1
-
-                if displacement_x > 1:
-                    displacement_x = 1
-                if displacement_x < -1:
-                    displacement_x = -1
+            # if int(self._env_conditions[3]) == 1:
+            #     if displacement_y > 1:
+            #         displacement_y = 1
+            #     if displacement_y < -1:
+            #         displacement_y = -1
+            #
+            #     if displacement_x > 1:
+            #         displacement_x = 1
+            #     if displacement_x < -1:
+            #         displacement_x = -1
 
             self._measures['speed_y'] = float((displacement_y/self._simulation_time)*100)
             self._measures['speed_x'] = float((displacement_x/self._simulation_time)*100)
