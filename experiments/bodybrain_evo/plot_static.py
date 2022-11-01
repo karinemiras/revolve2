@@ -66,8 +66,8 @@ measures = {
 
 
 def plots():
-    if not os.path.exists(f'{self.path}/analysis/{comparison}'):
-        os.makedirs(f'{self.path}/analysis/{comparison}')
+    if not os.path.exists(f'{path}/analysis/{comparison}'):
+        os.makedirs(f'{path}/analysis/{comparison}')
 
     df_inner = pandas.read_csv(f'{path}/analysis/df_inner.csv')
     df_outer = pandas.read_csv(f'{path}/analysis/df_outer.csv')

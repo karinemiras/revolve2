@@ -1,4 +1,4 @@
-#!/bin/bash
+    #!/bin/bash
 
 
 ### PARAMS INI ###
@@ -12,6 +12,7 @@ outputs_path="/storage/karine"
 # exps order is the same for all params
 # exps names should not be fully contained in each other
 
+study="default_study"
 experiments=("defaultexperiment")
 seasons_conditions=("1.0_1.0_0_0_0")
 
@@ -26,6 +27,10 @@ population_size="11"
 # use offspring_size=100 for interesting results, and offspring_size=11 for quick test
 offspring_size="11"
 
+# use delay_setup_script=1800 for interesting (longer) experiments
+delay_setup_script=60
+
+# recommended not more than two in the rippers
 num_terminals=2
 
 # gens for boxplots and snapshots (by default the last gen)

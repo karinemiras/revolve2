@@ -47,7 +47,7 @@ async def main(parser) -> None:
                         env_conditions = {}
                         for c_row in rows:
                             env_conditions[c_row[0].id] = literal_eval(c_row[0].conditions)
-                            os.makedirs(f'{path}/gen_{gen}/{"_".join(literal_eval(c_row[0].conditions))}')
+                            os.makedirs(f'{path}/gen_{gen}/env{c_row[0].id}')
 
                         rows = (
                             (await session.execute(select(DbEAOptimizer))).all()
@@ -84,9 +84,10 @@ async def main(parser) -> None:
                                                 env_conditions[r.DbEAOptimizerGeneration.env_conditions_id],
                                                                    len(env_conditions), plastic_body, plastic_brain)
                             render = Render()
-                            img_path = f'{path_gen}/{"_".join(env_conditions[r.DbEAOptimizerGeneration.env_conditions_id])}/' \
+                            img_path = f'{path_gen}/env{r.DbEAOptimizerGeneration.env_conditions_id}/' \
                                        f'{idx}_{r.DbEAOptimizerIndividual.individual_id}.png'
                             render.render_robot(phenotype.body.core, img_path)
+
 
 if __name__ == "__main__":
     import asyncio

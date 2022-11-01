@@ -131,6 +131,14 @@ class Config():
         )
 
         parser.add_argument(
+            "--simulator",
+            required=False,
+            default="isaac",
+            type=str,
+            help="isaac or mujoco",
+        )
+
+        parser.add_argument(
             "--mainpath",
             required=False,
             default="/home",

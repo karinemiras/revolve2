@@ -29,7 +29,7 @@ class Simulator:
         :param control_frequency: Control frequency for the simulator.
         """
         batch = Batch(
-            simulation_time=1,
+            simulation_time=30,
             sampling_frequency=0.0001,
             control_frequency=control_frequency,
             control=self._control,
@@ -62,7 +62,6 @@ class Simulator:
         self, env: int, dt: float, control: ActorControl
     ) -> None:
         self._controller.step(dt)
-        print(self._controller.get_dof_targets())
         control.set_dof_targets(env, 0, self._controller.get_dof_targets())
 
 

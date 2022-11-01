@@ -71,7 +71,7 @@ async def main(parser) -> None:
                 vertical = cv2.vconcat(horizontal)
                 #vertical[np.where((vertical == [0, 0, 0]).all(axis=2))] = [255, 255, 255]
 
-                cv2.imwrite(f'{path_out}/bests_{experiment_name}_{env}_{gen}.png', vertical)
+                cv2.imwrite(f'{path_out}/bests_{experiment_name}_{env}_gen{gen}.png', vertical)
 
 
 if __name__ == "__main__":

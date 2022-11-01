@@ -4,7 +4,7 @@
 
 
 DIR="$(dirname "${BASH_SOURCE[0]}")"
-study="$(basename $DIR)"
+study_path="$(basename $DIR)"
 
 if [ $# -eq 0 ]
   then
@@ -114,8 +114,8 @@ while true
         idx=$( echo ${experiments[@]/${exp}//} | cut -d/ -f1 | wc -w | tr -d ' ' )
 
         # nice -n19 python3  experiments/${study}/optimize.py
-        screen -d -m -S screen_${free_screens[$p]}_${to_d} -L -Logfile /storage/karine/${study}/${exp}_${run}".log" \
-               python3  experiments/${study}/optimize.py --mainpath ${outputs_path} \
+        screen -d -m -S screen_${free_screens[$p]}_${to_d} -L -Logfile ${outputs_path}/${study}/${exp}_${run}".log" \
+               python3  experiments/${study_path}/optimize.py --mainpath ${outputs_path} \
                --experiment_name ${exp} --seasons_conditions ${seasons_conditions[$idx]} --run ${run} --study=${study} \
                --num_generations ${num_generations} --population_size ${population_size} --offspring_size ${offspring_size};
 
@@ -140,8 +140,8 @@ while true
       fi
     fi
 
-
-    sleep 1800;
+    # use this longer period for longer experiments
+    sleep $delay_setup_script;
 
 done
 

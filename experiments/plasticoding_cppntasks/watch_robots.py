@@ -30,8 +30,8 @@ class Simulator:
 
         self.study = 'plasticoding_cppntasks'
         # REMEMBER to also change order by down there!!!!
-        self.experiments_name = ["fullplasticbackforth"]
-        self.runs = [1]#list(range(1, 10+1))
+        self.experiments_name = ["onlyforth"]
+        self.runs = [19]#list(range(1, 10+1))
         self.generations = [100]
         self.bests = 1
         # 'all' selects best from all individuals
@@ -99,7 +99,6 @@ class Simulator:
                                            DbEAOptimizerGeneration.individual_id.asc(),
                                            DbEAOptimizerGeneration.env_conditions_id.asc())
                 else:
-                    print('cu')
                     query = query.order_by(DbFloat.speed_y.desc())
 
                 rows = ((await session.execute(query)).all())

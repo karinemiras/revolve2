@@ -55,6 +55,7 @@ async def main() -> None:
         process_id_gen=process_id_gen,
         run_simulation=args.run_simulation,
         num_generations=args.num_generations,
+        simulator=args.simulator
     )
 
     if maybe_optimizer is not None:
@@ -89,7 +90,8 @@ async def main() -> None:
             run_simulation=args.run_simulation,
             env_conditions=seasonal_conditions_parsed,
             plastic_body=args.plastic_body,
-            plastic_brain=args.plastic_brain
+            plastic_brain=args.plastic_brain,
+            simulator=args.simulator,
         )
     
     logging.info("Starting optimization process..")

@@ -33,7 +33,10 @@ from revolve2.core.physics.running import (
     PosedActor,
     Runner,
 )
-from revolve2.runners.isaacgym import LocalRunner
+from revolve2.runners.mujoco import LocalRunner as LocalRunnerM
+
+# isaac import will probably break on mac, so u can comment it out
+from revolve2.runners.isaacgym import LocalRunner as LocalRunnerI
 
 
 class Optimizer(EAOptimizer[Genotype, float]):
@@ -62,8 +65,9 @@ class Optimizer(EAOptimizer[Genotype, float]):
     _substrate_radius: str
     _run_simulation: bool
     _env_conditions: List
-    _plastic_body = int
-    _plastic_brain = int
+    _plastic_body: int
+    _plastic_brain: int
+    _simulator: str
 
     async def ainit_new(  # type: ignore # TODO for now ignoring mypy complaint about LSP problem, override parent's ainit
         self,
@@ -89,7 +93,8 @@ class Optimizer(EAOptimizer[Genotype, float]):
         run_simulation: bool,
         env_conditions: List,
         plastic_body: int,
-        plastic_brain: int
+        plastic_brain: int,
+        simulator: str
     ) -> None:
         await super().ainit_new(
             database=database,
@@ -117,6 +122,7 @@ class Optimizer(EAOptimizer[Genotype, float]):
 
         self._process_id = process_id
         self._env_conditions = env_conditions
+        self._simulator = simulator
         self._init_runner()
         self._innov_db_body = innov_db_body
         self._innov_db_brain = innov_db_brain
@@ -153,7 +159,8 @@ class Optimizer(EAOptimizer[Genotype, float]):
         innov_db_body: multineat.InnovationDatabase,
         innov_db_brain: multineat.InnovationDatabase,
         run_simulation: int,
-        num_generations: int
+        num_generations: int,
+        simulator: str
     ) -> bool:
         if not await super().ainit_from_database(
             database=database,
@@ -170,6 +177,7 @@ class Optimizer(EAOptimizer[Genotype, float]):
             return False
 
         self._process_id = process_id
+        self._simulator = simulator
         self._init_runner()
 
         opt_row = (
@@ -203,12 +211,19 @@ class Optimizer(EAOptimizer[Genotype, float]):
         self._innov_db_brain.Deserialize(opt_row.innov_db_brain)
         self._run_simulation = run_simulation
 
+
         return True
 
     def _init_runner(self) -> None:
         self._runner = {}
+
         for env in self.env_conditions:
-            self._runner[env] = (LocalRunner(LocalRunner.SimParams(), headless=True, env_conditions=self.env_conditions[env]))
+            if self._simulator == 'isaac':
+                self._runner[env] = (LocalRunnerI(LocalRunnerI.SimParams(),
+                                                  headless=True,
+                                                  env_conditions=self.env_conditions[env]))
+            elif self._simulator == 'mujoco':
+                self._runner[env] = (LocalRunnerM(headless=True))
 
     def _select_parents(
         self,
@@ -282,11 +297,16 @@ class Optimizer(EAOptimizer[Genotype, float]):
 
         for cond in self.env_conditions:
 
+            if self._simulator == 'isaac':
+                control_function = self._control_isaac
+            elif self._simulator == 'mujoco':
+                control_function = self._control_mujoco
+                
             batch = Batch(
                 simulation_time=self._simulation_time,
                 sampling_frequency=self._sampling_frequency,
                 control_frequency=self._control_frequency,
-                control=self._control,
+                control=control_function,
             )
 
             self._controllers = []
@@ -380,10 +400,17 @@ class Optimizer(EAOptimizer[Genotype, float]):
 
         return envs_measures_genotypes
 
-    def _control(self, dt: float, control: ActorControl) -> None:
+    def _control_isaac(self, dt: float, control: ActorControl) -> None:
         for control_i, controller in enumerate(self._controllers):
             controller.step(dt)
             control.set_dof_targets(control_i, 0, controller.get_dof_targets())
+            
+    def _control_mujoco(
+            self, environment_index: int, dt: float, control: ActorControl
+    ) -> None:
+        controller = self._controllers[environment_index]
+        controller.step(dt)
+        control.set_dof_targets(environment_index, 0, controller.get_dof_targets())
             
     def _on_generation_checkpoint(self, session: AsyncSession) -> None:
         session.add(

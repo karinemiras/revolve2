@@ -89,6 +89,7 @@ class Measure:
 
         # TODO: check if outlier from pop avg
         if displacement >= 10:
+            print('suspicious displacement gets minus inf')
             self._measures['speed_y'] = -math.inf
             self._measures['speed_x'] = -math.inf
         else:
