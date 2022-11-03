@@ -18,15 +18,27 @@ study="plasticoding_cppntasks"
 #python experiments/${study}/bests_snap_2d.py $study $experiments $runs $generations $mainpath;
 #python experiments/${study}/consolidate.py $study $experiments $runs $final_gen $mainpath;
 
-experiments="nonplasticforthright,plasticforthright,fullplasticforthright"
+experiments="fullplasticforthright,nonplasticforthright,plasticforthright"
 comparison='forthright'
 python experiments/${study}/plot_seasonal.py $study $experiments $runs $generations $comparison $mainpath;
 #python experiments/${study}/plot_trajectory.py $study $experiments $runs $final_gen $comparison $mainpath;
 
-experiments="nonplasticbackforth,plasticbackforth,fullplasticbackforth"
+experiments="fullplasticbackforth,nonplasticbackforth,plasticbackforth"
 comparison='backforth'
 python experiments/${study}/plot_seasonal.py $study $experiments $runs $generations $comparison $mainpath;
 #python experiments/${study}/plot_trajectory.py $study $experiments $runs $final_gen $comparison $mainpath;
+
+experiments="fullplasticforthright,fullplasticbackforth"
+comparison='fullplastic'
+python experiments/${study}/plot_seasonal.py $study $experiments $runs $generations $comparison $mainpath;
+
+experiments="nonplasticbackforth,nonplasticbackforth"
+comparison='nonplastic'
+python experiments/${study}/plot_seasonal.py $study $experiments $runs $generations $comparison $mainpath;
+
+experiments="plasticforthright,plasticforthright"
+comparison='plastic'
+python experiments/${study}/plot_seasonal.py $study $experiments $runs $generations $comparison $mainpath;
 
 # METADATA:
 

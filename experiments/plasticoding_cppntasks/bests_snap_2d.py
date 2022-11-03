@@ -12,11 +12,11 @@ async def main(parser) -> None:
 
     study = args.study
     experiments_name = args.experiments.split(',')
-    runs = list(range(1, int(args.runs)+1))
+    runs = [1,2,3,4,5]#list(range(1, int(args.runs)+1))
     generations = list(map(int, args.generations.split(',')))
     mainpath = args.mainpath
 
-    bests = 5
+    bests = 1
     path_out = f'/storage/{mainpath}/{study}/analysis/snapshots'
 
     for gen in generations:

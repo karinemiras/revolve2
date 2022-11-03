@@ -143,7 +143,8 @@ def plot_boxes(df_inner):
             plot = sb.boxplot(x='experiment', y=f'{measure}_{inner_metrics[0]}', data=df_inner2,
                               palette=clrs, width=0.4, showmeans=True, linewidth=2, fliersize=6,
                               meanprops={"marker": "o", "markerfacecolor": "yellow", "markersize": "12"})
-
+            plot.tick_params(axis='x', labelrotation=10)
+            
             try:
                 if len(tests_combinations) > 0:
                     add_stat_annotation(plot, data=df_inner2, x='experiment', y=f'{measure}_{inner_metrics[0]}',

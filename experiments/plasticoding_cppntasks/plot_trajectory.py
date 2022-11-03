@@ -27,7 +27,7 @@ args = parser.parse_args()
 
 study = args.study
 experiments_name = args.experiments.split(',')
-runs = [1,2,3,5,6,7,8] #list(range(1, int(args.runs) + 1))
+runs = list(range(1, int(args.runs) + 1))
 final_gen = int(args.final_gen)
 comparison = args.comparison
 mainpath = args.mainpath
@@ -36,25 +36,25 @@ env_conditions = 2
 
 experiments = experiments_name
 # non plasticc and plastic
-clrs = [['#222222', '#222222'], ['#ff0000','#0000ff']]
+clrs = ['#404040', '#00CCCC']
 
 pandas.set_option('display.max_rows', None)
 
 
 async def main() -> None:
 
-    font = {'font.size': 20}
-    plt.rcParams.update(font)
-    fig, ax = plt.subplots()
-    plt.xlabel('')
-    plt.ylabel(f'')
-
-    ax.set_ylim(-1.5, 1.5)
-    ax.set_xlim(-1.5, 1.5)
-    ax.invert_yaxis()
-
     for idexp, exp in enumerate(experiments):
-        print(idexp, exp)
+        print(exp)
+
+        font = {'font.size': 20}
+        plt.rcParams.update(font)
+        fig, ax = plt.subplots()
+        plt.xlabel('')
+        plt.ylabel('')
+
+        ax.set_ylim(-0.9, 2.2)
+        ax.set_xlim(-2, 2.2)
+        ax.invert_yaxis()
 
         for run in runs:
             db = open_async_database_sqlite(f'/storage/{mainpath}/{study}/{exp}/run_{run}')
@@ -67,9 +67,14 @@ async def main() -> None:
                             & (DbEAOptimizerGeneration.generation_index == final_gen)
                             )
 
-                query = query.order_by(
-                    DbEAOptimizerGeneration.forthright_dominated.desc(),
-                    DbEAOptimizerGeneration.individual_id.asc())
+                if exp in ['nonplasticforthright', 'plasticforthright', 'fullplasticforthright']:
+                    query = query.order_by(
+                        DbEAOptimizerGeneration.forthright_dominated.desc(),
+                        DbEAOptimizerGeneration.individual_id.asc())
+                if exp in ['nonplasticbackforth', 'plasticbackforth', 'fullplasticbackforth']:
+                    query = query.order_by(
+                        DbEAOptimizerGeneration.backforth_dominated.desc(),
+                        DbEAOptimizerGeneration.individual_id.asc())
 
                 rows = ((await session.execute(query)).all())
 
@@ -82,17 +87,19 @@ async def main() -> None:
                     states = literal_eval(c_row.DbStates.serialized_states)
 
                     for s in states:
-                        positions.append([exp, run, individual_id, cond, s, states[s]['position'][0], states[s]['position'][1]])
-                    positions = pandas.DataFrame(positions, columns=['exp', 'run', 'individual_id', 'cond', 'step', 'x', 'y'])
+                        positions.append([exp, run, individual_id, cond, s,
+                                          states[s]['position'][0], states[s]['position'][1]])
+                    positions = pandas.DataFrame(positions,
+                                                 columns=['exp', 'run', 'individual_id', 'cond', 'step', 'x', 'y'])
 
-                    pprint.pprint(positions)
+                   # pprint.pprint(positions)
 
                     # x and y are intentionally inverted, because of isaacs visuals
-                    ax.plot(positions['y'], positions['x'], alpha=0.7,  label=f'...', c=clrs[idexp][cond-1])
+                    ax.plot(positions['y'], positions['x'], alpha=0.7,  label=f'...', c=clrs[cond-1])
 
-    plt.savefig(f'/storage/{mainpath}/{study}/analysis/traj_{comparison}.png')
-    plt.clf()
-    plt.close(fig)
+        plt.savefig(f'/storage/{mainpath}/{study}/analysis/traj_{exp}.png')
+        plt.clf()
+        plt.close(fig)
 
 if __name__ == "__main__":
     asyncio.run(main())

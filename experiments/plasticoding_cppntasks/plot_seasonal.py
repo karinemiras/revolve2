@@ -8,6 +8,7 @@ import pprint
 import sys
 import os
 import asyncio
+import math
 from revolve2.core.database import open_async_database_sqlite
 from sqlalchemy.future import select
 from revolve2.core.optimization.ea.generic_ea import DbEnvconditions
@@ -34,44 +35,55 @@ inner_metrics = ['median', 'max']
 include_max = False
 merge_lines = True
 gens_boxes = generations
-clrs = ['#009900',
-        '#EE8610',
-        '#7550ff',
-        '#876044']
 path = f'/storage/{mainpath}/{study}'
 
-measures = {
-    'pop_diversity': ['Diversity', 0, 1],
-    'pool_diversity': ['Pool Diversity', 0, 1],
-    'dominated_quality_youth': ['Dominated individuals', 0, 1],
-    'fullydominated_quality_youth': ['Fully dominated individuals', 0, 1],
-    'seasonal_dominated': ['Seasonal Dominated', 0, 1],
-    'age': ['Age', 0, 1],
-    'speed_y': ['Speed (cm/s)', 0, 1],
-    'speed_x': ['Speed (cm/s)', 0, 1],
-    'relative_speed_y': ['Relative speed (cm/s)', 0, 1],
-    'displacement': ['Total displacement (m)', 0, 1],
-    'average_z': ['Z', 0, 1],
-    'head_balance': ['Balance', 0, 1],
-    'modules_count': ['Modules count', 0, 1],
-    'hinge_count': ['Hinge count', 0, 1],
-    'brick_count': ['Brick count', 0, 1],
-    'hinge_prop': ['Hinge prop', 0, 1],
-    'hinge_ratio': ['Hinge ratio', 0, 1],
-    'brick_prop': ['Brick prop', 0, 1],
-    'branching_count': ['Branching count', 0, 1],
-    'branching_prop': ['Branching prop', 0, 1],
-    'extremities': ['Extremities', 0, 1],
-    'extensiveness': ['Extensiveness', 0, 1],
-    'extremities_prop': ['Extremities prop', 0, 1],
-    'extensiveness_prop': ['Extensiveness prop', 0, 1],
-    'width': ['Width', 0, 1],
-    'height': ['Height', 0, 1],
-    'coverage': ['Coverage', 0, 1],
-    'proportion': ['Proportion', 0, 1],
-    'symmetry': ['Symmetry', 0, 1],
-    'body_changes': ['Body Changes', 0, 1]
-}
+if comparison in ['forthright', 'backforth']:
+    clrs = ['#009900',
+            '#EE8610',
+            '#7550ff']
+
+    measures = {
+        'pop_diversity': ['Diversity', 0, 1],
+         'backforth_dominated': ['BF Dominated individuals', 0, 1],
+         'forthright_dominated': ['FR Dominated individuals', 0, 1],
+         'speed_y': ['Speed (cm/s)', -3.5, 3.5],
+        'speed_x': ['Speed (cm/s)', -3.5, 3.5],
+         'head_balance': ['Balance', 0.7, 1],
+         'extensiveness_prop': ['Extensiveness prop', 0.4, 0.8]
+    }
+
+else:
+    clrs = ['#0066CC',
+            '#663300']
+
+    measures = {
+        'pop_diversity': ['Diversity', 0, 1],
+        'backforth_dominated': ['BF Dominated individuals', 0, 1],
+        'forthright_dominated': ['FR Dominated individuals', 0, 1],
+        'speed_y': ['Speed (cm/s)', -3.5, 3.5],
+        'speed_x': ['Speed (cm/s)', -3.5, 3.5],
+        'relative_speed_y': ['Relative speed (cm/s)', 0, 1],
+        'displacement': ['Total displacement (m)', 0, 1],
+        'average_z': ['Z', 0, 1],
+         'head_balance': ['Balance', 0.7, 1],
+        'modules_count': ['Modules count', 0, 1],
+        'hinge_count': ['Hinge count', 0, 1],
+        'brick_count': ['Brick count', 0, 1],
+        'hinge_prop': ['Hinge prop', 0, 1],
+        'hinge_ratio': ['Hinge ratio', 0, 1],
+        'brick_prop': ['Brick prop', 0, 1],
+        'branching_count': ['Branching count', 0, 1],
+        'branching_prop': ['Branching prop', 0, 1],
+        'extremities': ['Extremities', 0, 1],
+        'extensiveness': ['Extensiveness', 0, 1],
+        'extremities_prop': ['Extremities prop', 0, 1],
+         'extensiveness_prop': ['Extensiveness prop', 0.4, 0.8],
+        'width': ['Width', 0, 1],
+        'height': ['Height', 0, 1],
+        'coverage': ['Coverage', 0, 1],
+        'proportion': ['Proportion', 0, 1],
+        'symmetry': ['Symmetry', 0, 1],
+    }
 
 env_conditions = {}
 
@@ -135,8 +147,8 @@ def plot_lines(df_outer):
                                     data[f'{measure}_{inner_metrics[1]}_q75'],
                                     alpha=0.3, facecolor=clrs[idx_experiment])
 
-                # if measures[measure][1] != -math.inf and measures[measure][2] != -math.inf:
-                #     ax.set_ylim(measures[measure][1], measures[measure][2])
+                if measures[measure][1] != -math.inf and measures[measure][2] != -math.inf:
+                    ax.set_ylim(measures[measure][1], measures[measure][2])
 
                 ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.1),  fancybox=True, shadow=True, ncol=5, fontsize=10)
                 if not merge_lines:
@@ -165,7 +177,12 @@ def plot_boxes(df_inner):
             file_env = '_'
 
         for gen_boxes in gens_boxes:
-            df_inner2 = df_inner[(df_inner['generation_index'] == gen_boxes) & (df_inner['run'] <= max(runs)) & (df_inner['env_conditions_id'] == env)]
+            df_inner2 = df_inner[(df_inner['generation_index'] == gen_boxes)
+                                 & ( (df_inner['experiment'] == experiments[0]) |
+                                     (df_inner['experiment'] == experiments[1]) |
+                                     (df_inner['experiment'] == experiments[2]) )
+                                 & (df_inner['run'] <= max(runs))
+                                 & (df_inner['env_conditions_id'] == env)]
             #min_max_inner(df_inner)
             plt.clf()
 
@@ -178,6 +195,7 @@ def plot_boxes(df_inner):
                 plot = sb.boxplot(x='experiment', y=f'{measure}_{inner_metrics[0]}', data=df_inner2,
                                   palette=clrs, width=0.4, showmeans=True, linewidth=2, fliersize=6,
                                   meanprops={"marker": "o", "markerfacecolor": "yellow", "markersize": "12"})
+                plot.tick_params(axis='x', labelrotation=10)
 
                 try:
                     if len(tests_combinations) > 0:

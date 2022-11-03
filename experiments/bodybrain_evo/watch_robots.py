@@ -30,21 +30,20 @@ class Simulator:
 
         self.study = 'default_study'
         self.experiments_name = ['defaultexperiment']
-        self.runs = list(range(1, 10+1))
+        self.runs = list(range(1, 1+1))
         self.generations = [100]
         self.bests = 1
-        self.specific_robot = 2
         # 'all' selects best from all individuals
         # 'gens' selects best from chosen generations
         self.bests_type = 'gens'
-        mainpath = "karine"
+        mainpath = "/storage/karine"
 
         for experiment_name in self.experiments_name:
             print('\n', experiment_name)
             for run in self.runs:
                 print('\n run: ', run)
 
-                path = f'/storage/{mainpath}/{self.study}'
+                path = f'{mainpath}/{self.study}'
 
                 db = open_async_database_sqlite(f'{path}/{experiment_name}/run_{run}')
 
@@ -87,11 +86,17 @@ class Simulator:
                     .filter((DbEAOptimizerGeneration.individual_id == DbEAOptimizerIndividual.individual_id)
                             & (DbEAOptimizerGeneration.env_conditions_id == DbEAOptimizerIndividual.env_conditions_id)
                             & (DbFloat.id == DbEAOptimizerIndividual.float_id)
-                            & DbEAOptimizerGeneration.generation_index.in_([gen]))
+                            & DbEAOptimizerGeneration.generation_index.in_([gen])
+                            # IF YOU WANNA SEE A SPECIFIC ROBOT IN THA GEN
+                            #     & (DbEAOptimizerIndividual.individual_id == 4910)
+                            )
 
                 # if seasonal setup, criteria is seasonal pareto
                 if len(rows) > 1:
-                    query = query.order_by(DbEAOptimizerGeneration.seasonal_dominated.desc(),
+                    query = query.order_by(
+                                           # CAN ALSO USE SOME OTHER CRITERIA INSTEAD OF SEASONAL
+                                           DbEAOptimizerGeneration.seasonal_dominated.desc(),
+                        
                                            DbEAOptimizerGeneration.individual_id.asc(),
                                            DbEAOptimizerGeneration.env_conditions_id.asc())
                 else:

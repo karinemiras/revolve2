@@ -223,7 +223,8 @@ class Optimizer(EAOptimizer[Genotype, float]):
                                                   headless=True,
                                                   env_conditions=self.env_conditions[env]))
             elif self._simulator == 'mujoco':
-                self._runner[env] = (LocalRunnerM(headless=True))
+                # DOES NOT WORK FULLY YET! you might get an inertia error
+                self._runner[env] = (LocalRunnerM(headless=False))
 
     def _select_parents(
         self,
