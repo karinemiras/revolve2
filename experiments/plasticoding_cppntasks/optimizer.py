@@ -136,6 +136,8 @@ class Optimizer(EAOptimizer[Genotype, float]):
         self._plastic_brain = plastic_brain
         self._run_simulation = run_simulation
 
+        self.novelty_archive = {1 :[], 2: []}
+
         # create database structure if not exists
         # TODO this works but there is probably a better way
         await (await session.connection()).run_sync(DbBase.metadata.create_all)
@@ -340,6 +342,9 @@ class Optimizer(EAOptimizer[Genotype, float]):
                 measures_genotypes.append(m.measure_all_non_relative())
             envs_measures_genotypes[cond] = measures_genotypes
 
+            # TODO: hardcoded number of arbitrary individuals
+            self.novelty_archive[cond] = self.novelty_archive[cond] + measures_genotypes[:5]
+
             states_genotypes = []
             if states is not None:
                 for idx_genotype in range(0, len(states.environment_results)):
@@ -352,7 +357,7 @@ class Optimizer(EAOptimizer[Genotype, float]):
 
         envs_measures_genotypes = self.measure_plasticity(envs_queried_substrates, envs_measures_genotypes)
 
-        return envs_measures_genotypes, envs_states_genotypes
+        return envs_measures_genotypes, envs_states_genotypes, self.novelty_archive
 
     def measure_plasticity(self, envs_queried_substrates, envs_measures_genotypes):
 

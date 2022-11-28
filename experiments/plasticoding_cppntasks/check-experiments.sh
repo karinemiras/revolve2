@@ -4,9 +4,10 @@
 
 study="plasticoding_cppntasks"
 # arrays delimiter is space
-experiments=("nonplasticforthright" "plasticforthright" "nonplasticbackforth" "plasticbackforth" "fullplasticforthright" "fullplasticbackforth" "onlyforth")
+experiments=("nonplasticforthright" "plasticforthright" "nonplasticbackforth" "plasticbackforth"
+"fullplasticforthright" "fullplasticbackforth" "onlyforth" "novfullplasticforthright" "novnonplasticforthright")
 
-runs=20
+runs=4 #20
 mainpath="karine"
 
 # discover unfinished experiments

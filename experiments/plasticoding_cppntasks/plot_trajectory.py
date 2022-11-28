@@ -97,7 +97,7 @@ async def main() -> None:
                     # x and y are intentionally inverted, because of isaacs visuals
                     ax.plot(positions['y'], positions['x'], alpha=0.7,  label=f'...', c=clrs[cond-1])
 
-        plt.savefig(f'/storage/{mainpath}/{study}/analysis/traj_{exp}.png')
+        plt.savefig(f'/storage/{mainpath}/{study}/analysisspeed/traj_{exp}.png')
         plt.clf()
         plt.close(fig)
 

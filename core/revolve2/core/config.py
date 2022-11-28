@@ -25,7 +25,7 @@ class Config():
         parser.add_argument(
             "--num_generations",
             required=False,
-            default=200,
+            default=100,
             type=int,
         )
 

@@ -21,13 +21,13 @@ class MeasureRelative:
         # they are overwritten, and only the values of survival selection are persisted.
         # persist it in the future?
         relative_measures = ['pop_diversity',
-                             'pool_diversity',
                              'dominated_quality_youth',
                              'fullydominated_quality_youth',
                              'seasonal_dominated',
                              'seasonal_fullydominated',
                              'backforth_dominated',
                              'forthright_dominated',
+                             'seasonal_novelty',
                              'age',
                              'inverse_age']
 
@@ -41,8 +41,6 @@ class MeasureRelative:
 
     def _diversity(self, type='pop'):
 
-        # TODO: when type is pool (for novelty), lacking an archive
-        # TODO: make which_measures a param
         which_measures = ['symmetry',
                           'proportion',
                           'coverage',
@@ -63,24 +61,13 @@ class MeasureRelative:
                 neighbours_measures[-1].append(neighbour_measures[key])
 
         kdt = KDTree(neighbours_measures, leaf_size=30, metric='euclidean')
-
-        if type == 'pop':
-            k = len(self._neighbours_measures)
-        else:
-            # TODO: make it a param
-            k = 10+1
+        k = len(self._neighbours_measures)
 
         # distances from neighbors
         distances, indexes = kdt.query([genotype_measures], k=k)
         diversity = sum(distances[0])/len(distances[0])
 
         self._genotype_measures[f'{type}_diversity'] = diversity
-
-        # if type == 'pool':
-        #     if self._genotype_measures['speed_y'] > 0:
-        #         self._genotype_measures['speed_diversity'] = self._genotype_measures['speed_y'] * diversity
-        #     else:
-        #         self._genotype_measures['speed_diversity'] = self._genotype_measures['speed_y'] / diversity
 
         return self._genotype_measures
 
@@ -127,6 +114,33 @@ class MeasureRelative:
             if better == len(self._genotype_measures):
                 pool_fulldominated_individuals += 1
         return pool_dominated_individuals, pool_fulldominated_individuals
+
+    def _pool_seasonal_novelty(self, novelty_archive):
+        diversity = 0
+        genotype_measures = []
+        genotype_measures.append(max(self._genotype_measures[1]['speed_y'], -1000))
+        genotype_measures.append(max(self._genotype_measures[2]['speed_x'], -1000))
+
+        neighbours_measures = []
+        for i in range(0, len(self._neighbours_measures[1])):
+            neighbours_measures.append([])
+            neighbours_measures[-1].append(max(self._neighbours_measures[1][i]['speed_y'], -1000))
+            neighbours_measures[-1].append(max(self._neighbours_measures[2][i]['speed_x'], -1000))
+
+        for i in range(0, len(novelty_archive[1])):
+                neighbours_measures.append([])
+                neighbours_measures[-1].append(max(novelty_archive[1][i]['speed_y'], -1000))
+                neighbours_measures[-1].append(max(novelty_archive[2][i]['speed_x'], -1000))
+     
+        kdt = KDTree(neighbours_measures, leaf_size=30, metric='euclidean')
+        # TODO: take this as param and if 0 turn novelty off
+        k = 10+1
+
+        # distances from neighbors
+        distances, indexes = kdt.query([genotype_measures], k=k)
+        diversity = sum(distances[0])/len(distances[0])
+
+        return diversity
 
     def _pool_backforth_dominated_individuals(self):
         which_measure = "speed_y"

@@ -29,7 +29,7 @@ class Analysis:
         experiments_name = args.experiments.split(',')
         runs = list(range(1, int(args.runs) + 1))
         mainpath = args.mainpath
-
+        self.analysis = args.analysis
         self.study = study
         self.experiments = experiments_name
         self.inner_metrics = ['median', 'max']
@@ -39,8 +39,7 @@ class Analysis:
         self.path = f'/storage/{mainpath}/{study}'
 
         self.measures = {
-            'pop_diversity': ['Diversity', 0, 1],
-            'pool_diversity': ['Pool Diversity', 0, 1],
+            'pop_diversity': ['Pool Diversity', 0, 1],
             'backforth_dominated': ['BF Dominated individuals', 0, 1],
             'forthright_dominated': ['FR Dominated individuals', 0, 1],
             'age': ['Age', 0, 1],
@@ -70,6 +69,9 @@ class Analysis:
             'body_changes': ['Body Changes', 0, 1]
         }
 
+        if self.analysis == 'analysisnovel':
+            self.measures['seasonal_novelty'] = ['Seasonal Novelty', 0, 1]
+
     def consolidate(self):
         print('consolidating...')
 
@@ -90,6 +92,8 @@ class Analysis:
                         DbFloat
                     ).filter(
                         (DbEAOptimizerGeneration.individual_id == DbEAOptimizerIndividual.individual_id)
+                        & (DbEAOptimizerGeneration.env_conditions_id == DbEAOptimizerIndividual.env_conditions_id)
+                        & (DbEAOptimizerGeneration.ea_optimizer_id == DbEAOptimizerIndividual.ea_optimizer_id)
                         & (DbFloat.id == DbEAOptimizerIndividual.float_id)
                     ),
                     db,
@@ -150,9 +154,9 @@ class Analysis:
         df_outer = pandas.merge(df_outer_median, df_outer_q25, on=keys)
         df_outer = pandas.merge(df_outer, df_outer_q75, on=keys)
 
-        all_df.to_csv(f'{self.path}/analysis/all_df.csv', index=True)
-        df_inner.to_csv(f'{self.path}/analysis/df_inner.csv', index=True)
-        df_outer.to_csv(f'{self.path}/analysis/df_outer.csv', index=True)
+        all_df.to_csv(f'{self.path}/{self.analysis}/all_df.csv', index=True)
+        df_inner.to_csv(f'{self.path}/{self.analysis}/df_inner.csv', index=True)
+        df_outer.to_csv(f'{self.path}/{self.analysis}/df_outer.csv', index=True)
 
         print('consolidated!')
 
@@ -171,6 +175,7 @@ parser.add_argument("experiments")
 parser.add_argument("runs")
 parser.add_argument("final_gen")
 parser.add_argument("mainpath")
+parser.add_argument("analysis")
 args = parser.parse_args()
 
 # TODO: break by environment

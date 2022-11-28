@@ -17,7 +17,7 @@ async def main(parser) -> None:
     mainpath = args.mainpath
 
     bests = 1
-    path_out = f'/storage/{mainpath}/{study}/analysis/snapshots'
+    path_out = f'/storage/{mainpath}/{study}/analysisspeed/snapshots'
 
     for gen in generations:
         # TODO: change black background to white

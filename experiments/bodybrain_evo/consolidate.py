@@ -88,6 +88,8 @@ class Analysis:
                         DbFloat
                     ).filter(
                         (DbEAOptimizerGeneration.individual_id == DbEAOptimizerIndividual.individual_id)
+                        & (DbEAOptimizerGeneration.env_conditions_id == DbEAOptimizerIndividual.env_conditions_id)
+                        & (DbEAOptimizerGeneration.ea_optimizer_id == DbEAOptimizerIndividual.ea_optimizer_id)
                         & (DbFloat.id == DbEAOptimizerIndividual.float_id)
                     ),
                     db,

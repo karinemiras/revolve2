@@ -21,6 +21,7 @@ parser.add_argument("runs")
 parser.add_argument("generations")
 parser.add_argument("comparison")
 parser.add_argument("mainpath")
+parser.add_argument("analysis")
 args = parser.parse_args()
 
 study = args.study
@@ -29,7 +30,7 @@ runs = list(range(1, int(args.runs) + 1))
 generations = list(map(int, args.generations.split(',')))
 comparison = args.comparison
 mainpath = args.mainpath
-
+analysis = args.analysis
 experiments = experiments_name
 inner_metrics = ['median', 'max']
 include_max = False
@@ -43,56 +44,39 @@ if comparison in ['forthright', 'backforth']:
             '#7550ff']
 
     measures = {
-        'pop_diversity': ['Diversity', 0, 1],
+         'pop_diversity': ['Diversity', 0, 1],
          'backforth_dominated': ['BF Dominated individuals', 0, 1],
          'forthright_dominated': ['FR Dominated individuals', 0, 1],
          'speed_y': ['Speed (cm/s)', -3.5, 3.5],
-        'speed_x': ['Speed (cm/s)', -3.5, 3.5],
+         'speed_x': ['Speed (cm/s)', -3.5, 3.5],
          'head_balance': ['Balance', 0.7, 1],
-         'extensiveness_prop': ['Extensiveness prop', 0.4, 0.8]
+         'displacement': ['Displacement', -3.5, 3.5],
+         'modules_count': ['Modules count', 5, 40],
     }
 
 else:
     clrs = ['#0066CC',
-            '#663300']
+            '#663300',
+            '#7855fb'
+            ]
 
     measures = {
-        'pop_diversity': ['Diversity', 0, 1],
-        'backforth_dominated': ['BF Dominated individuals', 0, 1],
-        'forthright_dominated': ['FR Dominated individuals', 0, 1],
-        'speed_y': ['Speed (cm/s)', -3.5, 3.5],
-        'speed_x': ['Speed (cm/s)', -3.5, 3.5],
-        'relative_speed_y': ['Relative speed (cm/s)', 0, 1],
-        'displacement': ['Total displacement (m)', 0, 1],
-        'average_z': ['Z', 0, 1],
-         'head_balance': ['Balance', 0.7, 1],
-        'modules_count': ['Modules count', 0, 1],
-        'hinge_count': ['Hinge count', 0, 1],
-        'brick_count': ['Brick count', 0, 1],
-        'hinge_prop': ['Hinge prop', 0, 1],
-        'hinge_ratio': ['Hinge ratio', 0, 1],
-        'brick_prop': ['Brick prop', 0, 1],
-        'branching_count': ['Branching count', 0, 1],
-        'branching_prop': ['Branching prop', 0, 1],
-        'extremities': ['Extremities', 0, 1],
-        'extensiveness': ['Extensiveness', 0, 1],
-        'extremities_prop': ['Extremities prop', 0, 1],
-         'extensiveness_prop': ['Extensiveness prop', 0.4, 0.8],
-        'width': ['Width', 0, 1],
-        'height': ['Height', 0, 1],
-        'coverage': ['Coverage', 0, 1],
-        'proportion': ['Proportion', 0, 1],
-        'symmetry': ['Symmetry', 0, 1],
+        'modules_count': ['Modules count', 5, 40],
+        'displacement': ['Displacement', -3.5, 3.5]
+
     }
+
+if analysis == 'analysisnovel':
+    measures['seasonal_novelty'] = ['Seasonal Novelty', 0, 1]
 
 env_conditions = {}
 
 
 async def main() -> None:
-    if not os.path.exists(f'{path}/analysis/{comparison}'):
-        os.makedirs(f'{path}/analysis/{comparison}')
+    if not os.path.exists(f'{path}/{analysis}/{comparison}'):
+        os.makedirs(f'{path}/{analysis}/{comparison}')
 
-    db = open_async_database_sqlite(f'/storage/{mainpath}/{study}/{experiments[0]}/run_{runs[0]}')
+    db = open_async_database_sqlite(f'/storage/{mainpath}/{study}/{experiments[-1]}/run_{runs[0]}')
     async with AsyncSession(db) as session:
         rows = ((await session.execute(select(DbEnvconditions).order_by(DbEnvconditions.id))).all())
         for c_row in rows:
@@ -103,8 +87,8 @@ async def main() -> None:
 
 def plots():
 
-    df_inner = pandas.read_csv(f'{path}/analysis/df_inner.csv')
-    df_outer = pandas.read_csv(f'{path}/analysis/df_outer.csv')
+    df_inner = pandas.read_csv(f'{path}/{analysis}/df_inner.csv')
+    df_outer = pandas.read_csv(f'{path}/{analysis}/df_outer.csv')
 
     plot_lines(df_outer)
     plot_boxes(df_inner)
@@ -147,19 +131,19 @@ def plot_lines(df_outer):
                                     data[f'{measure}_{inner_metrics[1]}_q75'],
                                     alpha=0.3, facecolor=clrs[idx_experiment])
 
-                if measures[measure][1] != -math.inf and measures[measure][2] != -math.inf:
-                    ax.set_ylim(measures[measure][1], measures[measure][2])
+                # if measures[measure][1] != -math.inf and measures[measure][2] != -math.inf:
+                #     ax.set_ylim(measures[measure][1], measures[measure][2])
 
                 ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.1),  fancybox=True, shadow=True, ncol=5, fontsize=10)
                 if not merge_lines:
-                    plt.savefig(f'{path}/analysis/{comparison}/line_{experiment}{file_env}{measure}.png', bbox_inches='tight')
+                    plt.savefig(f'{path}/{analysis}/{comparison}/line_{experiment}{file_env}{measure}.png', bbox_inches='tight')
                     plt.clf()
                     plt.close(fig)
                     plt.rcParams.update(font)
                     fig, ax = plt.subplots()
 
             if merge_lines:
-                plt.savefig(f'{path}/analysis/{comparison}/line{file_env}{measure}.png', bbox_inches='tight')
+                plt.savefig(f'{path}/{analysis}/{comparison}/line{file_env}{measure}.png', bbox_inches='tight')
                 plt.clf()
                 plt.close(fig)
 
@@ -177,13 +161,31 @@ def plot_boxes(df_inner):
             file_env = '_'
 
         for gen_boxes in gens_boxes:
-            df_inner2 = df_inner[(df_inner['generation_index'] == gen_boxes)
-                                 & ( (df_inner['experiment'] == experiments[0]) |
-                                     (df_inner['experiment'] == experiments[1]) |
-                                     (df_inner['experiment'] == experiments[2]) )
-                                 & (df_inner['run'] <= max(runs))
-                                 & (df_inner['env_conditions_id'] == env)]
-            #min_max_inner(df_inner)
+
+            if comparison == 'onlyforth1':
+                df_inner2 = df_inner[(df_inner['generation_index'] == gen_boxes)
+                                     & (  ((df_inner['experiment'] == experiments[1]) & (df_inner['env_conditions_id'] == env) ) |
+                                          ((df_inner['experiment'] == experiments[2]) & (df_inner['env_conditions_id'] == env) ) |
+                                          (df_inner['experiment'] == experiments[0])
+                                        )
+                                     & (df_inner['run'] <= max(runs))
+                                     ]
+            elif comparison == 'onlyforth2':
+                df_inner2 = df_inner[(df_inner['generation_index'] == gen_boxes)
+                                     & (  ((df_inner['experiment'] == experiments[1]) & (df_inner['env_conditions_id'] == env) ) |
+                                          (df_inner['experiment'] == experiments[0])
+                                        )
+                                     & (df_inner['run'] <= max(runs))
+                                     ]
+            else:
+                df_inner2 = df_inner[(df_inner['generation_index'] == gen_boxes)
+                                     & ( (df_inner['experiment'] == experiments[0]) |
+                                         (df_inner['experiment'] == experiments[1]) |
+                                         (df_inner['experiment'] == experiments[2])
+                                         )
+                                     & (df_inner['run'] <= max(runs))
+                                     & (df_inner['env_conditions_id'] == env)]
+
             plt.clf()
 
             tests_combinations = [(experiments[i], experiments[j]) \
@@ -207,11 +209,12 @@ def plot_boxes(df_inner):
                 except Exception as error:
                     print(error)
 
-                # if measures[measure][1] != -math.inf and measures[measure][2] != -math.inf:
-                #     plot.set_ylim(measures[measure][1], measures[measure][2])
+               # if measures[measure][1] != -math.inf and measures[measure][2] != -math.inf:
+                #plot.set_ylim(measures[measure][1], measures[measure][2])
+
                 plt.xlabel('')
                 plt.ylabel(f'{measures[measure][0]}')
-                plot.get_figure().savefig(f'{path}/analysis/{comparison}/box{file_env}{measure}_{gen_boxes}.png', bbox_inches='tight')
+                plot.get_figure().savefig(f'{path}/{analysis}/{comparison}/box{file_env}{measure}_{gen_boxes}.png', bbox_inches='tight')
                 plt.clf()
                 plt.close()
 
