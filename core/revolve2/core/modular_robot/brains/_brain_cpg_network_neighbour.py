@@ -17,6 +17,7 @@ from ._make_cpg_network_structure_neighbour import make_cpg_network_structure_ne
 
 
 class BrainCpgNetworkNeighbour(Brain, ABC):
+
     def make_controller(self, body: Body, dof_ids: List[int]) -> ActorController:
         # get active hinges and sort them according to dof_ids
         active_hinges_unsorted = body.find_active_hinges()
@@ -37,6 +38,7 @@ class BrainCpgNetworkNeighbour(Brain, ABC):
         (internal_weights, external_weights) = self._make_weights(
             active_hinges, connections, body
         )
+
         weight_matrix = cpg_network_structure.make_weight_matrix(
             {
                 cpg: weight
@@ -74,3 +76,25 @@ class BrainCpgNetworkNeighbour(Brain, ABC):
                  The second list contains the weights between connected cpgs, corresponding to `connections`
                  The lists should match the order of the input parameters.
         """
+
+    def make_controller_return(self, body: Body, dof_ids: List[int]) -> ActorController:
+        # get active hinges and sort them according to dof_ids
+        active_hinges_unsorted = body.find_active_hinges()
+        active_hinge_map = {
+            active_hinge.id: active_hinge for active_hinge in active_hinges_unsorted
+        }
+        active_hinges = [active_hinge_map[id] for id in dof_ids]
+
+        cpg_network_structure = make_cpg_network_structure_neighbour(active_hinges)
+        connections = [
+            (
+                active_hinges[pair.cpg_index_lowest.index],
+                active_hinges[pair.cpg_index_highest.index],
+            )
+            for pair in cpg_network_structure.connections
+        ]
+
+        (internal_weights, external_weights) = self._make_weights(
+            active_hinges, connections, body
+        )
+        return internal_weights, external_weights

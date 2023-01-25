@@ -16,6 +16,7 @@ mainpath="karine"
 analysis="analysisspeed"
 study="plasticoding_cppntasks"
 
+
 python experiments/${study}/snapshots_bests.py $study $experiments $runs $generations $mainpath;
 python experiments/${study}/bests_snap_2d.py $study $experiments $runs $generations $mainpath;
 python experiments/${study}/consolidate.py $study $experiments $runs $final_gen $mainpath $analysis;
@@ -23,12 +24,24 @@ python experiments/${study}/consolidate.py $study $experiments $runs $final_gen 
 experiments="fullplasticforthright,nonplasticforthright,plasticforthright"
 comparison='forthright'
 python experiments/${study}/plot_seasonal.py $study $experiments $runs $generations $comparison $mainpath $analysis;
+python experiments/${study}/plot_seasonal2.py $study $experiments $runs $generations $comparison $mainpath $analysis;
 python experiments/${study}/plot_trajectory.py $study $experiments $runs $final_gen $comparison $mainpath;
+python experiments/${study}/brainchanges.py $study $experiments $runs $generations $mainpath $comparison;
 
 experiments="fullplasticbackforth,nonplasticbackforth,plasticbackforth"
 comparison='backforth'
 python experiments/${study}/plot_seasonal.py $study $experiments $runs $generations $comparison $mainpath $analysis;
+python experiments/${study}/plot_seasonal2.py $study $experiments $runs $generations $comparison $mainpath $analysis;
 python experiments/${study}/plot_trajectory.py $study $experiments $runs $final_gen $comparison $mainpath;
+python experiments/${study}/brainchanges.py $study $experiments $runs $generations $mainpath $comparison;
+
+experiments="plasticforthright"
+comparison='forthright'
+python experiments/${study}/brainchanges.py $study $experiments $runs $generations $mainpath $comparison;
+
+experiments="plasticbackforth"
+comparison='backforth'
+python experiments/${study}/brainchanges.py $study $experiments $runs $generations $mainpath $comparison;
 
 # METADATA:
 
@@ -37,17 +50,6 @@ python experiments/${study}/plot_trajectory.py $study $experiments $runs $final_
 
 # forthright means that in cond 1 speed_y should be max and in cond 2 speed_x should be max
 # forth and right are visually right and down respectively
-
-####
-#experiments="onlyforth,nonplasticforthright,plasticforthright"
-#comparison='onlyforth1'
-#python experiments/${study}/plot_seasonal.py $study $experiments $runs $generations $comparison $mainpath;
-
-#experiments="onlyforth,fullplasticforthright"
-#comparison='onlyforth2'
-#python experiments/${study}/plot_seasonal.py $study $experiments $runs $generations $comparison $mainpath;
-
-
 
 
 # to rerun, this part requires to uncomment the variable seasonal_novelty from the database

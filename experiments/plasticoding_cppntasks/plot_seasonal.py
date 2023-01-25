@@ -44,14 +44,25 @@ if comparison in ['forthright', 'backforth']:
             '#7550ff']
 
     measures = {
-         'pop_diversity': ['Diversity', 0, 1],
-         'backforth_dominated': ['BF Dominated individuals', 0, 1],
-         'forthright_dominated': ['FR Dominated individuals', 0, 1],
-         'speed_y': ['Speed (cm/s)', -3.5, 3.5],
-         'speed_x': ['Speed (cm/s)', -3.5, 3.5],
-         'head_balance': ['Balance', 0.7, 1],
-         'displacement': ['Displacement', -3.5, 3.5],
-         'modules_count': ['Modules count', 5, 40],
+         'pop_diversity': ['Diversity', False, 0, 1],
+         'backforth_dominated': ['BF Dominated individuals', False, 0, 1],
+         'forthright_dominated': ['FR Dominated individuals',  False,0, 1],
+         'speed_y': ['Speed (cm/s)',  False,-3.5, 3.5],
+         'speed_x': ['Speed (cm/s)',  False,-3.5, 3.5],
+         'head_balance': ['Balance', False, 0.7, 1],
+         'displacement': ['Displacement',  False,-3.5, 3.5],
+         'modules_count': ['Modules count',  False,5, 40],
+         'body_changes': ['Body Changes', False, 0, 1],
+
+        'hinge_prop': ['Hinge prop',  True,0.3, 0.7],
+        'hinge_ratio': ['Hinge ratio', False, 0, 1],
+        'brick_prop': ['Brick prop', False, 0, 1],
+        'branching_prop': ['Branching prop', False, 0, 1],
+        'extremities_prop': ['Extremities prop',  False,0, 1],
+        'extensiveness_prop': ['Extensiveness prop', False, 0, 1],
+        'coverage': ['Coverage', False, 0, 1],
+        'proportion': ['Proportion',  False,0, 1],
+        'symmetry': ['Symmetry', False, 0, 1]
     }
 
 else:
@@ -61,13 +72,13 @@ else:
             ]
 
     measures = {
-        'modules_count': ['Modules count', 5, 40],
-        'displacement': ['Displacement', -3.5, 3.5]
+        'modules_count': ['Modules count', False, 5, 40],
+        'displacement': ['Displacement',  False,-3.5, 3.5]
 
     }
 
 if analysis == 'analysisnovel':
-    measures['seasonal_novelty'] = ['Seasonal Novelty', 0, 1]
+    measures['seasonal_novelty'] = ['Seasonal Novelty',  False,0, 1]
 
 env_conditions = {}
 
@@ -131,8 +142,9 @@ def plot_lines(df_outer):
                                     data[f'{measure}_{inner_metrics[1]}_q75'],
                                     alpha=0.3, facecolor=clrs[idx_experiment])
 
-                # if measures[measure][1] != -math.inf and measures[measure][2] != -math.inf:
-                #     ax.set_ylim(measures[measure][1], measures[measure][2])
+                if measures[measure][1]:
+                    if measures[measure][2] != -math.inf and measures[measure][3] != -math.inf:
+                        ax.set_ylim(measures[measure][2], measures[measure][3])
 
                 ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.1),  fancybox=True, shadow=True, ncol=5, fontsize=10)
                 if not merge_lines:
@@ -209,8 +221,9 @@ def plot_boxes(df_inner):
                 except Exception as error:
                     print(error)
 
-               # if measures[measure][1] != -math.inf and measures[measure][2] != -math.inf:
-                #plot.set_ylim(measures[measure][1], measures[measure][2])
+                # if measures[measure][1]:
+                #     if measures[measure][2] != -math.inf and measures[measure][3] != -math.inf:
+                #         plot.set_ylim(measures[measure][2], measures[measure][3])
 
                 plt.xlabel('')
                 plt.ylabel(f'{measures[measure][0]}')

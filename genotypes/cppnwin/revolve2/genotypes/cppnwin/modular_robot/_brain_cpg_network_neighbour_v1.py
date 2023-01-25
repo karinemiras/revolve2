@@ -63,7 +63,8 @@ class BrainCpgNetworkNeighbourV1(ModularRobotBrainCpgNetworkNeighbour):
                     for (active_hinge1, active_hinge2) in connections
                 ]
             ]
-
+            # print('external')
+            # print(connections)
         else:
 
             staticfriction, dynamicfriction, yrotationdegrees, platform, toxic = \

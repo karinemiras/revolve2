@@ -46,28 +46,75 @@ class Simulator:
         control.set_dof_targets(0, 0, self._controller.get_dof_targets())
 
 
+
 async def main() -> None:
     rng = Random()
     rng.seed(5)
 
-    # set id is deactivated...will break...
     body = Body()
-    body.core.back = ActiveHinge(0)
-    # body.core.front = ActiveHinge(math.pi / 2.0)
+    body.core._id = 1
+
+    body.core.front = Brick(0.0)
+    body.core.front._id = 2
+    body.core.front._absolute_rotation = 0
+
+    body.core.left = Brick(0.0)
+    body.core.left._id = 3
+    body.core.left._absolute_rotation = 0
+
+    body.core.right = Brick(0.0)
+    body.core.right._id = 4
+    body.core.right._absolute_rotation = 0
+
+    body.core.back = ActiveHinge(math.pi / 2.0)
+    body.core.back._id = 4
+    body.core.back._absolute_rotation = 0
+
+    body.core.back.attachment = ActiveHinge(math.pi / 2.0)
+    body.core.back.attachment._id = 5
+    body.core.back.attachment._absolute_rotation = 0
+
     body.finalize()
 
     brain = BrainCpgNetworkNeighbourRandom(rng)
     robot = ModularRobot(body, brain)
 
     render = Render()
-    img_path = f'data/manualrobot.png'
+    img_path = f'manualrobot.png'
     render.render_robot(robot.body.core, img_path)
 
     sim = Simulator()
-    await sim.simulate(robot, 10)
+    await sim.simulate(robot, 20)
 
 
 if __name__ == "__main__":
     import asyncio
 
     asyncio.run(main())
+
+
+# async def main() -> None:
+#     rng = Random()
+#     rng.seed(5)
+#
+#     # set id is deactivated...will break...
+#     body = Body()
+#     body.core.back = ActiveHinge(0)
+#     # body.core.front = ActiveHinge(math.pi / 2.0)
+#     body.finalize()
+#
+#     brain = BrainCpgNetworkNeighbourRandom(rng)
+#     robot = ModularRobot(body, brain)
+#
+#     render = Render()
+#     img_path = f'data/manualrobot.png'
+#     render.render_robot(robot.body.core, img_path)
+#
+#     sim = Simulator()
+#     await sim.simulate(robot, 10)
+#
+#
+# if __name__ == "__main__":
+#     import asyncio
+#
+#     asyncio.run(main())
