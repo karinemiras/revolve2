@@ -103,7 +103,7 @@ async def main() -> None:
         plt.close(fig)
 
 
-# run by run
+# run by run: for forth-right using the full plastic method
 # async def main() -> None:
 #
 #     for idexp, exp in enumerate(experiments):

@@ -259,9 +259,10 @@ class Optimizer(EAOptimizer[Genotype, float]):
         return self.generation_index != self._num_generations
 
     def _crossover(self, parents: List[Genotype]) -> Genotype:
-        if self._rng.uniform(0, 1) > self.crossover_prob:
+        if self._rng.uniform(0, 1) >= self.crossover_prob:
             return parents[0]
         else:
+            print('test, made crossover!')
             return crossover(parents[0], parents[1], self._rng)
 
     def _mutate(self, genotype: Genotype) -> Genotype:

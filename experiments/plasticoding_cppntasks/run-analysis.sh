@@ -17,6 +17,7 @@ analysis="analysisspeed"
 study="plasticoding_cppntasks"
 
 
+
 python experiments/${study}/snapshots_bests.py $study $experiments $runs $generations $mainpath;
 python experiments/${study}/bests_snap_2d.py $study $experiments $runs $generations $mainpath;
 python experiments/${study}/consolidate.py $study $experiments $runs $final_gen $mainpath $analysis;
@@ -34,6 +35,25 @@ python experiments/${study}/plot_seasonal.py $study $experiments $runs $generati
 python experiments/${study}/plot_seasonal2.py $study $experiments $runs $generations $comparison $mainpath $analysis;
 python experiments/${study}/plot_trajectory.py $study $experiments $runs $final_gen $comparison $mainpath;
 python experiments/${study}/brainchanges.py $study $experiments $runs $generations $mainpath $comparison;
+
+
+experiments="fullplasticforthright,nonplasticforthright,plasticforthright,z_onlyforth"
+comparison='forthright'
+python experiments/${study}/plot_seasonal.py $study $experiments $runs $generations $comparison $mainpath $analysis;
+
+experiments="fullplasticbackforth,nonplasticbackforth,plasticbackforth,z_onlyforth"
+comparison='backforth'
+python experiments/${study}/plot_seasonal.py $study $experiments $runs $generations $comparison $mainpath $analysis;
+
+
+experiments="onlyforth,fullplasticforthright,nonplasticforthright,plasticforthright"
+comparison='forthright'
+python experiments/${study}/plot_seasonal2.py $study $experiments $runs $generations $comparison $mainpath $analysis;
+
+experiments="onlyforth,fullplasticbackforth,nonplasticbackforth,plasticbackforth"
+comparison='backforth'
+python experiments/${study}/plot_seasonal2.py $study $experiments $runs $generations $comparison $mainpath $analysis;
+
 
 experiments="plasticforthright"
 comparison='forthright'

@@ -13,6 +13,7 @@ from revolve2.core.database import open_async_database_sqlite
 from sqlalchemy.future import select
 from revolve2.core.optimization.ea.generic_ea import DbEnvconditions
 from ast import literal_eval
+import numpy as np
 
 parser = argparse.ArgumentParser()
 parser.add_argument("study")
@@ -38,22 +39,32 @@ merge_lines = True
 gens_boxes = generations
 path = f'/storage/{mainpath}/{study}'
 
-if comparison in ['forthright', 'backforth']:
+
+# measures = {
+## this one ahs to be generated alone, since it is intersting only for one of the exps
+#  'body_changes': ['Body Changes', False, 0, 1],
+##
+# }
+
+if len(experiments) == 3:
+    measures = {
+         'backforth_dominated': ['BF Dominated individuals', False, 0, 1],
+         'forthright_dominated': ['FR Dominated individuals',  False,0, 1],
+         'speed_y': ['Speed (cm/s)',  True,-0.3, 3.5],
+         'speed_x': ['Speed (cm/s)',  True,-0.3, 3.5],
+         'head_balance': ['Balance', False, 0.7, 1],
+         'displacement': ['Displacement',  False,-3.5, 3.5],
+         'modules_count': ['Modules count',  False,5, 40],
+    }
+
     clrs = ['#009900',
             '#EE8610',
             '#7550ff']
 
-    measures = {
-         'pop_diversity': ['Diversity', False, 0, 1],
-         'backforth_dominated': ['BF Dominated individuals', False, 0, 1],
-         'forthright_dominated': ['FR Dominated individuals',  False,0, 1],
-         'speed_y': ['Speed (cm/s)',  False,-3.5, 3.5],
-         'speed_x': ['Speed (cm/s)',  False,-3.5, 3.5],
-         'head_balance': ['Balance', False, 0.7, 1],
-         'displacement': ['Displacement',  False,-3.5, 3.5],
-         'modules_count': ['Modules count',  False,5, 40],
-         'body_changes': ['Body Changes', False, 0, 1],
+if len(experiments) == 4:
 
+    measures = {
+        'pop_diversity': ['Diversity', False, 0, 1],
         'hinge_prop': ['Hinge prop',  True,0.3, 0.7],
         'hinge_ratio': ['Hinge ratio', False, 0, 1],
         'brick_prop': ['Brick prop', False, 0, 1],
@@ -65,17 +76,12 @@ if comparison in ['forthright', 'backforth']:
         'symmetry': ['Symmetry', False, 0, 1]
     }
 
-else:
-    clrs = ['#0066CC',
-            '#663300',
-            '#7855fb'
-            ]
 
-    measures = {
-        'modules_count': ['Modules count', False, 5, 40],
-        'displacement': ['Displacement',  False,-3.5, 3.5]
-
-    }
+clrs = [
+        '#009900',
+        '#EE8610',
+        '#7550ff',
+        '#808080']
 
 if analysis == 'analysisnovel':
     measures['seasonal_novelty'] = ['Seasonal Novelty',  False,0, 1]
@@ -87,7 +93,7 @@ async def main() -> None:
     if not os.path.exists(f'{path}/{analysis}/{comparison}'):
         os.makedirs(f'{path}/{analysis}/{comparison}')
 
-    db = open_async_database_sqlite(f'/storage/{mainpath}/{study}/{experiments[-1]}/run_{runs[0]}')
+    db = open_async_database_sqlite(f'/storage/{mainpath}/{study}/{experiments[0]}/run_{runs[0]}')
     async with AsyncSession(db) as session:
         rows = ((await session.execute(select(DbEnvconditions).order_by(DbEnvconditions.id))).all())
         for c_row in rows:
@@ -109,7 +115,15 @@ def plot_lines(df_outer):
 
     print('plotting lines...')
 
-    #min_max_outer(df_outer)
+    df_outer['experiment'] = np.select(
+        [df_outer['experiment'] == 'onlyforth'],
+        ['z_onlyforth'], df_outer['experiment'])
+
+    if comparison == 'backforth':
+        df_outer['speed_y_median_median'] = np.select([df_outer['env_conditions_id'] == 2], [df_outer['speed_y_median_median']*-1], df_outer['speed_y_median_median'])
+        df_outer['speed_y_median_q25'] = np.select([df_outer['env_conditions_id'] == 2], [df_outer['speed_y_median_q25'] * -1], df_outer['speed_y_median_q25'])
+        df_outer['speed_y_median_q75'] = np.select([df_outer['env_conditions_id'] == 2], [df_outer['speed_y_median_q75'] * -1], df_outer['speed_y_median_q75'])
+
     for env in env_conditions:
         for measure in measures.keys():
 
@@ -125,7 +139,10 @@ def plot_lines(df_outer):
             plt.xlabel('')
             plt.ylabel(f'{measures[measure][0]}')
             for idx_experiment, experiment in enumerate(experiments):
-                data = df_outer[(df_outer['experiment'] == experiment) & (df_outer['env_conditions_id'] == env)]
+                if experiment == 'z_onlyforth':
+                    data = df_outer[(df_outer['experiment'] == 'z_onlyforth')]
+                else:
+                    data = df_outer[(df_outer['experiment'] == experiment) & (df_outer['env_conditions_id'] == env)]
 
                 ax.plot(data['generation_index'], data[f'{measure}_{inner_metrics[0]}_median'],
                         label=f'{experiment}_{inner_metrics[0]}', c=clrs[idx_experiment])
@@ -165,6 +182,13 @@ def plot_lines(df_outer):
 def plot_boxes(df_inner):
     print('plotting boxes...')
 
+    df_inner['experiment'] = np.select(
+        [df_inner['experiment'] == 'onlyforth'],
+        ['z_onlyforth'], df_inner['experiment'])
+
+    if comparison == 'backforth':
+        df_inner['speed_y_median'] = np.select([df_inner['env_conditions_id'] == 2], [df_inner['speed_y_median']*-1], df_inner['speed_y_median'])
+
     for env in env_conditions:
 
         if len(env_conditions) > 1:
@@ -174,20 +198,15 @@ def plot_boxes(df_inner):
 
         for gen_boxes in gens_boxes:
 
-            if comparison == 'onlyforth1':
+            if len(experiments) == 4:
                 df_inner2 = df_inner[(df_inner['generation_index'] == gen_boxes)
-                                     & (  ((df_inner['experiment'] == experiments[1]) & (df_inner['env_conditions_id'] == env) ) |
-                                          ((df_inner['experiment'] == experiments[2]) & (df_inner['env_conditions_id'] == env) ) |
-                                          (df_inner['experiment'] == experiments[0])
-                                        )
                                      & (df_inner['run'] <= max(runs))
-                                     ]
-            elif comparison == 'onlyforth2':
-                df_inner2 = df_inner[(df_inner['generation_index'] == gen_boxes)
-                                     & (  ((df_inner['experiment'] == experiments[1]) & (df_inner['env_conditions_id'] == env) ) |
-                                          (df_inner['experiment'] == experiments[0])
+                                     & ( (( ((df_inner['experiment'] == experiments[0]) ) |
+                                          ((df_inner['experiment'] == experiments[1]) ) |
+                                          ((df_inner['experiment'] == experiments[2]) )  )
+                                         & (df_inner['env_conditions_id'] == env))
+                                        |  (df_inner['experiment'] == 'z_onlyforth')
                                         )
-                                     & (df_inner['run'] <= max(runs))
                                      ]
             else:
                 df_inner2 = df_inner[(df_inner['generation_index'] == gen_boxes)
@@ -197,11 +216,13 @@ def plot_boxes(df_inner):
                                          )
                                      & (df_inner['run'] <= max(runs))
                                      & (df_inner['env_conditions_id'] == env)]
+            df_inner2 = df_inner2.sort_values(by=['experiment'])
 
             plt.clf()
 
             tests_combinations = [(experiments[i], experiments[j]) \
                                   for i in range(len(experiments)) for j in range(i+1, len(experiments))]
+
             for idx_measure, measure in enumerate(measures.keys()):
                 sb.set(rc={"axes.titlesize": 23, "axes.labelsize": 23, 'ytick.labelsize': 21, 'xtick.labelsize': 21})
                 sb.set_style("whitegrid")
@@ -224,6 +245,7 @@ def plot_boxes(df_inner):
                 # if measures[measure][1]:
                 #     if measures[measure][2] != -math.inf and measures[measure][3] != -math.inf:
                 #         plot.set_ylim(measures[measure][2], measures[measure][3])
+
 
                 plt.xlabel('')
                 plt.ylabel(f'{measures[measure][0]}')

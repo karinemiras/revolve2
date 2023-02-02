@@ -19,7 +19,7 @@ import matplotlib.pyplot as plt
 
 
 async def main(parser) -> None:
-   # await collect_data(parser)
+    await collect_data(parser)
     await plot(parser)
 
 
