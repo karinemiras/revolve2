@@ -94,7 +94,7 @@ def plots():
     df = pandas.read_csv(f'{path}/analysisnovel/all_df.csv')
 
     plot_avg(df)
-    plot(df)
+   # plot(df)
 
     # plot_runs(df)
     # plot_avg_runs(df)
@@ -168,11 +168,31 @@ def plot_avg(df):
                 ]
 
     df_env1 = dff[(dff['env_conditions_id'] == 1)]
-    df_env1 = df_env1.rename(columns={'speed_x': 'speed_x_1', 'speed_y': 'speed_y_1'})
+    df_env1 = df_env1.rename(columns={'speed_x': 'speed_x_1',
+                                      'speed_y': 'speed_y_1',
+                                      'hinge_prop': 'hinge_prop_1',
+                                      'hinge_ratio': 'hinge_ratio_1',
+                                      'brick_prop': 'brick_prop_1',
+                                       'branching_prop':  'branching_prop_1',
+                                      'extremities_prop': 'extremities_prop_1',
+                                      'extensiveness_prop':  'extensiveness_prop_1',
+                                      'coverage': 'coverage_1',
+                                      'proportion': 'proportion_1',
+                                      'symmetry':  'symmetry_1'
+                                      })
 
     df_env2 = df[(df['env_conditions_id'] == 2)]
-    df_env2 = df_env2[['experiment', 'run', 'individual_id', 'generation_index', 'env_conditions_id', 'speed_x', 'speed_y']]
-    df_env2 = df_env2.rename(columns={'speed_x': 'speed_x_2', 'speed_y': 'speed_y_2'})
+    df_env2 = df_env2.rename(columns={'speed_x': 'speed_x_2',
+                                      'speed_y': 'speed_y_2',
+                                      'hinge_prop': 'hinge_prop_2',
+                                      'hinge_ratio': 'hinge_ratio_2',
+                                      'brick_prop': 'brick_prop_2',
+                                      'branching_prop': 'branching_prop_2',
+                                      'extremities_prop': 'extremities_prop_2',
+                                      'extensiveness_prop': 'extensiveness_prop_2',
+                                      'coverage': 'coverage_2',
+                                      'proportion': 'proportion_2'
+                                      })
 
     df_env = pd.merge(df_env1, df_env2, how="inner", on=['experiment', 'run', 'generation_index', 'individual_id'])
     df_env["speed_y_2"] = df_env["speed_y_2"]*-1
@@ -182,8 +202,30 @@ def plot_avg(df):
     else:
         df_env['avgspeed'] = (df_env['speed_y_1'] + df_env['speed_y_2']) / 2
 
+    df_env['hinge_prop'] = (df_env['hinge_prop_1'] + df_env['hinge_prop_2']) / 2
+    df_env['hinge_ratio'] = (df_env['hinge_ratio_1'] + df_env['hinge_ratio_2']) / 2
+    df_env['brick_prop'] = (df_env['brick_prop_1'] + df_env['brick_prop_2']) / 2
+    df_env['branching_prop'] = (df_env['branching_prop_1'] + df_env['branching_prop_2']) / 2
+    df_env['extremities_prop'] = (df_env['extremities_prop_1'] + df_env['extremities_prop_2']) / 2
+    df_env['extensiveness_prop'] = (df_env['extensiveness_prop_1'] + df_env['extensiveness_prop_2']) / 2
+    df_env['coverage'] = (df_env['coverage_1'] + df_env['coverage_2']) / 2
+    df_env['proportion'] = (df_env['proportion_1'] + df_env['proportion_2']) / 2
+
+    df_env['experiment'] = np.select(
+        [df_env['experiment'] == 'novfullplasticforthright',
+         df_env['experiment'] == 'novnonplasticforthright',
+         df_env['experiment'] == 'novplasticforthright',
+         ],
+        [
+         '3',
+         '1',
+         '2',
+         ], None)
+    df_env = df_env.sort_values(by=['experiment'])
     df_env = df_env[list(measures.keys()) + ['experiment', 'avgspeed']]
     df_env.reset_index(drop=True, inplace=True)
+
+    pprint.pprint(df_env)
 
     df_env_filt = df_env[list(measures.keys())]
 
@@ -192,7 +234,7 @@ def plot_avg(df):
     res_pca = pd.DataFrame(res_pca)
 
     df_pca = df_env.join(res_pca)
-
+    print('---')
     print(df_pca)
 
     for pair in list(itertools.combinations(range(0, n_components), 2)):
@@ -203,13 +245,14 @@ def plot_avg(df):
         plt.rcParams.update(font)
         fig, ax = plt.subplots()
 
-        g = sb.FacetGrid(df_pca, col='experiment')
+        g = sb.FacetGrid(df_pca, col='experiment', legend_out=True)
 
         # PS: tricontourf is buggy, when most values are the same, paints with max color even if values are all zero
         g.map(plt.tricontourf, measure1, measure2, 'avgspeed', cmap=plt.cm.plasma)#, vmin = overall_min, vmax = overall_max)
-        plt.colorbar(ScalarMappable(cmap=plt.cm.plasma))
+       # plt.colorbar(ScalarMappable(cmap=plt.cm.plasma),)
 
-        plt.savefig(f'{path}/analysisnovel/{comparison}/heatmaps/c{measure1}_c{measure2}_avgspeed.png', bbox_inches='tight')
+        plt.savefig(f'{path}/analysisnovel/{comparison}/heatmaps/c{measure1}_c{measure2}_avgspeed_3.png', bbox_inches='tight')
+
         plt.clf()
         plt.close(fig)
 

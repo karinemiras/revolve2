@@ -116,7 +116,7 @@ async def main() -> None:
 #             fig, ax = plt.subplots()
 #             plt.xlabel('')
 #             plt.ylabel('')
-#             plt.axis('off')
+#          #   plt.axis('off')
 #             ax.set_ylim(-0.9, 2.2)
 #             ax.set_xlim(-2, 2.2)
 #             ax.invert_yaxis()
@@ -161,7 +161,9 @@ async def main() -> None:
 #                     # x and y are intentionally inverted, because of isaacs visuals
 #                     ax.plot(positions['y'], positions['x'], alpha=1, linewidth=6, label=f'...', c=clrs[cond-1])
 #
-#             plt.savefig(f'/storage/{mainpath}/{study}/analysisspeed/extratraj/traj_{run}_{exp}.png')
+#          #   plt.savefig(f'/storage/{mainpath}/{study}/analysisspeed/extratraj_full/traj_{run}_{exp}.png')
+#             plt.savefig(f'/storage/{mainpath}/{study}/analysisspeed/extratraj_non/traj_{run}_{exp}.png')
+#           #  plt.savefig(f'/storage/{mainpath}/{study}/analysisspeed/extratraj_brain/traj_{run}_{exp}.png')
 #             plt.clf()
 #             plt.close(fig)
 

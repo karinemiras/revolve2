@@ -17,7 +17,6 @@ analysis="analysisspeed"
 study="plasticoding_cppntasks"
 
 
-
 python experiments/${study}/snapshots_bests.py $study $experiments $runs $generations $mainpath;
 python experiments/${study}/bests_snap_2d.py $study $experiments $runs $generations $mainpath;
 python experiments/${study}/consolidate.py $study $experiments $runs $final_gen $mainpath $analysis;
