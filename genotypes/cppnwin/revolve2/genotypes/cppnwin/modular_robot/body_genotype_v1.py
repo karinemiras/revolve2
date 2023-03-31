@@ -1,11 +1,10 @@
-"""Functions for CPPNWIN genotypes for a modular robot body."""
-
 import math
 from dataclasses import dataclass
 from queue import Queue
 from typing import Any, List, Optional, Set, Tuple
 
 import multineat
+
 from revolve2.core.modular_robot import ActiveHinge, Body, Brick, Core, Module
 
 from .._genotype import Genotype
@@ -19,16 +18,6 @@ def random_v1(
     output_activation_func: multineat.ActivationFunction,
     num_initial_mutations: int,
 ) -> Genotype:
-    """
-    Create a CPPNWIN genotype for a modular robot body.
-
-    :param innov_db: Multineat innovation database. See Multineat library.
-    :param rng: Random number generator.
-    :param multineat_params: Multineat parameters. See Multineat library.
-    :param output_activation_func: Activation function for the output layer. See Multineat library.
-    :param num_initial_mutations: The number of times to mutate to create a random network.
-    :returns: The created genotype.
-    """
     return base_random_v1(
         innov_db,
         rng,
@@ -51,16 +40,9 @@ class __Module:
 
 def develop_v1(
     genotype: Genotype,
+    max_modules: int,
+    body_substrate_dimensions: str
 ) -> Body:
-    """
-    Develop a CPPNWIN genotype into a modular robot body.
-
-    It is important that the genotype was created using a compatible function.
-
-    :param genotype: The genotype to create the body from.
-    :returns: The create body.
-    :raises RuntimeError: In case a module is encountered that is not supported.
-    """
     max_parts = 10
 
     body_net = multineat.NeuralNetwork()
@@ -92,8 +74,8 @@ def develop_v1(
             raise RuntimeError()
 
         for (index, rotation) in children:
-            if part_count < max_parts:
-                child = ___add_child(body_net, module, index, rotation, grid)
+            if part_count < max_modules:
+                child = ___add_child(body_net, module, index, rotation, grid, body_substrate_dimensions)
                 if child is not None:
                     to_explore.put(child)
                     part_count += 1
@@ -108,12 +90,7 @@ def __evaluate_cppn(
     chain_length: int,
 ) -> Tuple[Any, int]:
     """
-    Get module type and orientation from a multineat CPPN network.
-
-    :param body_net: The CPPN network.
-    :param position: Position of the module.
-    :param chain_length: Tree distance of the module from the core.
-    :returns: (module type, orientation)
+    get module type, orientation
     """
     body_net.Input(
         [1.0, position[0], position[1], position[2], chain_length]
@@ -129,9 +106,10 @@ def __evaluate_cppn(
     # get rotation from output probabilities
     rotation_probs = [outputs[3], outputs[4]]
 
-    # TODO: make an allow_ratation param
-    # rotation = rotation_probs.index(min(rotation_probs))
-    rotation = 0
+    if body_substrate_dimensions == '2d':
+        rotation = 0
+    else:
+        rotation = rotation_probs.index(min(rotation_probs))
 
     return (module_type, rotation)
 
@@ -142,6 +120,7 @@ def ___add_child(
     child_index: int,
     rotation: int,
     grid: Set[Tuple[int, int, int]],
+    body_substrate_dimensions: str
 ) -> Optional[__Module]:
     forward = __rotate(module.forward, module.up, rotation)
     position = __add(module.position, forward)
@@ -154,10 +133,11 @@ def ___add_child(
     else:
         grid.add(position)
 
-    child_type, orientation = __evaluate_cppn(body_net, position, chain_length)
+    child_type, orientation = __evaluate_cppn(body_net, position, chain_length, body_substrate_dimensions)
     if child_type is None:
         return None
     up = __rotate(module.up, forward, orientation)
+    print(orientation, orientation * (math.pi / 2.0))
     child = child_type(orientation * (math.pi / 2.0))
     module.module_reference.children[child_index] = child
 
@@ -194,15 +174,7 @@ def __rotate(
     a: Tuple[int, int, int], b: Tuple[int, int, int], angle: int
 ) -> Tuple[int, int, int]:
     """
-    Rotates vector a a given angle around b.
-
-    Angle from [0,1,2,3].
-    90 degrees each.
-
-    :param a: Vector a.
-    :param b: Vector b.
-    :param angle: The angle to rotate.
-    :returns: A copy of a, rotated.
+    rotates a around b. angle from [0,1,2,3]. 90 degrees each
     """
     cosangle: int
     sinangle: int

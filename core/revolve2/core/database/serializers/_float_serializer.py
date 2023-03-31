@@ -26,7 +26,11 @@ class FloatSerializer(Serializer[float]):
     ) -> List[int]:
 
         # TODO: set attributes dynamically
-        items = [DbFloat(displacement_xy=f['displacement_xy'],
+        items = [DbFloat(
+                         birth=f['birth'],
+                         speed_y=f['speed_y'],
+                         speed_x=f['speed_x'],
+                         average_z=f['average_z'],
                          head_balance=f['head_balance'],
                          modules_count=f['modules_count'],
                          hinge_count=f['hinge_count'],
@@ -44,6 +48,10 @@ class FloatSerializer(Serializer[float]):
                          coverage=f['coverage'],
                          proportion=f['proportion'],
                          symmetry=f['symmetry'],
+                         displacement=f['displacement'],
+                         relative_speed_y=f['relative_speed_y'],
+                         hinge_ratio=f['hinge_ratio'],
+                         body_changes=f['body_changes'],
                          )
                  for f in objects]
 
@@ -70,7 +78,10 @@ class FloatSerializer(Serializer[float]):
         for i in range(len(items)):
             measures = {}
             # TODO: do this dynamically using measures_names
-            measures['displacement_xy'] = items[i].displacement_xy
+            measures['birth'] = items[i].birth
+            measures['speed_y'] = items[i].speed_y
+            measures['speed_x'] = items[i].speed_x
+            measures['average_z'] = items[i].average_z
             measures['head_balance'] = items[i].head_balance
             measures['modules_count'] = items[i].modules_count
             measures['hinge_count'] = items[i].hinge_count
@@ -88,6 +99,10 @@ class FloatSerializer(Serializer[float]):
             measures['coverage'] = items[i].coverage
             measures['proportion'] = items[i].proportion
             measures['symmetry'] = items[i].symmetry
+            measures['relative_speed_y'] = items[i].relative_speed_y
+            measures['displacement'] = items[i].displacement
+            measures['hinge_ratio'] = items[i].hinge_ratio
+            measures['body_changes'] = items[i].body_changes
 
             measures_genotypes.append(measures)
 
@@ -103,7 +118,12 @@ class DbFloat(DbBase):
     id = sqlalchemy.Column(
         sqlalchemy.Integer, nullable=False, primary_key=True, autoincrement=True
     )
-    displacement_xy = sqlalchemy.Column(sqlalchemy.Float, nullable=True)
+    birth = sqlalchemy.Column(sqlalchemy.Float, nullable=True)
+    speed_y = sqlalchemy.Column(sqlalchemy.Float, nullable=True)
+    speed_x = sqlalchemy.Column(sqlalchemy.Float, nullable=True)
+    relative_speed_y = sqlalchemy.Column(sqlalchemy.Float, nullable=True)
+    displacement = sqlalchemy.Column(sqlalchemy.Float, nullable=True)
+    average_z = sqlalchemy.Column(sqlalchemy.Float, nullable=True)
     head_balance = sqlalchemy.Column(sqlalchemy.Float, nullable=True)
     modules_count = sqlalchemy.Column(sqlalchemy.Float, nullable=True)
     hinge_count = sqlalchemy.Column(sqlalchemy.Float, nullable=True)
@@ -121,4 +141,7 @@ class DbFloat(DbBase):
     coverage = sqlalchemy.Column(sqlalchemy.Float, nullable=True)
     proportion = sqlalchemy.Column(sqlalchemy.Float, nullable=True)
     symmetry = sqlalchemy.Column(sqlalchemy.Float, nullable=True)
+    hinge_ratio = sqlalchemy.Column(sqlalchemy.Float, nullable=True)
+    body_changes = sqlalchemy.Column(sqlalchemy.Float, nullable=True)
+
 

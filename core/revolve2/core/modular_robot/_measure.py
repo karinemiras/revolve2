@@ -6,7 +6,6 @@ import pprint
 from ._module import Module
 from .render.render import Render
 from revolve2.core.physics.running import (
-    State,
     ActorState
 )
 
@@ -15,26 +14,31 @@ from revolve2.core.modular_robot import Core, ActiveHinge, Brick
 
 class Measure:
 
-    _states: List[Tuple[float, State]]
+    _states: List[Tuple[float, ActorState]]
 
-    def __init__(self, states=None, genotype_idx=-1, phenotype=None):
+    def __init__(self, states=None, genotype_idx=-1, phenotype=None, generation=None,
+                 simulation_time=None, env_conditions=None):
         self._states = states
+        # TODO: _genotype_idx: obsolete variable
         self._genotype_idx = genotype_idx
         self._phenotype_body = phenotype.body
         self._phenotype_brain = phenotype.brain
+        self._generation = generation
+        self._simulation_time = simulation_time
+        self._env_conditions = env_conditions
         self._orientations = []
 
     def measure_all_non_relative(self):
 
         self._measures = {}
 
-        self._displacement_xy()
+        self._measures['birth'] = self._generation
+        self._displacement()
         self._head_balance()
 
         self._calculate_counts()
         self._modules_count()
-        self._measures['hinge_prop'] = self._measures['hinge_count'] / self._measures['modules_count']
-        self._measures['brick_prop'] = self._measures['brick_count'] / self._measures['modules_count']
+        self._props()
         self._branching_count()
         self._branching_prop()
         self._extremities_extensiveness(None, False, True)
@@ -46,29 +50,83 @@ class Measure:
         self._proportion()
         self._symmetry()
 
+        self._relative_speed_y()
+
         return self._measures
 
+    def _props(self):
+        max_hinges = max(self._measures['hinge_horizontal'], self._measures['hinge_vertical'])
+        min_hinges = min(self._measures['hinge_horizontal'], self._measures['hinge_vertical'])
+        if max_hinges > 0 and min_hinges > 0:
+            self._measures['hinge_ratio'] = float(min_hinges/max_hinges)
+        else:
+            self._measures['hinge_ratio'] = 0
+
+        self._measures['hinge_prop'] = self._measures['hinge_count'] / self._measures['modules_count']
+        self._measures['brick_prop'] = self._measures['brick_count'] / self._measures['modules_count']
+
     # behavioral measures
+    # TODO simulation can continue slightly passed the defined sim time.
+    def _displacement(self):
 
-    def _displacement_xy(self):
+        if self._states is None:
+            self._measures['speed_y'] = -math.inf
+            self._measures['speed_x'] = -math.inf
+            self._measures['average_z'] = -math.inf
+            self._measures['displacement'] = -math.inf
+            return
 
-        # TODO simulation can continue slightly passed the defined sim time.
+        # note that it is hardcoded assuming there is a single actor
+        begin_state = self._states.environment_results[self._genotype_idx].environment_states[0].actor_states[0]
+        end_state = self._states.environment_results[self._genotype_idx].environment_states[-1].actor_states[0]
 
-        begin_state = self._states[0][1].envs[self._genotype_idx].actor_states[0]
-        end_state = self._states[-1][1].envs[self._genotype_idx].actor_states[0]
-
-        # distance traveled on the xy plane
-        self._measures['displacement_xy'] = float(
+        displacement = float(
             math.sqrt(
                 (begin_state.position[0] - end_state.position[0]) ** 2
                 + ((begin_state.position[1] - end_state.position[1]) ** 2)
-            )
+            ))
 
-        )
+        self._measures['displacement'] = displacement
+
+        # TODO: check if outlier from pop avg
+        if displacement >= 10:
+            print('suspicious displacement gets minus inf')
+            self._measures['speed_y'] = -math.inf
+            self._measures['speed_x'] = -math.inf
+        else:
+            # speed on the y-axis (to the right [uphill] is higher/better)
+            displacement_y = float((end_state.position[1]-begin_state.position[1]))
+            displacement_x = float((end_state.position[0]-begin_state.position[0]))
+
+            # if there is a platform, truncates displacement
+            # if int(self._env_conditions[3]) == 1:
+            #     if displacement_y > 1:
+            #         displacement_y = 1
+            #     if displacement_y < -1:
+            #         displacement_y = -1
+            #
+            #     if displacement_x > 1:
+            #         displacement_x = 1
+            #     if displacement_x < -1:
+            #         displacement_x = -1
+
+            self._measures['speed_y'] = float((displacement_y/self._simulation_time)*100)
+            self._measures['speed_x'] = float((displacement_x/self._simulation_time)*100)
+
+        # average z
+        z = 0
+        for s in self._states.environment_results[self._genotype_idx].environment_states:
+            z += s.actor_states[0].position[2]
+        z /= len(self._states.environment_results[self._genotype_idx].environment_states)
+        self._measures['average_z'] = float(z)
+
+    def _relative_speed_y(self):
+        self._measures['relative_speed_y'] = self._measures['speed_y']/self._measures['modules_count']
 
     def _get_orientations(self):
-        for idx_state in range(0, len(self._states)):
-            _orientations = self._states[idx_state][1].envs[self._genotype_idx].actor_states[0].serialize()['orientation']
+        for idx_state in range(0, len(self._states.environment_results[self._genotype_idx].environment_states)):
+            _orientations = self._states.environment_results[self._genotype_idx].\
+                environment_states[idx_state].actor_states[0].serialize()['orientation']
             # w, x, y, z
             qua = Quaternion(_orientations[0], _orientations[1], _orientations[2], _orientations[3])
             euler = qua.to_euler()
@@ -81,9 +139,13 @@ class Measure:
         The closest to 1 the most balanced.
         :return:
         """
+        if self._states is None:
+            self._measures['head_balance'] = -math.inf
+            return
+
         roll = 0
         pitch = 0
-        instants = len(self._states)
+        instants = len(self._states.environment_results[self._genotype_idx].environment_states)
         self._get_orientations()
 
         for o in self._orientations:
@@ -107,14 +169,22 @@ class Measure:
         """
         Count amount of modules for each distinct type
         """
+
         if init:
             self._measures['hinge_count'] = 0
             self._measures['brick_count'] = 0
+            self._measures['hinge_ratio'] = 0
+            self._measures['hinge_horizontal'] = 0
+            self._measures['hinge_vertical'] = 0
 
         if module is None:
             module = self._phenotype_body.core
         elif isinstance(module, ActiveHinge):
             self._measures['hinge_count'] += 1
+            if module._absolute_rotation == 0:
+                self._measures['hinge_horizontal'] += 1
+            else:
+                self._measures['hinge_vertical'] += 1
         elif isinstance(module, Brick):
             self._measures['brick_count'] += 1
 
@@ -246,11 +316,11 @@ class Measure:
         vertical_total = 0
         # Calculate symmetry in body
         for position in coordinates:
-            if position[0] is not 0:
+            if position[0] != 0:
                 horizontal_total += 1
                 if [-position[0], position[1]] in coordinates:
                     horizontal_mirrored += 1
-            if position[1] is not 0:
+            if position[1] != 0:
                 vertical_total += 1
                 if [position[0], -position[1]] in coordinates:
                     vertical_mirrored += 1

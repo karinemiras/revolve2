@@ -12,7 +12,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column, Integer, String
 
 from revolve2.core.physics.running import (
-    State
+    ActorState
 )
 import pprint
 import sys
@@ -33,7 +33,7 @@ class DbStates(DbBase):
     serialized_states = Column(String, nullable=False)
 
 
-class StatesSerializer(Serializer[List[Tuple[float, State]]]):
+class StatesSerializer(Serializer[List[Tuple[float, ActorState]]]):
     @classmethod
     async def create_tables(cls, session: AsyncSession) -> None:
         await (await session.connection()).run_sync(DbBase.metadata.create_all)
@@ -44,9 +44,8 @@ class StatesSerializer(Serializer[List[Tuple[float, State]]]):
 
     @classmethod
     async def to_database(
-        cls, session: AsyncSession, objects: List[Tuple[float, State]]
+        cls, session: AsyncSession, objects: List[Tuple[float, ActorState]]
     ) -> List[int]:
-
         dbstates = [
             DbStates(serialized_states=str(o))
             for o in objects

@@ -13,10 +13,10 @@ class Canvas:
 	# EAST = 2 # Canvas.RIGHT
 	# WEST = 3 # Canvas.LEFT
 
-	BACK = 2
+	BACK = 3
 	FRONT = 0
 	RIGHT = 1
-	LEFT = 3
+	LEFT = 2
 	
 	# Orientation of robot
 	orientation = FRONT
@@ -181,7 +181,7 @@ class Canvas:
 		"""Draw a hinge (blue) on the previous object"""
 
 		self.context.rectangle(Canvas.x_pos, Canvas.y_pos, 1, 1)
-		if (Canvas.rotating_orientation % 180 == 0):
+		if (Canvas.rotating_orientation == 0):
 			self.context.set_source_rgb(1.0, 0.4, 0.4)
 		else:
 			self.context.set_source_rgb(1, 0, 0)

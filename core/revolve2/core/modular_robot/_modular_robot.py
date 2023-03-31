@@ -32,3 +32,8 @@ class ModularRobot:
         actor, dof_ids = self.body.to_actor()
         controller = self.brain.make_controller(self.body, dof_ids)
         return (actor, controller)
+
+    def make_controller_return(self) -> Tuple[Actor, ActorController]:
+        actor, dof_ids = self.body.to_actor()
+        internal_weights, external_weights = self.brain.make_controller_return(self.body, dof_ids)
+        return internal_weights, external_weights

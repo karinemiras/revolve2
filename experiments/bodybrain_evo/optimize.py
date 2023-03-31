@@ -9,34 +9,12 @@ from optimizer import Optimizer
 
 from revolve2.core.database import open_async_database_sqlite
 from revolve2.core.optimization import ProcessIdGen
+from revolve2.core.config import Config
 
 
 async def main() -> None:
-
-    parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "--experiment_name",
-        required=False,
-        default="default_experiment",
-        type=str,
-        help="Name of the experiment.",
-    )
-
-    args = parser.parse_args()
-
-    # number of initial mutations for body and brain CPPNWIN networks
-    NUM_INITIAL_MUTATIONS = 10
-
-    SIMULATION_TIME = 1#30
-    SAMPLING_FREQUENCY = 5
-    CONTROL_FREQUENCY = 5
-
-    POPULATION_SIZE = 3
-    OFFSPRING_SIZE = 3#100
-    # actually means number of offspring generations
-    NUM_GENERATIONS = 1#00
-
-    FITNESS_MEASURE = 'displacement_xy'
+    args = Config()._get_params()
+    mainpath = args.mainpath
 
     logging.basicConfig(
         level=logging.INFO,
@@ -45,14 +23,19 @@ async def main() -> None:
 
     logging.info(f"Starting optimization")
 
+    # prepares params for environmental conditions
+    seasonal_conditions_parsed = []
+    seasonal_conditions = args.seasons_conditions.split('#')
+    for seasonal_condition in seasonal_conditions:
+        params = seasonal_condition.split('_')
+        seasonal_conditions_parsed.append([params[0], params[1], params[2], params[3], params[4]])
+
     # random number generator
     rng = Random()
     rng.seed(random())
 
     # database
-
-    database = open_async_database_sqlite(f'./data/{args.experiment_name}')
-
+    database = open_async_database_sqlite(f'{mainpath}/{args.study_name}/{args.experiment_name}/run_{args.run}')
 
     # process id generator
     process_id_gen = ProcessIdGen()
@@ -62,6 +45,7 @@ async def main() -> None:
     innov_db_brain = multineat.InnovationDatabase()
 
     process_id = process_id_gen.gen()
+
     maybe_optimizer = await Optimizer.from_database(
         database=database,
         process_id=process_id,
@@ -69,15 +53,19 @@ async def main() -> None:
         innov_db_brain=innov_db_brain,
         rng=rng,
         process_id_gen=process_id_gen,
-        fitness_measure=FITNESS_MEASURE,
+        run_simulation=args.run_simulation,
+        num_generations=args.num_generations,
+        simulator=args.simulator
     )
+
     if maybe_optimizer is not None:
         optimizer = maybe_optimizer
     else:
 
         initial_population = [
-            random_genotype(innov_db_body, innov_db_brain, rng, NUM_INITIAL_MUTATIONS)
-            for _ in range(POPULATION_SIZE)
+            random_genotype(innov_db_body, innov_db_brain, rng, args.num_initial_mutations,
+                            len(seasonal_conditions_parsed), args.plastic_body, args.plastic_brain)
+            for _ in range(args.population_size)
         ]
 
         optimizer = await Optimizer.new(
@@ -88,14 +76,24 @@ async def main() -> None:
             process_id_gen=process_id_gen,
             innov_db_body=innov_db_body,
             innov_db_brain=innov_db_brain,
-            simulation_time=SIMULATION_TIME,
-            sampling_frequency=SAMPLING_FREQUENCY,
-            control_frequency=CONTROL_FREQUENCY,
-            num_generations=NUM_GENERATIONS,
-            offspring_size=OFFSPRING_SIZE,
-            fitness_measure=FITNESS_MEASURE,
+            simulation_time=args.simulation_time,
+            sampling_frequency=args.sampling_frequency,
+            control_frequency=args.control_frequency,
+            num_generations=args.num_generations,
+            fitness_measure=args.fitness_measure,
+            offspring_size=args.offspring_size,
+            experiment_name=args.experiment_name,
+            max_modules=args.max_modules,
+            crossover_prob=args.crossover_prob,
+            mutation_prob=args.mutation_prob,
+            substrate_radius=args.substrate_radius,
+            run_simulation=args.run_simulation,
+            env_conditions=seasonal_conditions_parsed,
+            plastic_body=args.plastic_body,
+            plastic_brain=args.plastic_brain,
+            simulator=args.simulator,
         )
-
+    
     logging.info("Starting optimization process..")
 
     await optimizer.run()

@@ -9,7 +9,10 @@ class Module:
     """Base class for a module for modular robots."""
 
     _children: List[Optional[Module]]
+    # the rotation relative to the parent
     _rotation: float
+    # the rotation regarding the ground: for differentiating horizontal or vertical joints
+    _absolute_rotation: int
 
     # The following members are initialized by the ModularRobot finalize function:
     _id: Optional[int]
@@ -25,6 +28,9 @@ class Module:
         """
         self._children = [None] * num_children
         self._rotation = rotation
+        self.rgb = None
+        self.turtle_direction = None
+        self.substrate_coordinates = None
 
         self._id = None
         self._parent = None

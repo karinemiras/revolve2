@@ -11,9 +11,9 @@ class Render:
         self.grid = Grid()
 
     FRONT = 0
-    BACK = 2
+    BACK = 3
     RIGHT = 1
-    LEFT = 3
+    LEFT = 2
 
     def parse_body_to_draw(self, canvas, module, slot):
         """
@@ -28,13 +28,12 @@ class Render:
             canvas.draw_controller(module.id)
         elif isinstance(module, ActiveHinge):
             canvas.move_by_slot(slot)
-        # gotta convert to degrees. anyway, were not using 3d for now
-           # Canvas.rotating_orientation += module,module.rotation
+            Canvas.rotating_orientation = module._absolute_rotation
             canvas.draw_hinge(module.id)
             canvas.draw_connector_to_parent()
         elif isinstance(module, Brick):
             canvas.move_by_slot(slot)
-           # Canvas.rotating_orientation += module,module.rotation
+            Canvas.rotating_orientation = module._absolute_rotation
             canvas.draw_module(module.id)
             canvas.draw_connector_to_parent()
 
