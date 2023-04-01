@@ -38,7 +38,7 @@ class BrainCpgNetworkNeighbour(Brain, ABC):
             active_hinges, connections, body
         )
 
-        weight_matrix = cpg_network_structure.make_weight_matrix(
+        weight_matrix = cpg_network_structure.make_connection_weights_matrix(
             {
                 cpg: weight
                 for cpg, weight in zip(cpg_network_structure.cpgs, internal_weights)

@@ -20,6 +20,11 @@ from revolve2.core.database.serializers import FloatSerializer, StatesSerializer
 from revolve2.core.optimization import ProcessIdGen
 from revolve2.core.modular_robot import Measure
 
+from extractstates import *
+from revolve2.core.physics.environment_actor_controller import (
+    EnvironmentActorController,
+)
+
 from revolve2.core.optimization.ea.generic_ea import EAOptimizer
 import numpy as np
 import pprint
@@ -210,7 +215,7 @@ class Optimizer(EAOptimizer[Genotype, float]):
     def _init_runner(self) -> None:
         self._runner = {}
         for env in self.env_conditions:
-            self._runner[env] = (LocalRunner(LocalRunner.SimParams(),
+            self._runner[env] = (LocalRunner(
                                               headless=True,
                                               env_conditions=self.env_conditions[env],
                                               # TODO : get this a param from config
@@ -292,10 +297,9 @@ class Optimizer(EAOptimizer[Genotype, float]):
                 simulation_time=self._simulation_time,
                 sampling_frequency=self._sampling_frequency,
                 control_frequency=self._control_frequency,
-                control=self._control,
+
             )
 
-            self._controllers = []
             phenotypes = []
             queried_substrates = []
 
@@ -307,8 +311,8 @@ class Optimizer(EAOptimizer[Genotype, float]):
 
                 actor, controller = phenotype.make_actor_and_controller()
                 bounding_box = actor.calc_aabb()
-                self._controllers.append(controller)
-                env = Environment()
+
+                env = Environment(EnvironmentActorController(controller))
 
                 x_rotation_degrees = float(self.env_conditions[cond][2])
                 robot_rotation = x_rotation_degrees * np.pi / 180
@@ -334,6 +338,7 @@ class Optimizer(EAOptimizer[Genotype, float]):
 
             if self._run_simulation:
                 states = await self._runner[cond].run_batch(batch)
+                states = extracts_states(states)
             else:
                 states = None
 

@@ -20,6 +20,11 @@ from revolve2.core.database.serializers import DbFloat
 import pprint
 import numpy as np
 from ast import literal_eval
+from revolve2.core.physics.environment_actor_controller import (
+    EnvironmentActorController,
+)
+
+
 from revolve2.runners.isaacgym import LocalRunner
 from extractstates import *
 
@@ -30,8 +35,8 @@ class Simulator:
 
         self.study = 'default_study'
         self.experiments_name = ['defaultexperiment']
-        self.runs = list(range(1, 1+1))
-        self.generations = [100]
+        self.runs = list(range(1, 2+1))
+        self.generations = [3]
         self.bests = 1
         # 'all' selects best from all individuals
         # 'gens' selects best from chosen generations
@@ -130,10 +135,12 @@ class Simulator:
 
                     render.render_robot(phenotype.body.core, img_path)
 
-                    actor, self._controller = phenotype.make_actor_and_controller()
+                    actor, controller = phenotype.make_actor_and_controller()
                     bounding_box = actor.calc_aabb()
 
-                    env = Environment()
+                    env = Environment(EnvironmentActorController(controller))
+                    # env.static_geometries.extend(self._TERRAIN.static_geometry)
+
                     x_rotation_degrees = float(env_conditions[env_conditions_id][2])
                     robot_rotation = x_rotation_degrees * np.pi / 180
 
@@ -142,7 +149,7 @@ class Simulator:
                             actor,
                             Vector3([0.0, 0.0,  bounding_box.size.z / 2.0 - bounding_box.offset.z]),
                             Quaternion.from_eulers([robot_rotation, 0, 0]),
-                            [0.0 for _ in self._controller.get_dof_targets()],
+                            [0.0 for _ in controller.get_dof_targets()],
                         )
                     )
 
@@ -151,10 +158,9 @@ class Simulator:
                          simulation_time=simulation_time,
                          sampling_frequency=sampling_frequency,
                          control_frequency=control_frequency,
-                         control=self._control,
                      )
                     batch.environments.append(env)
-                    runner = LocalRunner(LocalRunner.SimParams(),
+                    runner = LocalRunner(
                                          headless=False,
                                          env_conditions=env_conditions[env_conditions_id],
                                          loop='open')
@@ -166,9 +172,7 @@ class Simulator:
                                 generation=0, simulation_time=simulation_time)
                     pprint.pprint(m.measure_all_non_relative())
 
-    def _control(self, dt: float, control: ActorControl) -> None:
-        self._controller.step(dt)
-        control.set_dof_targets(0, 0, self._controller.get_dof_targets())
+
 
 
 async def main() -> None:

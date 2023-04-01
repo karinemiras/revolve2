@@ -26,7 +26,11 @@ import numpy as np
 import pprint
 
 from extractstates import *
+from revolve2.core.physics.environment_actor_controller import (
+    EnvironmentActorController,
+)
 
+from revolve2.standard_resources import terrains
 
 from revolve2.core.physics.running import (
     ActorControl,
@@ -44,6 +48,9 @@ from revolve2.runners.isaacgym import LocalRunner as LocalRunnerI
 
 
 class Optimizer(EAOptimizer[Genotype, float]):
+
+    _TERRAIN = terrains.flat()
+
     _process_id: int
 
     _runner: Runner
@@ -224,14 +231,13 @@ class Optimizer(EAOptimizer[Genotype, float]):
         for env in self.env_conditions:
             if self._simulator == 'isaac':
 
-                self._runner[env] = (LocalRunnerI(LocalRunnerI.SimParams(),
+                self._runner[env] = (LocalRunnerI(
                                                   headless=True,
                                                   env_conditions=self.env_conditions[env],
                                                   loop='closed'
                                                   ))
             elif self._simulator == 'mujoco':
-                # DOES NOT WORK FULLY YET! you might get an inertia error
-                self._runner[env] = (LocalRunnerM(headless=True))
+                self._runner[env] = (LocalRunnerM(headless=True, loop='closed'))
 
     def _select_parents(
         self,
@@ -304,20 +310,13 @@ class Optimizer(EAOptimizer[Genotype, float]):
         envs_queried_substrates = {}
 
         for cond in self.env_conditions:
-
-            if self._simulator == 'isaac':
-                control_function = self._control_isaac
-            elif self._simulator == 'mujoco':
-                control_function = self._control_mujoco
                 
             batch = Batch(
                 simulation_time=self._simulation_time,
                 sampling_frequency=self._sampling_frequency,
                 control_frequency=self._control_frequency,
-                control=control_function,
             )
 
-            self._controllers = []
             phenotypes = []
             queried_substrates = []
 
@@ -331,8 +330,11 @@ class Optimizer(EAOptimizer[Genotype, float]):
 
                 actor, controller = phenotype.make_actor_and_controller()
                 bounding_box = actor.calc_aabb()
-                self._controllers.append(controller)
-                env = Environment()
+
+                env = Environment(EnvironmentActorController(controller))
+
+                if self._simulator == 'mujoco':
+                    env.static_geometries.extend(self._TERRAIN.static_geometry)
 
                 x_rotation_degrees = float(self.env_conditions[cond][2])
                 robot_rotation = x_rotation_degrees * np.pi / 180
@@ -356,7 +358,8 @@ class Optimizer(EAOptimizer[Genotype, float]):
 
             if self._run_simulation:
                 states = await self._runner[cond].run_batch(batch)
-                states = extracts_states(states)
+                if self._simulator == 'isaac':
+                    states = extracts_states(states)
             else:
                 states = None
 
@@ -411,21 +414,6 @@ class Optimizer(EAOptimizer[Genotype, float]):
                 envs_measures_genotypes[any_cond][idg]['body_changes'] = 0
 
         return envs_measures_genotypes
-
-    def _control_isaac(self, dt: float, control: ActorControl, results) -> None:
-
-        for control_i, controller in enumerate(self._controllers):
-
-            controller.set_sensors(results[control_i]['pos'])
-            controller.step(dt)
-            control.set_dof_targets(control_i, 0, controller.get_dof_targets())
-
-    def _control_mujoco(
-            self, environment_index: int, dt: float, control: ActorControl
-    ) -> None:
-        controller = self._controllers[environment_index]
-        controller.step(dt)
-        control.set_dof_targets(environment_index, 0, controller.get_dof_targets())
             
     def _on_generation_checkpoint(self, session: AsyncSession) -> None:
         session.add(

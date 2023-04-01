@@ -159,11 +159,8 @@ class EAOptimizer(Process, Generic[Genotype, Measure]):
         states_serializer: List[Tuple[float, State]],
         measures_type: Type[Measure],
         measures_serializer: Type[Serializer[Measure]],
-        fitness_type: Type[Fitness],
-        fitness_serializer: Type[Serializer[Fitness]],
         offspring_size: int,
         initial_population: List[Genotype],
-        offspring_size: int,
         fitness_measure: str,
         experiment_name: str,
         max_modules: int,
@@ -223,7 +220,6 @@ class EAOptimizer(Process, Generic[Genotype, Measure]):
             measures_table=self.__measures_serializer.identifying_table(),
             states_table=self.__states_serializer.identifying_table(),
             fitness_measure=self.__fitness_measure,
-            offspring_size=self.__offspring_size,
             experiment_name=self.__experiment_name,
             max_modules=self.__max_modules,
             crossover_prob=self.__crossover_prob,
@@ -321,6 +317,7 @@ class EAOptimizer(Process, Generic[Genotype, Measure]):
             return False
 
         self.__ea_optimizer_id = eo_row.id
+        self.__fitness_measure = eo_row.fitness_measure
         self.__offspring_size = eo_row.offspring_size
         self.__experiment_name = eo_row.experiment_name
         self.__max_modules = eo_row.max_modules
@@ -360,6 +357,8 @@ class EAOptimizer(Process, Generic[Genotype, Measure]):
         self.__generation_index = state_row.generation_index
         self.__process_id_gen = process_id_gen
         self.__process_id_gen.set_state(state_row.processid_state)
+
+        any_cond = list(self.__env_conditions.keys())[0]
 
         gen_rows = (
             (

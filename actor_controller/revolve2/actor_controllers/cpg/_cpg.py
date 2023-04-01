@@ -53,13 +53,7 @@ class CpgActorController(ActorController):
         return state + dt / 6 * (A1 + 2 * (A2 + A3) + A4)
 
     def get_dof_targets(self) -> List[float]:
-        print(list(
-            np.clip(
-                self._state[0 : self._num_output_neurons],
-                a_min=-self._dof_ranges,
-                a_max=self._dof_ranges,
-            )
-        ))
+
         return list(
             np.clip(
                 self._state[0 : self._num_output_neurons],

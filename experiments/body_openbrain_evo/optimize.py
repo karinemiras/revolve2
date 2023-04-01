@@ -32,12 +32,10 @@ async def main() -> None:
 
     # random number generator
     rng = Random()
-    seed = 0.1737136447742189 #random()
-    print(seed)
-    rng.seed(seed)
+    rng.seed(random())
 
     # database
-    database = open_async_database_sqlite(f'{mainpath}/{args.study_name}/{args.experiment_name}/run_{args.run}')
+    database = open_async_database_sqlite(f'{mainpath}/{args.study_name}/{args.experiment_name}/run_{args.run}', create=True)
 
     # process id generator
     process_id_gen = ProcessIdGen()
@@ -48,6 +46,7 @@ async def main() -> None:
 
     process_id = process_id_gen.gen()
 
+    # TODO: recovery is broken is rebase. gotta fix!
     maybe_optimizer = await Optimizer.from_database(
         database=database,
         process_id=process_id,

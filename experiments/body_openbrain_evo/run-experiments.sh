@@ -1,5 +1,5 @@
 #!/bin/bash
-# run this script from the root (revolve folder): ./experiments/bodybrain_evo/run-experiments.sh PARAMSFILE
+# run this script from the root (revolve folder): ./experiments/body_openbrain_evo/run-experiments.sh PARAMSFILE
 
 DIR="$(dirname "${BASH_SOURCE[0]}")"
 study="$(basename $DIR)"

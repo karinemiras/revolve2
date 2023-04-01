@@ -1,9 +1,11 @@
 import math
+import logging
 import multiprocessing as mp
 import os
 import tempfile
 from dataclasses import dataclass
-from typing import List, Optional
+from typing import Callable, List, Optional
+import copy
 
 import colored
 import numpy as np
@@ -247,7 +249,7 @@ class LocalRunner(Runner):
                     # TODO make all this configurable.
                     props = self._gym.get_actor_dof_properties(env, actor_handle)
                     props["driveMode"].fill(gymapi.DOF_MODE_POS)
-                    props["stiffness"].fill(5.0)
+                    props["stiffness"].fill(1.0) #5.0
                     props["damping"].fill(0.05)
                     self._gym.set_actor_dof_properties(env, actor_handle, props)
                     self._gym.create_box(self._sim, 100, 100, 100)
@@ -318,6 +320,11 @@ class LocalRunner(Runner):
             # sample initial state
             self._append_states(results, 0.0)
 
+            self._gym.subscribe_viewer_keyboard_event(self._viewer, gymapi.KEY_SPACE, "space_shoot")
+
+            # VISUAL DEBUG2: set to false if you wanna use spacebar to start sim (and possibly the step by step)
+            do_physics_step = True
+
             while (
                 time := self._gym.get_sim_time(self._sim)
             ) < self._batch.simulation_time:
@@ -329,14 +336,11 @@ class LocalRunner(Runner):
 
                     dof_states = self._dof_states(results)
 
-                    control = ActorControl()
-                    if self._loop == 'closed':
-                        self._batch.control(control_step, control, dof_states)
-                    else:
-                        self._batch.control(control_step, control)
                     controls = [ActorControl() for _ in self._batch.environments]
+                    control_i = 0
                     for control, env in zip(controls, self._batch.environments):
-                        env.controller.control(control_step, control)
+                        env.controller.control(control_step, control, self._loop, dof_states[control_i]['pos'])
+                        control_i = control_i +1
 
                     dof_targets = [
                         (env_index, actor_index, targets)
@@ -480,7 +484,6 @@ class LocalRunner(Runner):
 
     def __init__(
         self,
-        sim_params: gymapi.SimParams,
         env_conditions: List,
         loop: str,
         headless: bool = False,
@@ -537,7 +540,7 @@ class LocalRunner(Runner):
         return sim_params
 
     async def run_batch(self, batch: Batch) -> BatchResults:
-        print(
+
         logging.info(
             "\n--- Begin Isaac Gym log ----------------------------------------------------------------------------"
         )
@@ -595,8 +598,10 @@ class LocalRunner(Runner):
             max_gpu_contact_pairs=max_gpu_contact_pairs,
             terrain_generator=terrain_generator,
             sim_params=sim_params,
+            env_conditions=env_conditions,
+            loop=loop,
         )
-        _Simulator = cls._Simulator(batch, sim_params, headless, real_time, env_conditions, loop)
+
         batch_results = _Simulator.run()
         _Simulator.cleanup()
         for environment_results in batch_results.environment_results:

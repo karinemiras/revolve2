@@ -50,12 +50,14 @@ class LocalRunner(Runner):
     _headless: bool
     _start_paused: bool
     _num_simulators: int
+    _loop: str
 
     def __init__(
         self,
         headless: bool = False,
         start_paused: bool = False,
         num_simulators: int = 1,
+        loop: str = "open",
     ):
         """
         Initialize this object.
@@ -75,6 +77,7 @@ class LocalRunner(Runner):
         self._headless = headless
         self._start_paused = start_paused
         self._num_simulators = num_simulators
+        self._loop = loop
 
     @classmethod
     def _run_environment(
@@ -142,7 +145,8 @@ class LocalRunner(Runner):
             if time >= last_control_time + control_step:
                 last_control_time = math.floor(time / control_step) * control_step
                 control_user = ActorControl()
-                env_descr.controller.control(control_step, control_user)
+                # TODO: closed loop inputs (also fix loop param)
+                env_descr.controller.control(control_step, control_user, 'open', np.array([0,0,0,0,0,0,0,0]))
                 actor_targets = control_user._dof_targets
                 actor_targets.sort(key=lambda t: t[0])
                 targets = [
