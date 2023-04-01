@@ -36,7 +36,7 @@ source .venv/bin/activate
 
 git clone https://github.com/karinemiras/revolve2.git
 
-git checkout plasticoding
+git checkout plasticoding_v2
 
 ./revolve2/dev_requirements.sh
 
