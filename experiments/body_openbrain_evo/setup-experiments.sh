@@ -30,7 +30,7 @@ done
 while true
 	do
 
-    printf "\n  >>>> loop ... \n"
+   # printf "\n  >>>> loop ... \n"
 
     # discover free terminals
 
@@ -45,7 +45,7 @@ while true
     for obj in ${arr[@]}; do
 
         if [[ "$obj" == *"screen_"* ]]; then
-          printf "\n screen ${obj} is on\n"
+       #   printf "\n screen ${obj} is on\n"
           screen="$(cut -d'_' -f2 <<<"$obj")"
           active_experiments+=("$(cut -d'_' -f3 -<<<"$obj")_$(cut -d'_' -f4 -<<<"$obj")")
           active_screens+=($screen)
@@ -70,7 +70,7 @@ while true
         for experiment in "${experiments[@]}"
         do
 
-         printf  "\n${experiment}_${run} \n"
+      #   printf  "\n${experiment}_${run} \n"
          file="${outputs_path}/${study}/${experiment}_${run}.log";
 
          #check experiments status
@@ -79,7 +79,7 @@ while true
               lastgen=$(grep -c "Finished generation" $file);
               finishedgen=$(grep -c "Finished optimizing." $file);
 
-              echo "latest finished gens ${lastgen}";
+            #  echo "latest finished gens ${lastgen}";
 
                if [ "$finishedgen" == 0 ]; then
                  unfinished+=("${experiment}_${run}")
@@ -91,7 +91,7 @@ while true
              fi
          else
              # not started yet
-             echo " None";
+        #     echo " None";
                unfinished+=("${experiment}_${run}")
                # only if not already running
                 if [[ ! " ${active_experiments[@]} " =~ " ${experiment}_${run} " ]]; then
@@ -119,7 +119,8 @@ while true
         screen -d -m -S screen_${free_screens[$p]}_${to_d} -L -Logfile ${outputs_path}/${study}/${exp}_${run}".log" \
                python3  experiments/${study_path}/optimize.py --mainpath ${outputs_path} \
                --experiment_name ${exp} --seasons_conditions ${seasons_conditions[$idx]} --run ${run} --study=${study} \
-               --num_generations ${num_generations} --population_size ${population_size} --offspring_size ${offspring_size};
+               --num_generations ${num_generations} --population_size ${population_size} --offspring_size ${offspring_size} \
+               --simulator mujoco;
 
         printf "\n >> (re)starting screen_${free_screens[$p]}_${to_d} \n\n"
         p=$((${p}+1))
@@ -136,7 +137,7 @@ while true
      else
          printf " \n making video..."
          screen -d -m -S videos ffmpeg -f x11grab -r 25 -i :1 -qscale 0 $file;
-         python3 experiments/bodybrain_evo/watch_robots.py;
+         python3 experiments/body_openbrain_evo/watch_robots.py;
          killall screen;
          printf " \n finished video!"
       fi

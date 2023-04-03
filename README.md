@@ -8,7 +8,10 @@ It consists of multiple smaller python packages and optional supplementary packa
 ## Documentation
 [ci-group.github.io/revolve2](https://ci-group.github.io/revolve2/)
 
-## Installation and instructions for the plasticoding branch.
+## Installation and instructions for the plasticoding_v2 branch.
+
+The plasticoding_v2 branch in this fork is rebased up to **v0.3.8-beta1** of the main branch in the original repo.
+
 
 **Simulators:**
 
@@ -64,7 +67,7 @@ pip install greenlet
 
 To **Run** a **single** experiment:
 
-python3 experiments/body_openbrain_evo/optimize.py --mainpath yourpath
+python3 experiments/body_openbrain_evo/optimize.py --mainpath yourpath --simulator isaac
 
 or
 

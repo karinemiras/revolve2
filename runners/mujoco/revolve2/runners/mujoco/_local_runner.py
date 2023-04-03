@@ -253,7 +253,9 @@ class LocalRunner(Runner):
 
         env_mjcf.compiler.angle = "radian"
 
-        env_mjcf.option.timestep = 0.002
+        # 0.002 was resulting in:  Nan, Inf or huge value in QVEL at DOF 0. The simulation is unstable.
+        #env_mjcf.option.timestep = 0.002
+        env_mjcf.option.timestep = 0.0002
         env_mjcf.option.integrator = "RK4"
 
         env_mjcf.option.gravity = [0, 0, -9.81]
