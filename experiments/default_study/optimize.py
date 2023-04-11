@@ -55,6 +55,9 @@ async def main() -> None:
         rng=rng,
         process_id_gen=process_id_gen,
         run_simulation=args.run_simulation,
+        loop=args.loop,
+        body_phenotype=args.body_phenotype,
+        headless=args.headless,
         num_generations=args.num_generations,
         simulator=args.simulator
     )
@@ -65,7 +68,7 @@ async def main() -> None:
 
         initial_population = [
             random_genotype(innov_db_body, innov_db_brain, rng, args.num_initial_mutations,
-                            len(seasonal_conditions_parsed), args.plastic_body, args.plastic_brain)
+                            len(seasonal_conditions_parsed), args.plastic_body, args.plastic_brain, args.loop, args.body_phenotype)
             for _ in range(args.population_size)
         ]
 
@@ -89,6 +92,9 @@ async def main() -> None:
             mutation_prob=args.mutation_prob,
             substrate_radius=args.substrate_radius,
             run_simulation=args.run_simulation,
+            loop=args.loop,
+            body_phenotype=args.body_phenotype,
+            headless=args.headless,
             env_conditions=seasonal_conditions_parsed,
             plastic_body=args.plastic_body,
             plastic_brain=args.plastic_brain,

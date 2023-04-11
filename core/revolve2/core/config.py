@@ -138,14 +138,29 @@ class Config():
             help="isaac or mujoco",
         )
 
-        #TODO: implement param (functionality exists though)
-        # parser.add_argument(
-        #     "--loop",
-        #     required=False,
-        #     default="open",
-        #     type=str,
-        #     help="open or closed",
-        # )
+        parser.add_argument(
+            "--headless",
+            required=False,
+            default=1,
+            type=int,
+            help="1=True or 0=False",
+        )
+
+        parser.add_argument(
+            "--loop",
+            required=False,
+            default="open",
+            type=str,
+            help="open or closed",
+        )
+
+        parser.add_argument(
+            "--body_phenotype",
+            required=False,
+            default="evolvable",
+            type=str,
+            help="evolvable, or some fixed morphology, e.g., spider.",
+        )
 
         parser.add_argument(
             "--mainpath",

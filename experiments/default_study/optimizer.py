@@ -2,17 +2,16 @@ import math
 import pickle
 from random import Random
 from typing import List, Tuple
-import copy
 
 import multineat
 import sqlalchemy
-from genotype import Genotype, GenotypeSerializer, crossover, develop, mutate
+
 from pyrr import Quaternion, Vector3
 from sqlalchemy.ext.asyncio import AsyncEngine
 from sqlalchemy.ext.asyncio.session import AsyncSession
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.future import select
-
+from genotype import Genotype, GenotypeSerializer, crossover, develop, mutate
 import revolve2.core.optimization.ea.generic_ea.population_management as population_management
 import revolve2.core.optimization.ea.generic_ea.selection as selection
 from revolve2.actor_controller import ActorController
@@ -24,28 +23,26 @@ from revolve2.core.modular_robot import Measure
 from revolve2.core.optimization.ea.generic_ea import EAOptimizer
 import numpy as np
 import pprint
-
 from extractstates import *
-from revolve2.core.physics.environment_actor_controller import (
-    EnvironmentActorController,
-)
-
-from revolve2.standard_resources import terrains
 
 from revolve2.core.physics.running import (
     ActorControl,
     ActorState,
     Batch,
-    BatchResults,
     Environment,
     PosedActor,
     Runner,
 )
-from revolve2.runners.mujoco import LocalRunner as LocalRunnerM
+from revolve2.core.physics.environment_actor_controller import (
+    EnvironmentActorController,
+)
 
 # isaac import will probably break on mac, so u can comment it out
 from revolve2.runners.isaacgym import LocalRunner as LocalRunnerI
 
+from revolve2.runners.mujoco import LocalRunner as LocalRunnerM
+
+from revolve2.standard_resources import terrains
 
 class Optimizer(EAOptimizer[Genotype, float]):
 
@@ -75,6 +72,9 @@ class Optimizer(EAOptimizer[Genotype, float]):
     _mutation_prob: float
     _substrate_radius: str
     _run_simulation: bool
+    _loop: str
+    _body_phenotype: str
+    _headless: bool
     _env_conditions: List
     _plastic_body: int
     _plastic_brain: int
@@ -102,6 +102,9 @@ class Optimizer(EAOptimizer[Genotype, float]):
         mutation_prob: float,
         substrate_radius: str,
         run_simulation: bool,
+        loop: str,
+        body_phenotype: str,
+        headless: bool,
         env_conditions: List,
         plastic_body: int,
         plastic_brain: int,
@@ -134,6 +137,9 @@ class Optimizer(EAOptimizer[Genotype, float]):
         self._process_id = process_id
         self._env_conditions = env_conditions
         self._simulator = simulator
+        self._loop = loop
+        self._headless = headless
+        self._body_phenotype = body_phenotype
         self._init_runner()
         self._innov_db_body = innov_db_body
         self._innov_db_brain = innov_db_brain
@@ -149,7 +155,7 @@ class Optimizer(EAOptimizer[Genotype, float]):
         self._crossover_prob = crossover_prob
         self._mutation_prob = mutation_prob
         self._substrate_radius = substrate_radius
-        self._plastic_body = plastic_body,
+        self._plastic_body = plastic_body
         self._plastic_brain = plastic_brain
         self._run_simulation = run_simulation
 
@@ -170,25 +176,33 @@ class Optimizer(EAOptimizer[Genotype, float]):
         innov_db_body: multineat.InnovationDatabase,
         innov_db_brain: multineat.InnovationDatabase,
         run_simulation: int,
+        loop: str,
+        body_phenotype: str,
+        headless: bool,
         num_generations: int,
         simulator: str
     ) -> bool:
+
         if not await super().ainit_from_database(
-            database=database,
-            session=session,
-            process_id=process_id,
-            process_id_gen=process_id_gen,
-            genotype_type=Genotype,
-            genotype_serializer=GenotypeSerializer,
-            states_serializer=StatesSerializer,
-            measures_type=float,
-            measures_serializer=FloatSerializer,
-            run_simulation=run_simulation,
+                database=database,
+                session=session,
+                process_id=process_id,
+                process_id_gen=process_id_gen,
+                genotype_type=Genotype,
+                genotype_serializer=GenotypeSerializer,
+                states_serializer=StatesSerializer,
+                measures_type=float,
+                measures_serializer=FloatSerializer,
+                run_simulation=run_simulation,
         ):
             return False
 
         self._process_id = process_id
         self._simulator = simulator
+        #TODO: save loop and body_phenotype in the database later
+        self._loop = loop
+        self._body_phenotype = body_phenotype
+        self._headless= headless
         self._init_runner()
 
         opt_row = (
@@ -220,7 +234,6 @@ class Optimizer(EAOptimizer[Genotype, float]):
         self._innov_db_body.Deserialize(opt_row.innov_db_body)
         self._innov_db_brain = innov_db_brain
         self._innov_db_brain.Deserialize(opt_row.innov_db_brain)
-        self._run_simulation = run_simulation
 
 
         return True
@@ -229,15 +242,16 @@ class Optimizer(EAOptimizer[Genotype, float]):
         self._runner = {}
 
         for env in self.env_conditions:
+            print(self._headless,'dsfdsfsfs')
             if self._simulator == 'isaac':
-
                 self._runner[env] = (LocalRunnerI(
-                                                  headless=True,
+                                                  headless=self._headless,
                                                   env_conditions=self.env_conditions[env],
-                                                  loop='closed'
-                                                  ))
+                                                  loop=self._loop))
             elif self._simulator == 'mujoco':
-                self._runner[env] = (LocalRunnerM(headless=True, loop='closed'))
+                self._runner[env] = (LocalRunnerM(headless=self._headless,
+                                                  loop=self._loop,
+                                                  num_simulators=64))
 
     def _select_parents(
         self,
@@ -289,13 +303,13 @@ class Optimizer(EAOptimizer[Genotype, float]):
         if self._rng.uniform(0, 1) > self.crossover_prob:
             return parents[0]
         else:
-            return crossover(parents[0], parents[1], self._rng)
+            return crossover(parents[0], parents[1], self._rng, self._loop)
 
     def _mutate(self, genotype: Genotype) -> Genotype:
         if self._rng.uniform(0, 1) > self.mutation_prob:
             return genotype
         else:
-            return mutate(genotype, self._innov_db_body, self._innov_db_brain, self._rng)
+            return mutate(genotype, self._innov_db_body, self._innov_db_brain, self._rng, self._loop)
 
     async def _evaluate_generation(
             self,
@@ -324,13 +338,13 @@ class Optimizer(EAOptimizer[Genotype, float]):
                 phenotype, queried_substrate = develop(genotype, genotype.mapping_seed, self.max_modules,
                                                        self.substrate_radius,
                                                        self.env_conditions[cond], len(self.env_conditions),
-                                                       self.plastic_body, self.plastic_brain)
+                                                       self.plastic_body, self.plastic_brain,
+                                                       self._loop, self._body_phenotype )
                 phenotypes.append(phenotype)
                 queried_substrates.append(queried_substrate)
 
                 actor, controller = phenotype.make_actor_and_controller()
                 bounding_box = actor.calc_aabb()
-
                 env = Environment(EnvironmentActorController(controller))
 
                 if self._simulator == 'mujoco':
@@ -338,6 +352,7 @@ class Optimizer(EAOptimizer[Genotype, float]):
 
                 x_rotation_degrees = float(self.env_conditions[cond][2])
                 robot_rotation = x_rotation_degrees * np.pi / 180
+
                 env.actors.append(
                     PosedActor(
                         actor,
@@ -386,6 +401,7 @@ class Optimizer(EAOptimizer[Genotype, float]):
         novelty_archive = None
 
         return envs_measures_genotypes, envs_states_genotypes, novelty_archive
+
 
     def measure_plasticity(self, envs_queried_substrates, envs_measures_genotypes):
 

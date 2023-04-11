@@ -3,7 +3,7 @@ Visualize and run a modular robot using Mujoco.
 """
 
 from pyrr import Quaternion, Vector3
-
+import argparse
 from revolve2.actor_controller import ActorController
 from revolve2.core.physics.running import ActorControl, Batch, Environment, PosedActor
 
@@ -24,26 +24,48 @@ from revolve2.core.physics.environment_actor_controller import (
     EnvironmentActorController,
 )
 
+from revolve2.runners.mujoco import LocalRunner as LocalRunnerM
+from revolve2.runners.isaacgym import LocalRunner  as LocalRunnerI
 
-from revolve2.runners.isaacgym import LocalRunner
 from extractstates import *
+from body_spider import *
+
+from revolve2.standard_resources import terrains
+
 
 class Simulator:
     _controller: ActorController
 
     async def simulate(self) -> None:
 
-        self.study = 'default_study'
-        self.experiments_name = ['defaultexperiment']
-        self.runs = list(range(1, 2+1))
-        self.generations = [3]
+        parser = argparse.ArgumentParser()
+        parser.add_argument("study")
+        parser.add_argument("experiments")
+        parser.add_argument("runs")
+        parser.add_argument("generations")
+        parser.add_argument("mainpath")
+        parser.add_argument("simulator")
+        parser.add_argument("loop")
+        parser.add_argument("body_phenotype")
+
+        args = parser.parse_args()
+
+        self.study = args.study
+        self.experiments_name = args.experiments.split(',')
+        self.runs = list(range(1, int(args.runs) + 1))
+        self.generations = list(map(int, args.generations.split(',')))
+        mainpath = args.mainpath
+        self.simulator = args.simulator
+        self.loop = args.loop
+        self.body_phenotype = args.body_phenotype
+
         self.bests = 1
         # 'all' selects best from all individuals
         # 'gens' selects best from chosen generations
         self.bests_type = 'gens'
 
-        # REMEMBER TO CHANGE YOUR MAINPATH!
-        mainpath = "/home/ripper8/projects/working_data"
+        if self.simulator == 'mujoco':
+            self._TERRAIN = terrains.flat()
 
         for experiment_name in self.experiments_name:
             print('\n', experiment_name)
@@ -129,7 +151,8 @@ class Simulator:
 
                     phenotype, queried_substrate = develop(genotype, genotype.mapping_seed, max_modules,
                                                            substrate_radius, env_conditions[env_conditions_id],
-                                                            len(env_conditions), plastic_body, plastic_brain)
+                                                            len(env_conditions), plastic_body, plastic_brain,
+                                                            self.loop, self.body_phenotype )
                     render = Render()
                     img_path = f'{path}/currentinsim.png'
 
@@ -137,9 +160,10 @@ class Simulator:
 
                     actor, controller = phenotype.make_actor_and_controller()
                     bounding_box = actor.calc_aabb()
-
                     env = Environment(EnvironmentActorController(controller))
-                    # env.static_geometries.extend(self._TERRAIN.static_geometry)
+
+                    if self.simulator == 'mujoco':
+                        env.static_geometries.extend(self._TERRAIN.static_geometry)
 
                     x_rotation_degrees = float(env_conditions[env_conditions_id][2])
                     robot_rotation = x_rotation_degrees * np.pi / 180
@@ -160,20 +184,24 @@ class Simulator:
                          control_frequency=control_frequency,
                      )
                     batch.environments.append(env)
-                    runner = LocalRunner(
-                                         headless=False,
-                                         env_conditions=env_conditions[env_conditions_id],
-                                         loop='open')
-                    states = await runner.run_batch(batch)
-                    states = extracts_states(states)
 
-                    # TODO: fix extra states
+                    if self.simulator == 'isaac':
+                        runner = LocalRunnerI(
+                            headless=False,
+                            env_conditions=env_conditions[env_conditions_id],
+                            real_time=False,
+                            loop=self.loop)
+
+                    elif self.simulator == 'mujoco':
+                        runner = LocalRunnerM(headless=False, loop=self.loop)
+
+                    states = await runner.run_batch(batch)
+                    if self.simulator == 'isaac':
+                        states = extracts_states(states)
+
                     m = Measure(states=states, genotype_idx=0, phenotype=phenotype,
                                 generation=0, simulation_time=simulation_time)
                     pprint.pprint(m.measure_all_non_relative())
-
-
-
 
 async def main() -> None:
 

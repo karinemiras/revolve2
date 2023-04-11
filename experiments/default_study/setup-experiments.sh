@@ -120,28 +120,23 @@ while true
                python3  experiments/${study_path}/optimize.py --mainpath ${outputs_path} \
                --experiment_name ${exp} --seasons_conditions ${seasons_conditions[$idx]} --run ${run} --study=${study} \
                --num_generations ${num_generations} --population_size ${population_size} --offspring_size ${offspring_size} \
-               --simulator mujoco;
+               --loop ${loop} --body_phenotype ${body_phenotype};
 
         printf "\n >> (re)starting screen_${free_screens[$p]}_${to_d} \n\n"
         p=$((${p}+1))
 
     done
 
-   # if all experiments are finished, makes video
+   # if all experiments are finished, run analysis and make videos
    # (NOTE: IF THE SCREEN IS LOCKED, YOU JUST GET VIDEO WITH A LOCKED SCREEN...)
    if [ -z "$unfinished" ]; then
-       file="${outputs_path}/${study}/analysis/video_bests.mpg";
 
-     if [ -f "$file" ]; then
-        printf ""
-     else
-         printf " \n making video..."
-         screen -d -m -S videos ffmpeg -f x11grab -r 25 -i :1 -qscale 0 $file;
-         python3 experiments/body_openbrain_evo/watch_robots.py;
-         killall screen;
-         printf " \n finished video!"
-      fi
-    fi
+      printf "\nanalysis...\n"
+      ./experiments/${study_path}/run-analysis.sh
+
+      ./experiments/${study_path}/makevideos.sh
+
+   fi
 
     # use this longer period for longer experiments
     sleep $delay_setup_script;

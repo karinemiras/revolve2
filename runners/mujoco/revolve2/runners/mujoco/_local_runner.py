@@ -263,13 +263,22 @@ class LocalRunner(Runner):
         heightmaps: List[geometry.Heightmap] = []
         for geo in env_descr.static_geometries:
             if isinstance(geo, geometry.Plane):
-                env_mjcf.worldbody.add(
-                    "geom",
-                    type="plane",
-                    pos=[geo.position.x, geo.position.y, geo.position.z],
-                    size=[geo.size.x / 2.0, geo.size.y / 2.0, 1.0],
-                    rgba=[geo.color.x, geo.color.y, geo.color.z, 1.0],
-                )
+                # env_mjcf.worldbody.add(
+                #     "geom",
+                #     type="plane",
+                #     pos=[geo.position.x, geo.position.y, geo.position.z],
+                #     size=[geo.size.x / 2.0, geo.size.y / 2.0, 1.0],
+                #     rgba=[geo.color.x, geo.color.y, geo.color.z, 1.0],
+                # )
+                env_mjcf.asset.add('texture', name="grid", type="2d", builtin="checker",
+                              width="512", height="512",
+                              rgb1=".1 .2 .3", rgb2=".2 .3 .4")
+                env_mjcf.asset.add('material', name="grid", texture="grid",
+                              texrepeat="1 1", texuniform="true", reflectance="0")
+                env_mjcf.worldbody.add('geom', name="floor",
+                                  size=[geo.size.x / 2.0, geo.size.y / 2.0, 1.0],
+                                  type="plane", material="grid", condim=3)
+
             elif isinstance(geo, geometry.Heightmap):
                 env_mjcf.asset.add(
                     "hfield",

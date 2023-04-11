@@ -16,7 +16,7 @@ async def main(parser) -> None:
     generations = list(map(int, args.generations.split(',')))
     mainpath = args.mainpath
 
-    bests = 5
+    bests = 1
     path_out = f'{mainpath}/{study}/analysis/snapshots'
 
     for gen in generations:

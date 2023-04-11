@@ -18,14 +18,22 @@ from revolve2.genotypes.cppnwin.modular_robot.body_genotype_v2 import (
     random_v1 as body_random,
 )
 from revolve2.genotypes.cppnwin.modular_robot.brain_genotype_cpg_v1 import (
-    develop_v1 as brain_develop,
+    develop_v1 as brain_cpg_develop,
 )
 from revolve2.genotypes.cppnwin.modular_robot.brain_genotype_cpg_v1 import (
-    random_v1 as brain_random,
+    random_v1 as brain_cpg_random,
 )
 
+from revolve2.genotypes.cppnwin.modular_robot.brain_genotype_ann import (
+    develop_v1 as brain_ann_develop,
+)
+from revolve2.genotypes.cppnwin.modular_robot.brain_genotype_ann import (
+    random_v1 as brain_ann_random,
+)
 
-def _make_multineat_params() -> multineat.Parameters:
+from body_spider import *
+
+def _make_multineat_params_cppn() -> multineat.Parameters:
     multineat_params = multineat.Parameters()
 
     multineat_params.OverallMutationRate = 1
@@ -68,7 +76,31 @@ def _make_multineat_params() -> multineat.Parameters:
     return multineat_params
 
 
-_MULTINEAT_PARAMS = _make_multineat_params()
+def _make_multineat_params_ann() -> multineat.Parameters:
+    multineat_params = multineat.Parameters()
+
+    multineat_params.OverallMutationRate = 1
+    multineat_params.MutateAddLinkProb = 0.5
+    multineat_params.MutateRemLinkProb = 0.5
+    multineat_params.MutateAddNeuronProb = 0.2
+    multineat_params.MutateRemSimpleNeuronProb = 0.2
+    multineat_params.RecurrentProb = 0.0
+    multineat_params.MutateWeightsProb = 0.8
+    multineat_params.WeightMutationMaxPower = 0.5
+    multineat_params.WeightReplacementMaxPower = 1.0
+    multineat_params.MutateActivationAProb = 0
+    multineat_params.ActivationAMutationMaxPower = 0.5
+    multineat_params.MinActivationA = 0.05
+    multineat_params.MaxActivationA = 6.0
+    multineat_params.MaxWeight = 8.0
+    multineat_params.MutateNeuronActivationTypeProb = 0
+    multineat_params.MutateOutputActivationFunction = False
+    multineat_params.MutateNeuronTraitsProb = 0.0
+    multineat_params.MutateLinkTraitsProb = 0.0
+
+    multineat_params.AllowLoops = False
+
+    return multineat_params
 
 
 @dataclass
@@ -154,27 +186,50 @@ def random(
     n_env_conditions: int,
     plastic_body: int,
     plastic_brain: int,
+    loop: str,
+    body_phenotype: str,
 ) -> Genotype:
     multineat_rng = _multineat_rng_from_random(rng)
 
+    if loop == 'open':
+        _MULTINEAT_PARAMS_BRAIN = _make_multineat_params_cppn()
+
+        brain = brain_cpg_random(
+            innov_db_brain,
+            multineat_rng,
+            _MULTINEAT_PARAMS_BRAIN,
+            multineat.ActivationFunction.SIGNED_SINE,
+            num_initial_mutations,
+            n_env_conditions,
+            plastic_brain,
+        )
+
+    if loop == 'closed':
+        _MULTINEAT_PARAMS_BRAIN = _make_multineat_params_ann()
+
+        brain = brain_ann_random(
+            innov_db_brain,
+            multineat_rng,
+            _MULTINEAT_PARAMS_BRAIN,
+            multineat.ActivationFunction.TANH,
+            num_initial_mutations,
+            n_env_conditions,
+            plastic_brain,
+        )
+
+    # TODO: when body is not evolvable, this gets generated anyway
+    #  remove it dynamically! here and in mutation and crossover
+    #if body_phenotype == 'evolvable':
+
+    _MULTINEAT_PARAMS_BODY = _make_multineat_params_cppn()
     body = body_random(
         innov_db_body,
         multineat_rng,
-        _MULTINEAT_PARAMS,
+        _MULTINEAT_PARAMS_BODY,
         multineat.ActivationFunction.TANH,
         num_initial_mutations,
         n_env_conditions,
         plastic_body,
-    )
-
-    brain = brain_random(
-        innov_db_brain,
-        multineat_rng,
-        _MULTINEAT_PARAMS,
-        multineat.ActivationFunction.SIGNED_SINE,
-        num_initial_mutations,
-        n_env_conditions,
-        plastic_brain,
     )
 
     mapping_seed = rng.randint(0, 2 ** 31)
@@ -187,12 +242,20 @@ def mutate(
     innov_db_body: multineat.InnovationDatabase,
     innov_db_brain: multineat.InnovationDatabase,
     rng: Random,
+    loop: str,
 ) -> Genotype:
     multineat_rng = _multineat_rng_from_random(rng)
 
+    if loop == 'open':
+        _MULTINEAT_PARAMS_BRAIN = _make_multineat_params_cppn()
+    if loop == 'closed':
+        _MULTINEAT_PARAMS_BRAIN = _make_multineat_params_ann()
+
+    _MULTINEAT_PARAMS_BODY = _make_multineat_params_cppn()
+
     return Genotype(
-        mutate_v1(genotype.body, _MULTINEAT_PARAMS, innov_db_body, multineat_rng),
-        mutate_v1(genotype.brain, _MULTINEAT_PARAMS, innov_db_brain, multineat_rng),
+        mutate_v1(genotype.body, _MULTINEAT_PARAMS_BODY, innov_db_body, multineat_rng),
+        mutate_v1(genotype.brain, _MULTINEAT_PARAMS_BRAIN, innov_db_brain, multineat_rng),
         genotype.mapping_seed,
     )
 
@@ -201,14 +264,22 @@ def crossover(
     parent1: Genotype,
     parent2: Genotype,
     rng: Random,
+    loop: str,
 ) -> Genotype:
     multineat_rng = _multineat_rng_from_random(rng)
+
+    if loop == 'open':
+        _MULTINEAT_PARAMS_BRAIN = _make_multineat_params_cppn()
+    if loop == 'closed':
+        _MULTINEAT_PARAMS_BRAIN = _make_multineat_params_ann()
+
+    _MULTINEAT_PARAMS_BODY = _make_multineat_params_cppn()
 
     return Genotype(
         crossover_v1(
             parent1.body,
             parent2.body,
-            _MULTINEAT_PARAMS,
+            _MULTINEAT_PARAMS_BODY,
             multineat_rng,
             False,
             False,
@@ -216,7 +287,7 @@ def crossover(
         crossover_v1(
             parent1.brain,
             parent2.brain,
-            _MULTINEAT_PARAMS,
+            _MULTINEAT_PARAMS_BRAIN,
             multineat_rng,
             False,
             False,
@@ -226,10 +297,24 @@ def crossover(
 
 
 def develop(genotype: Genotype, querying_seed: int, max_modules: int, substrate_radius: str, env_condition: list,
-            n_env_conditions: int, plastic_body: int, plastic_brain: int) -> ModularRobot:
-    body, queried_substrate = body_develop(max_modules, substrate_radius, genotype.body, querying_seed,
-                        env_condition, n_env_conditions, plastic_body).develop()
-    brain = brain_develop(genotype.brain, body, env_condition, n_env_conditions, plastic_brain)
+            n_env_conditions: int, plastic_body: int, plastic_brain: int, loop: str, body_phenotype: str) -> ModularRobot:
+
+    #TODO: closed loop with evolvable body does not work yet (ann expects spider inputs and outputs)
+
+    if body_phenotype == 'evolvable':
+        body, queried_substrate = body_develop(max_modules, substrate_radius, genotype.body, querying_seed,
+                            env_condition, n_env_conditions, plastic_body).develop()
+
+    if body_phenotype == 'spider':
+        body = make_body_spider()
+        queried_substrate = []
+
+    if loop == 'open':
+        brain = brain_cpg_develop(genotype.brain, body, env_condition, n_env_conditions, plastic_brain)
+
+    if loop == 'closed':
+        brain = brain_ann_develop(genotype.brain, body, env_condition, n_env_conditions, plastic_brain)
+
     return ModularRobot(body, brain), queried_substrate
 
 

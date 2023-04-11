@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# run this script from the root (revolve folder): ./experiments/body_openbrain_evo/run-analysis.sh PARAMSFILE
+# run this script from the root (revolve folder): ./experiments/default_study/run-analysis.sh PARAMSFILE
 
 DIR="$(dirname "${BASH_SOURCE[0]}")"
 study_path="$(basename $DIR)"
@@ -14,7 +14,7 @@ fi
 
 source $DIR/$params_file.sh
 
-python experiments/${study_path}/snapshots_bests.py $study $experiments $runs $generations $outputs_path;
+python experiments/${study_path}/snapshots_bests.py $study $experiments $runs $generations $outputs_path $loop $body_phenotype;
 python experiments/${study_path}/bests_snap_2d.py $study $experiments $runs $generations $outputs_path;
 
 python experiments/${study_path}/consolidate.py $study $experiments $runs $final_gen $outputs_path;
