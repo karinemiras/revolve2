@@ -12,34 +12,27 @@ outputs_path="/home/ripper8/projects/working_data"
 # exps order is the same for all params
 # exps names should not be fully contained in each other
 
-# open_evolvable
-study="default_study"
+study="closed_spider"
 
 experiments=("defaultexperiment")
 seasons_conditions=("1.0_1.0_0_0_0")
 
-runs=2
+runs=20
 
 simulator="isaac"
-#simulator="mujoco"
 
-loop="open"
+loop="closed"
 
-body_phenotype="evolvable"
+body_phenotype="spider"
 
-# use num_generations=100 for more interesting results, and num_generations=3 for quick test
-num_generations="3"
+num_generations="50"
 
-# use population_size=100 for more interesting results, and population_size=11 for quick test
-population_size="11"
+population_size="50"
 
-# use offspring_size=100 for more interesting results, and offspring_size=11 for quick test
-offspring_size="11"
+offspring_size="30"
 
-# adjust according to exp size, e.g, 300. (low values for short experiments will try to spawn and log too often)
-delay_setup_script=60
+delay_setup_script=300
 
-# for issac, recommended not more than two in the rippers
 num_terminals=2
 
 # gens for boxplots and snapshots (by default the last gen)
@@ -49,9 +42,9 @@ generations="$num_generations"
 # max gen to filter lineplots  (by default the last gen)
 final_gen="$num_generations"
 
-mutation_prob=1
+mutation_prob=0.8
 
-crossover_prob=0
+crossover_prob=0.8
 
 simulation_time=30
 

@@ -120,7 +120,8 @@ while true
                python3  experiments/${study_path}/optimize.py --mainpath ${outputs_path} \
                --experiment_name ${exp} --seasons_conditions ${seasons_conditions[$idx]} --run ${run} --study=${study} \
                --num_generations ${num_generations} --population_size ${population_size} --offspring_size ${offspring_size} \
-               --loop ${loop} --body_phenotype ${body_phenotype};
+               --loop ${loop} --body_phenotype ${body_phenotype} --simulator ${simulator} --simulation_time ${simulation_time} \
+               --crossover_prob ${crossover_prob} --mutation_prob ${mutation_prob};
 
         printf "\n >> (re)starting screen_${free_screens[$p]}_${to_d} \n\n"
         p=$((${p}+1))

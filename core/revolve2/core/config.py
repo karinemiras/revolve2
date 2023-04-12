@@ -185,12 +185,12 @@ class Config():
             help="If 0, runs optimizer without simulating robots, so behavioral measures are none."
         )
 
-        parser.add_argument(
-            "--control_frequency",
-            required=False,
-            default=20,
-            type=int,
-        )
+        # parser.add_argument(
+        #     "--control_frequency",
+        #     required=False,
+        #     default=20,
+        #     type=int,
+        # )
 
         # provides params that define environmental conditions and/or task
         parser.add_argument(

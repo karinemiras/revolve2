@@ -357,10 +357,17 @@ class LocalRunner(Runner):
                         botfile.close()
                         os.remove(botfile.name)
 
+            force_range = 4.0
             for joint in posed_actor.actor.joints:
+
+                robot.find(namespace="joint", identifier=joint.name).armature="0.2"
+
                 robot.actuator.add(
                     "position",
-                    kp=5.0,
+                    kp=10000.0,
+                    #kp=5.0,
+                    ctrlrange="-1.0 1.0",
+                    forcerange=f"{-force_range} {force_range}",
                     joint=robot.find(
                         namespace="joint",
                         identifier=joint.name,
@@ -368,7 +375,9 @@ class LocalRunner(Runner):
                 )
                 robot.actuator.add(
                     "velocity",
-                    kv=0.05,
+                    kv=0.1,
+                    #kv=0.05,
+                    ctrlrange="-1.0 1.0",
                     joint=robot.find(namespace="joint", identifier=joint.name),
                 )
 

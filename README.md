@@ -14,13 +14,15 @@ The **plasticoding_v2** branch in this fork is rebased up to **v0.3.8-beta1** of
 
 **Simulators:**
 
-You can use either Issac Gym or Mujoco as simulators. 
+You can use either Issac Gym or Mujoco as a simulator (MAKE A CHOICE - though installing both is also ok)
 
-Isaac Gym works only on Linux and needs exactly python 3.8 and a pre-installation: 
+1) **Isaac Gym** works only on Linux and needs exactly python 3.8 and a pre-installation: 
 https://developer.nvidia.com/isaac-gym
 pip install <isaacgym_path>/python
 
-Mujoco will be installed in the dev script below (comment installations out of the dev if you dont need them).
+2) **Mujoco** is installed simply by the dev_requirements.sh below.
+
+ps: The dev_requirements.sh below tries to install both Isaac and Mujoco. If you don't want some of them, comment their pip out.
 
 ===
 
@@ -88,6 +90,8 @@ To **Check** the status of the **batch** with:
 and/or 
 
 screen -list
+
+ps: to parameterize your own batch, make your own version of paramsdefault.sh and provide it to run-experiments.sh and other bashes
 
 To only **Analyze** the results the batch with:
 

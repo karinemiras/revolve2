@@ -16,6 +16,19 @@ async def main() -> None:
     args = Config()._get_params()
     mainpath = args.mainpath
 
+    if args.simulator == 'isaac':
+        if args.loop == 'open':
+            control_frequency = 20
+        if args.loop == 'closed':
+            control_frequency = 5
+
+    # TODO: remove this?
+    if args.simulator == 'mujoco':
+        if args.loop == 'open':
+            control_frequency = 10
+        if args.loop == 'closed':
+            control_frequency = 5
+
     logging.basicConfig(
         level=logging.INFO,
         format="[%(asctime)s] [%(levelname)s] [%(module)s] %(message)s",
@@ -46,7 +59,6 @@ async def main() -> None:
 
     process_id = process_id_gen.gen()
 
-    # TODO: recovery is broken is rebase. gotta fix!
     maybe_optimizer = await Optimizer.from_database(
         database=database,
         process_id=process_id,
@@ -82,7 +94,7 @@ async def main() -> None:
             innov_db_brain=innov_db_brain,
             simulation_time=args.simulation_time,
             sampling_frequency=args.sampling_frequency,
-            control_frequency=args.control_frequency,
+            control_frequency=control_frequency, #args.control_frequency,
             num_generations=args.num_generations,
             fitness_measure=args.fitness_measure,
             offspring_size=args.offspring_size,

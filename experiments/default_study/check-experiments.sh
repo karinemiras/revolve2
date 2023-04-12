@@ -2,6 +2,7 @@
 #set -e
 #set -x
 
+# run this script from the root (revolve folder): ./experiments/default_study/run-analysis.sh PARAMSFILE
 
 DIR="$(dirname "${BASH_SOURCE[0]}")"
 study="$(basename $DIR)"
@@ -25,8 +26,8 @@ do
     for experiment in "${experiments[@]}"
     do
 
-     printf  "\n${experiment}_${run} \n"
      file="${outputs_path}/${study}/${experiment}_${run}.log";
+     printf  "\n${file}\n"
 
      #check experiments status
      if [[ -f "$file" ]]; then

@@ -235,6 +235,8 @@ class Optimizer(EAOptimizer[Genotype, float]):
         self._innov_db_brain = innov_db_brain
         self._innov_db_brain.Deserialize(opt_row.innov_db_brain)
 
+        self._run_simulation = run_simulation
+
 
         return True
 
@@ -242,7 +244,6 @@ class Optimizer(EAOptimizer[Genotype, float]):
         self._runner = {}
 
         for env in self.env_conditions:
-            print(self._headless,'dsfdsfsfs')
             if self._simulator == 'isaac':
                 self._runner[env] = (LocalRunnerI(
                                                   headless=self._headless,
