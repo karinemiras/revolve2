@@ -18,7 +18,8 @@ experiments=("defaultexperiment")
 seasons_conditions=("1.0_1.0_0_0_0")
 
 runs=10
-watchruns="1,2,3,4,5,6,7,8,9,10"
+
+watchruns="2,6,7"
 
 simulator="isaac"
 #simulator="mujoco"

@@ -22,7 +22,7 @@ async def main() -> None:
         if args.loop == 'closed':
             control_frequency = 5
 
-    # TODO: remove this?
+    # TODO: remove this: revert to same freq to both
     if args.simulator == 'mujoco':
         if args.loop == 'open':
             control_frequency = 10

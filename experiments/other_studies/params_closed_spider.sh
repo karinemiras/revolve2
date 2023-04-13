@@ -44,10 +44,8 @@ generations="$num_generations"
 # max gen to filter lineplots  (by default the last gen)
 final_gen="$num_generations"
 
-mutation_prob=0.8
 mutation_prob=1
 
-crossover_prob=0.8
 crossover_prob=0
 
 simulation_time=20

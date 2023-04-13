@@ -189,7 +189,7 @@ class Simulator:
                         runner = LocalRunnerI(
                             headless=False,
                             env_conditions=env_conditions[env_conditions_id],
-                            real_time=True,
+                            real_time=False,
                             loop=self.loop)
 
                     elif self.simulator == 'mujoco':

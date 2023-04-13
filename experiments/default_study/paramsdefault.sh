@@ -34,7 +34,7 @@ num_generations="2"
 # use population_size=100 for more interesting results
 population_size="5"
 
-# use offspring_size=50 for more interesting results
+# use offspring_size=100 for more interesting results
 offspring_size="5"
 
 # bash loop frequency: adjust seconds according to exp size, e.g, 300.
