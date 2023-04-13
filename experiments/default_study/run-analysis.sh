@@ -7,12 +7,12 @@ study_path="$(basename $DIR)"
 
 if [ $# -eq 0 ]
   then
-     params_file=paramsdefault
+     params_file=$DIR/paramsdefault.sh
   else
     params_file=$1
 fi
 
-source $DIR/$params_file.sh
+source $params_file
 
 python experiments/${study_path}/snapshots_bests.py $study $experiments $runs $generations $outputs_path $loop $body_phenotype;
 python experiments/${study_path}/bests_snap_2d.py $study $experiments $runs $generations $outputs_path;

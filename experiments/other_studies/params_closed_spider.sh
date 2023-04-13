@@ -12,19 +12,20 @@ outputs_path="/home/ripper8/projects/working_data"
 # exps order is the same for all params
 # exps names should not be fully contained in each other
 
-study="default_study_muj"
+study="closedspider"
 
 experiments=("defaultexperiment")
 seasons_conditions=("1.0_1.0_0_0_0")
 
-
 runs=10
 
-simulator="mujoco"
+watchruns="1,2,3,4,5,6,7,8"
 
-loop="open"
+simulator="isaac"
 
-body_phenotype="evolvable"
+loop="closed"
+
+body_phenotype="spider"
 
 num_generations="50"
 
@@ -34,8 +35,7 @@ offspring_size="30"
 
 delay_setup_script=300
 
-# for issac, recommended not more than two in the rippers
-num_terminals=2
+num_terminals=1
 
 # gens for boxplots and snapshots (by default the last gen)
 #generations="1,$num_generations"
@@ -44,8 +44,10 @@ generations="$num_generations"
 # max gen to filter lineplots  (by default the last gen)
 final_gen="$num_generations"
 
+mutation_prob=0.8
 mutation_prob=1
 
+crossover_prob=0.8
 crossover_prob=0
 
 simulation_time=20

@@ -18,6 +18,8 @@ source $DIR/$params_file.sh
 
 # discover unfinished experiments
 
+screen -list
+
 to_do=()
 for i in $(seq $runs)
 do

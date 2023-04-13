@@ -102,7 +102,7 @@ class Config():
         parser.add_argument(
             "--study_name",
             required=False,
-            default="default_study",
+            default="defaultstudy",
             type=str,
             help="",
         )

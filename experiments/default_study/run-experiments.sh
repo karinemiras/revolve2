@@ -1,20 +1,20 @@
 #!/bin/bash
-# run this script from the root (revolve folder): ./experiments/default_study/run-experiments.sh PARAMSFILE
+# run this script from the root (revolve folder): ./experiments/default_study/run-experiments.sh PATH+PARAMSFILE
 
 DIR="$(dirname "${BASH_SOURCE[0]}")"
 study="$(basename $DIR)"
 
 if [ $# -eq 0 ]
   then
-     params_file=paramsdefault
+     params_file=$DIR/paramsdefault.sh
   else
     params_file=$1
 fi
 
-source $DIR/$params_file.sh
+source $params_file
 
 mkdir ${outputs_path}/${study};
-screen -d -m -S run_loop -L -Logfile ${outputs_path}/${study}/setuploop.log $DIR/setup-experiments.sh ${params_file};
+screen -d -m -S ${study}_loop -L -Logfile ${outputs_path}/${study}/setuploop.log $DIR/setup-experiments.sh ${params_file};
 
 ### CHEATS: ###
 

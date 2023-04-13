@@ -41,7 +41,7 @@ class Simulator:
         parser = argparse.ArgumentParser()
         parser.add_argument("study")
         parser.add_argument("experiments")
-        parser.add_argument("runs")
+        parser.add_argument("watchruns")
         parser.add_argument("generations")
         parser.add_argument("mainpath")
         parser.add_argument("simulator")
@@ -52,7 +52,7 @@ class Simulator:
 
         self.study = args.study
         self.experiments_name = args.experiments.split(',')
-        self.runs = list(range(1, int(args.runs) + 1))
+        self.runs = args.watchruns.split(',')
         self.generations = list(map(int, args.generations.split(',')))
         mainpath = args.mainpath
         self.simulator = args.simulator
@@ -189,7 +189,7 @@ class Simulator:
                         runner = LocalRunnerI(
                             headless=False,
                             env_conditions=env_conditions[env_conditions_id],
-                            real_time=False,
+                            real_time=True,
                             loop=self.loop)
 
                     elif self.simulator == 'mujoco':

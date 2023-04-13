@@ -8,12 +8,12 @@ study_path="$(basename $DIR)"
 
 if [ $# -eq 0 ]
   then
-     params_file=paramsdefault
+     params_file=$DIR/paramsdefault.sh
   else
     params_file=$1
 fi
 
-source $DIR/$params_file.sh
+source $params_file
 
 mkdir ${outputs_path}/${study}
 mkdir ${outputs_path}/${study}/analysis
@@ -44,12 +44,14 @@ while true
 
     for obj in ${arr[@]}; do
 
-        if [[ "$obj" == *"screen_"* ]]; then
-       #   printf "\n screen ${obj} is on\n"
-          screen="$(cut -d'_' -f2 <<<"$obj")"
-          active_experiments+=("$(cut -d'_' -f3 -<<<"$obj")_$(cut -d'_' -f4 -<<<"$obj")")
-          active_screens+=($screen)
-        fi
+       screenstudy="$(cut -d'_' -f2 <<<"$obj")"
+
+        if [[ "$screenstudy" == *"${study}"* ]]; then
+           #   printf "\n screen ${obj} is on\n"
+              screen="$(cut -d'_' -f3 <<<"$obj")"
+              active_experiments+=("$(cut -d'_' -f3 -<<<"$obj")_$(cut -d'_' -f4 -<<<"$obj")")
+              active_screens+=($screen)
+          fi
     done
 
    for possible_screen in "${possible_screens[@]}"; do
@@ -116,14 +118,14 @@ while true
         idx=$( echo ${experiments[@]/${exp}//} | cut -d/ -f1 | wc -w | tr -d ' ' )
 
         # nice -n19 python3  experiments/${study}/optimize.py
-        screen -d -m -S screen_${free_screens[$p]}_${to_d} -L -Logfile ${outputs_path}/${study}/${exp}_${run}".log" \
+        screen -d -m -S _${study}_${free_screens[$p]}_${to_d} -L -Logfile ${outputs_path}/${study}/${exp}_${run}".log" \
                python3  experiments/${study_path}/optimize.py --mainpath ${outputs_path} \
                --experiment_name ${exp} --seasons_conditions ${seasons_conditions[$idx]} --run ${run} --study=${study} \
                --num_generations ${num_generations} --population_size ${population_size} --offspring_size ${offspring_size} \
                --loop ${loop} --body_phenotype ${body_phenotype} --simulator ${simulator} --simulation_time ${simulation_time} \
                --crossover_prob ${crossover_prob} --mutation_prob ${mutation_prob};
 
-        printf "\n >> (re)starting screen_${free_screens[$p]}_${to_d} \n\n"
+        printf "\n >> (re)starting ${study}_${free_screens[$p]}_${to_d} \n\n"
         p=$((${p}+1))
 
     done
@@ -133,10 +135,11 @@ while true
    if [ -z "$unfinished" ]; then
 
       printf "\nanalysis...\n"
-      ./experiments/${study_path}/run-analysis.sh
+      ./experiments/${study_path}/run-analysis.sh $params_file
 
-      ./experiments/${study_path}/makevideos.sh
+      ./experiments/${study_path}/makevideos.sh $params_file
 
+      pkill -f ${study}_loop
    fi
 
     # use this longer period for longer experiments
