@@ -4,11 +4,10 @@
 
 study="plasticoding_cppntasks"
 # arrays delimiter is space
-experiments=("nonplasticforthright" "plasticforthright" "nonplasticbackforth" "plasticbackforth"
-"fullplasticforthright" "fullplasticbackforth" "onlyforth" "novfullplasticforthright" "novnonplasticforthright")
+experiments=("nonplasticforthright" "plasticforthright" "nonplasticbackforth" "plasticbackforth" "fullplasticforthright" "fullplasticbackforth" "onlyforth")
 
-runs=4 #20
-mainpath="karine"
+runs=20
+mainpath="working_data"
 
 # discover unfinished experiments
 
@@ -21,7 +20,7 @@ do
     do
 
      printf  "\n${experiment}_${run} \n"
-     file="/storage/${mainpath}/${study}/${experiment}_${run}.log";
+     file="/home/ripper8/projects/${mainpath}/${study}/${experiment}_${run}.log";
 
      #check experiments status
      if [[ -f "$file" ]]; then

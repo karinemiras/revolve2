@@ -33,25 +33,26 @@ comparison = args.comparison
 mainpath = args.mainpath
 analysis = args.analysis
 experiments = experiments_name
-inner_metrics = ['median', 'max']
+inner_metrics = ['mean', 'max']
 include_max = False
 merge_lines = True
 gens_boxes = generations
-path = f'/storage/{mainpath}/{study}'
+path = f'{mainpath}/{study}'
 
 
-# measures = {
-## this one ahs to be generated alone, since it is intersting only for one of the exps
-#  'body_changes': ['Body Changes', False, 0, 1],
-##
-# }
+if len(experiments) == 1:
+    measures = {
+     'body_changes': ['Body Changes', True, 0, 21],
+
+     }
+    clrs = ['#009900']
 
 if len(experiments) == 3:
     measures = {
          'backforth_dominated': ['BF Dominated individuals', False, 0, 1],
          'forthright_dominated': ['FR Dominated individuals',  False,0, 1],
-         'speed_y': ['Speed (cm/s)',  True,-0.3, 3.5],
-         'speed_x': ['Speed (cm/s)',  True,-0.3, 3.5],
+         'speed_y': ['Speed (cm/s)',  True,-0.3, 2.7],
+         'speed_x': ['Speed (cm/s)',  True,-0.3, 2.7],
          'head_balance': ['Balance', False, 0.7, 1],
          'displacement': ['Displacement',  False,-3.5, 3.5],
          'modules_count': ['Modules count',  False,5, 40],
@@ -65,7 +66,7 @@ if len(experiments) == 4:
 
     measures = {
         'pop_diversity': ['Diversity', False, 0, 1],
-        'hinge_prop': ['Hinge prop',  True,0.3, 0.7],
+        'hinge_prop': ['Hinge prop',  True,0.2, 0.7],
         'hinge_ratio': ['Hinge ratio', False, 0, 1],
         'brick_prop': ['Brick prop', False, 0, 1],
         'branching_prop': ['Branching prop', False, 0, 1],
@@ -93,7 +94,7 @@ async def main() -> None:
     if not os.path.exists(f'{path}/{analysis}/{comparison}'):
         os.makedirs(f'{path}/{analysis}/{comparison}')
 
-    db = open_async_database_sqlite(f'/storage/{mainpath}/{study}/{experiments[0]}/run_{runs[0]}')
+    db = open_async_database_sqlite(f'{mainpath}/{study}/{experiments[0]}/run_{runs[0]}')
     async with AsyncSession(db) as session:
         rows = ((await session.execute(select(DbEnvconditions).order_by(DbEnvconditions.id))).all())
         for c_row in rows:
@@ -108,7 +109,9 @@ def plots():
     df_outer = pandas.read_csv(f'{path}/{analysis}/df_outer.csv')
 
     plot_lines(df_outer)
-    plot_boxes(df_inner)
+
+    if len(experiments) > 1:
+        plot_boxes(df_inner)
 
 
 def plot_lines(df_outer):
@@ -120,9 +123,9 @@ def plot_lines(df_outer):
         ['z_onlyforth'], df_outer['experiment'])
 
     if comparison == 'backforth':
-        df_outer['speed_y_median_median'] = np.select([df_outer['env_conditions_id'] == 2], [df_outer['speed_y_median_median']*-1], df_outer['speed_y_median_median'])
-        df_outer['speed_y_median_q25'] = np.select([df_outer['env_conditions_id'] == 2], [df_outer['speed_y_median_q25'] * -1], df_outer['speed_y_median_q25'])
-        df_outer['speed_y_median_q75'] = np.select([df_outer['env_conditions_id'] == 2], [df_outer['speed_y_median_q75'] * -1], df_outer['speed_y_median_q75'])
+        df_outer['speed_y_mean_median'] = np.select([df_outer['env_conditions_id'] == 2], [df_outer['speed_y_mean_median']*-1], df_outer['speed_y_mean_median'])
+        df_outer['speed_y_mean_q25'] = np.select([df_outer['env_conditions_id'] == 2], [df_outer['speed_y_mean_q25'] * -1], df_outer['speed_y_mean_q25'])
+        df_outer['speed_y_mean_q75'] = np.select([df_outer['env_conditions_id'] == 2], [df_outer['speed_y_mean_q75'] * -1], df_outer['speed_y_mean_q75'])
 
     for env in env_conditions:
         for measure in measures.keys():
@@ -187,7 +190,7 @@ def plot_boxes(df_inner):
         ['z_onlyforth'], df_inner['experiment'])
 
     if comparison == 'backforth':
-        df_inner['speed_y_median'] = np.select([df_inner['env_conditions_id'] == 2], [df_inner['speed_y_median']*-1], df_inner['speed_y_median'])
+        df_inner['speed_y_mean'] = np.select([df_inner['env_conditions_id'] == 2], [df_inner['speed_y_mean']*-1], df_inner['speed_y_mean'])
 
     for env in env_conditions:
 
@@ -234,6 +237,7 @@ def plot_boxes(df_inner):
 
                 try:
                     if len(tests_combinations) > 0:
+
                         add_stat_annotation(plot, data=df_inner2, x='experiment', y=f'{measure}_{inner_metrics[0]}',
                                             box_pairs=tests_combinations,
                                             comparisons_correction=None,

@@ -27,12 +27,12 @@ async def main(parser) -> None:
         for run in runs:
             print(' run: ', run)
 
-            path = f'/storage/{mainpath}/{study}/analysisspeed/snapshots/{experiment_name}/run_{run}'
+            path = f'{mainpath}/{study}/analysis/snapshots/{experiment_name}/run_{run}'
 
             if not os.path.exists(path):
                 os.makedirs(path)
 
-            db = open_async_database_sqlite(f'/storage/{mainpath}/{study}/{experiment_name}/run_{run}')
+            db = open_async_database_sqlite(f'{mainpath}/{study}/{experiment_name}/run_{run}')
 
             for gen in generations:
                 print('  gen: ', gen)

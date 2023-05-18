@@ -174,6 +174,8 @@ class Optimizer(EAOptimizer[Genotype, float]):
         self._process_id = process_id
         self._init_runner()
 
+        self.novelty_archive = {1 :[], 2: []}
+
         opt_row = (
             (
                 await session.execute(

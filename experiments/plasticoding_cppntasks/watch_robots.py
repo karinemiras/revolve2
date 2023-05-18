@@ -29,22 +29,22 @@ class Simulator:
     async def simulate(self) -> None:
 
         self.study = 'plasticoding_cppntasks'
-        # REMEMBER to also change order by down there!!!!
-        self.experiments_name = ["novfullplasticforthright"]
-        self.runs = [3]#list(range(1, 10+1))
-        self.generations = [50]
+
+        self.experiments_name = ["plasticforthright"]
+        self.runs = [15]#list(range(1, 10+1))
+        self.generations = [150]
         self.bests = 1
         # 'all' selects best from all individuals
         # 'gens' selects best from chosen generations
         self.bests_type = 'gens'
-        mainpath = "karine"
+        mainpath = "/home/ripper8/projects/working_data"
 
         for experiment_name in self.experiments_name:
             print('\n', experiment_name)
             for run in self.runs:
                 print('\n run: ', run)
 
-                path = f'/storage/{mainpath}/{self.study}'
+                path = f'{mainpath}/{self.study}'
 
                 db = open_async_database_sqlite(f'{path}/{experiment_name}/run_{run}')
 

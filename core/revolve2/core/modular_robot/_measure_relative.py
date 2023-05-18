@@ -116,29 +116,30 @@ class MeasureRelative:
         return pool_dominated_individuals, pool_fulldominated_individuals
 
     def _pool_seasonal_novelty(self, novelty_archive):
+        #TODO: call this only for novelty experiments / for now it is commented out when not needed
         diversity = 0
-        genotype_measures = []
-        genotype_measures.append(max(self._genotype_measures[1]['speed_y'], -1000))
-        genotype_measures.append(max(self._genotype_measures[2]['speed_x'], -1000))
-
-        neighbours_measures = []
-        for i in range(0, len(self._neighbours_measures[1])):
-            neighbours_measures.append([])
-            neighbours_measures[-1].append(max(self._neighbours_measures[1][i]['speed_y'], -1000))
-            neighbours_measures[-1].append(max(self._neighbours_measures[2][i]['speed_x'], -1000))
-
-        for i in range(0, len(novelty_archive[1])):
-                neighbours_measures.append([])
-                neighbours_measures[-1].append(max(novelty_archive[1][i]['speed_y'], -1000))
-                neighbours_measures[-1].append(max(novelty_archive[2][i]['speed_x'], -1000))
-     
-        kdt = KDTree(neighbours_measures, leaf_size=30, metric='euclidean')
-        # TODO: take this as param and if 0 turn novelty off
-        k = 10+1
-
-        # distances from neighbors
-        distances, indexes = kdt.query([genotype_measures], k=k)
-        diversity = sum(distances[0])/len(distances[0])
+        # genotype_measures = []
+        # genotype_measures.append(max(self._genotype_measures[1]['speed_y'], -1000))
+        # genotype_measures.append(max(self._genotype_measures[2]['speed_x'], -1000))
+        #
+        # neighbours_measures = []
+        # for i in range(0, len(self._neighbours_measures[1])):
+        #     neighbours_measures.append([])
+        #     neighbours_measures[-1].append(max(self._neighbours_measures[1][i]['speed_y'], -1000))
+        #     neighbours_measures[-1].append(max(self._neighbours_measures[2][i]['speed_x'], -1000))
+        #
+        # for i in range(0, len(novelty_archive[1])):
+        #         neighbours_measures.append([])
+        #         neighbours_measures[-1].append(max(novelty_archive[1][i]['speed_y'], -1000))
+        #         neighbours_measures[-1].append(max(novelty_archive[2][i]['speed_x'], -1000))
+        #
+        # kdt = KDTree(neighbours_measures, leaf_size=30, metric='euclidean')
+        # # TODO: take this as param and if 0 turn novelty off
+        # k = 10+1
+        #
+        # # distances from neighbors
+        # distances, indexes = kdt.query([genotype_measures], k=k)
+        # diversity = sum(distances[0])/len(distances[0])
 
         return diversity
 

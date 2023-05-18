@@ -38,7 +38,7 @@ inner_metrics = ['median', 'max']
 include_max = True
 merge_lines = True
 gens_boxes = generations
-path = f'/storage/{mainpath}/{study}'
+path = f'{mainpath}/{study}'
 
 
 clrs = ['#0066CC',

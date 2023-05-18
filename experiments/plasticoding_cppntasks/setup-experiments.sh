@@ -10,11 +10,10 @@ study="plasticoding_cppntasks"
 #experiments=("exp1" "epx2")
 # exps order is the same for all params
 # exps names should not be fully contained in each other
-
 experiments=("nonplasticforthright" "plasticforthright" "nonplasticbackforth" "plasticbackforth" "fullplasticforthright" "fullplasticbackforth" "onlyforth")
-population_size=(200 200 200 200 200 200 100)
-offspring_size=(200 200 200 200 200 200 100)
-num_generations="100"
+population_size=(100 100 100 100 100 100 100)
+offspring_size=(100 100 100 100 100 100 100)
+num_generations="150"
 
 
 fitness_measure=("forthright_dominated" "forthright_dominated" "backforth_dominated" "backforth_dominated" "forthright_dominated" "backforth_dominated" "speed_y" )
@@ -26,7 +25,7 @@ simulation_time=30
 runs=20
 
 num_terminals=2
-mainpath="/storage/karine"
+mainpath="/home/ripper8/projects/working_data"
 
 mkdir ${mainpath}/${study}
 mkdir ${mainpath}/${study}/analysis
@@ -126,7 +125,7 @@ while true
         idx=$( echo ${experiments[@]/${exp}//} | cut -d/ -f1 | wc -w | tr -d ' ' )
 
         # nice -n19 python3  experiments/${study}/optimize.py
-        screen -d -m -S screen_${free_screens[$p]}_${to_d} -L -Logfile /storage/karine/${study}/${exp}_${run}".log" python3  experiments/${study}/optimize.py \
+        screen -d -m -S screen_${free_screens[$p]}_${to_d} -L -Logfile ${mainpath}/${study}/${exp}_${run}".log" python3  experiments/${study}/optimize.py \
                --experiment_name ${exp}  --study=${study}  --seasons_conditions ${seasons_conditions[$idx]} --run ${run} --fitness_measure ${fitness_measure[$idx]} \
                --plastic_body ${plastic_body[$idx]} --plastic_brain ${plastic_brain[$idx]} --num_generations ${num_generations} \
                --offspring_size ${offspring_size[$idx]} --population_size ${population_size[$idx]} --simulation_time ${simulation_time};

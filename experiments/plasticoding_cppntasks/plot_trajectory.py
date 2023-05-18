@@ -57,7 +57,7 @@ async def main() -> None:
         ax.invert_yaxis()
 
         for run in runs:
-            db = open_async_database_sqlite(f'/storage/{mainpath}/{study}/{exp}/run_{run}')
+            db = open_async_database_sqlite(f'{mainpath}/{study}/{exp}/run_{run}')
 
             async with AsyncSession(db) as session:
                 query = select(DbEAOptimizerGeneration, DbEAOptimizerIndividual, DbStates) \
@@ -98,74 +98,76 @@ async def main() -> None:
                     ax.plot(positions['y'], positions['x'], alpha=0.7,  label=f'...', c=clrs[cond-1])
 
 
-        plt.savefig(f'/storage/{mainpath}/{study}/analysisspeed/traj_{exp}.png')
+        plt.savefig(f'{mainpath}/{study}/analysis/traj_{exp}.png')
         plt.clf()
         plt.close(fig)
 
 
-# run by run: for forth-right using the full plastic method
-# async def main() -> None:
-#
-#     for idexp, exp in enumerate(experiments):
-#         print(exp)
-#
-#         for run in runs:
-#
-#             font = {'font.size': 20}
-#             plt.rcParams.update(font)
-#             fig, ax = plt.subplots()
-#             plt.xlabel('')
-#             plt.ylabel('')
-#          #   plt.axis('off')
-#             ax.set_ylim(-0.9, 2.2)
-#             ax.set_xlim(-2, 2.2)
-#             ax.invert_yaxis()
-#
-#             db = open_async_database_sqlite(f'/storage/{mainpath}/{study}/{exp}/run_{run}')
-#
-#             async with AsyncSession(db) as session:
-#                 query = select(DbEAOptimizerGeneration, DbEAOptimizerIndividual, DbStates) \
-#                     .filter((DbEAOptimizerGeneration.individual_id == DbEAOptimizerIndividual.individual_id)
-#                             & (DbStates.id == DbEAOptimizerIndividual.states_id)
-#                             & (DbEAOptimizerGeneration.env_conditions_id == DbEAOptimizerIndividual.env_conditions_id)
-#                             & (DbEAOptimizerGeneration.generation_index == final_gen)
-#                             )
-#
-#                 if exp in ['nonplasticforthright', 'plasticforthright', 'fullplasticforthright']:
-#                     query = query.order_by(
-#                         DbEAOptimizerGeneration.forthright_dominated.desc(),
-#                         DbEAOptimizerGeneration.individual_id.asc())
-#                 if exp in ['nonplasticbackforth', 'plasticbackforth', 'fullplasticbackforth']:
-#                     query = query.order_by(
-#                         DbEAOptimizerGeneration.backforth_dominated.desc(),
-#                         DbEAOptimizerGeneration.individual_id.asc())
-#
-#                 rows = ((await session.execute(query)).all())
-#
-#                 num_lines = bests * env_conditions
-#                 for idx, c_row in enumerate(rows[0:num_lines]):
-#
-#                     positions = []
-#                     individual_id = c_row.DbEAOptimizerIndividual.individual_id
-#                     cond = c_row.DbEAOptimizerIndividual.env_conditions_id
-#                     states = literal_eval(c_row.DbStates.serialized_states)
-#
-#                     for s in states:
-#                         positions.append([exp, run, individual_id, cond, s,
-#                                           states[s]['position'][0], states[s]['position'][1]])
-#                     positions = pandas.DataFrame(positions,
-#                                                  columns=['exp', 'run', 'individual_id', 'cond', 'step', 'x', 'y'])
-#
-#                    # pprint.pprint(positions)
-#
-#                     # x and y are intentionally inverted, because of isaacs visuals
-#                     ax.plot(positions['y'], positions['x'], alpha=1, linewidth=6, label=f'...', c=clrs[cond-1])
-#
-#          #   plt.savefig(f'/storage/{mainpath}/{study}/analysisspeed/extratraj_full/traj_{run}_{exp}.png')
-#             plt.savefig(f'/storage/{mainpath}/{study}/analysisspeed/extratraj_non/traj_{run}_{exp}.png')
-#           #  plt.savefig(f'/storage/{mainpath}/{study}/analysisspeed/extratraj_brain/traj_{run}_{exp}.png')
-#             plt.clf()
-#             plt.close(fig)
+    for idexp, exp in enumerate(experiments):
+        print(exp)
+
+        if exp in ['nonplasticforthright', 'plasticforthright', 'fullplasticforthright']:
+
+            path =(f'/{mainpath}/{study}/analysis/trajextra_{exp}')
+
+            if not os.path.exists(path):
+                os.makedirs(path)
+
+            for run in runs:
+
+                font = {'font.size': 20}
+                plt.rcParams.update(font)
+                fig, ax = plt.subplots()
+                plt.xlabel('')
+                plt.ylabel('')
+                plt.axis('off')
+                ax.set_ylim(-0.9, 2.2)
+                ax.set_xlim(-2, 2.2)
+                ax.invert_yaxis()
+
+                db = open_async_database_sqlite(f'{mainpath}/{study}/{exp}/run_{run}')
+
+                async with AsyncSession(db) as session:
+                    query = select(DbEAOptimizerGeneration, DbEAOptimizerIndividual, DbStates) \
+                        .filter((DbEAOptimizerGeneration.individual_id == DbEAOptimizerIndividual.individual_id)
+                                & (DbStates.id == DbEAOptimizerIndividual.states_id)
+                                & (DbEAOptimizerGeneration.env_conditions_id == DbEAOptimizerIndividual.env_conditions_id)
+                                & (DbEAOptimizerGeneration.generation_index == final_gen)
+                                )
+
+                    if exp in ['nonplasticforthright', 'plasticforthright', 'fullplasticforthright']:
+                        query = query.order_by(
+                            DbEAOptimizerGeneration.forthright_dominated.desc(),
+                            DbEAOptimizerGeneration.individual_id.asc())
+                    if exp in ['nonplasticbackforth', 'plasticbackforth', 'fullplasticbackforth']:
+                        query = query.order_by(
+                            DbEAOptimizerGeneration.backforth_dominated.desc(),
+                            DbEAOptimizerGeneration.individual_id.asc())
+
+                    rows = ((await session.execute(query)).all())
+
+                    num_lines = bests * env_conditions
+                    for idx, c_row in enumerate(rows[0:num_lines]):
+
+                        positions = []
+                        individual_id = c_row.DbEAOptimizerIndividual.individual_id
+                        cond = c_row.DbEAOptimizerIndividual.env_conditions_id
+                        states = literal_eval(c_row.DbStates.serialized_states)
+
+                        for s in states:
+                            positions.append([exp, run, individual_id, cond, s,
+                                              states[s]['position'][0], states[s]['position'][1]])
+                        positions = pandas.DataFrame(positions,
+                                                     columns=['exp', 'run', 'individual_id', 'cond', 'step', 'x', 'y'])
+
+                       # pprint.pprint(positions)
+
+                        # x and y are intentionally inverted, because of isaacs visuals
+                        ax.plot(positions['y'], positions['x'], alpha=1, linewidth=6, label=f'...', c=clrs[cond-1])
+
+                plt.savefig(f'/{mainpath}/{study}/analysis/trajextra_{exp}/traj_{run}_{exp}.png')
+                plt.clf()
+                plt.close(fig)
 
 if __name__ == "__main__":
     asyncio.run(main())

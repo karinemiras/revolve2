@@ -8,12 +8,12 @@ experiments="nonplasticforthright,plasticforthright,nonplasticbackforth,plasticb
 
 # these params are the same for all exps
 # gens for boxplots and snapshots
-generations=(100)
+generations=(150)
 #gen for lineplots
-final_gen=100
+final_gen=150
 runs=20
-mainpath="karine"
-analysis="analysisspeed"
+mainpath="/home/ripper8/projects/working_data"
+analysis="analysis"
 study="plasticoding_cppntasks"
 
 
@@ -24,22 +24,24 @@ python experiments/${study}/consolidate.py $study $experiments $runs $final_gen 
 experiments="fullplasticforthright,nonplasticforthright,plasticforthright"
 comparison='forthright'
 python experiments/${study}/plot_seasonal.py $study $experiments $runs $generations $comparison $mainpath $analysis;
-python experiments/${study}/plot_seasonal2.py $study $experiments $runs $generations $comparison $mainpath $analysis;
 python experiments/${study}/plot_trajectory.py $study $experiments $runs $final_gen $comparison $mainpath;
-python experiments/${study}/brainchanges.py $study $experiments $runs $generations $mainpath $comparison;
 
 experiments="fullplasticbackforth,nonplasticbackforth,plasticbackforth"
 comparison='backforth'
 python experiments/${study}/plot_seasonal.py $study $experiments $runs $generations $comparison $mainpath $analysis;
-python experiments/${study}/plot_seasonal2.py $study $experiments $runs $generations $comparison $mainpath $analysis;
 python experiments/${study}/plot_trajectory.py $study $experiments $runs $final_gen $comparison $mainpath;
-python experiments/${study}/brainchanges.py $study $experiments $runs $generations $mainpath $comparison;
+
+experiments="fullplasticbackforth"
+comparison='backforth'
+python experiments/${study}/plot_seasonal.py $study $experiments $runs $generations $comparison $mainpath $analysis;
+experiments="fullplasticforthright"
+comparison='forthright'
+python experiments/${study}/plot_seasonal.py $study $experiments $runs $generations $comparison $mainpath $analysis;
 
 
 experiments="fullplasticforthright,nonplasticforthright,plasticforthright,z_onlyforth"
 comparison='forthright'
 python experiments/${study}/plot_seasonal.py $study $experiments $runs $generations $comparison $mainpath $analysis;
-
 experiments="fullplasticbackforth,nonplasticbackforth,plasticbackforth,z_onlyforth"
 comparison='backforth'
 python experiments/${study}/plot_seasonal.py $study $experiments $runs $generations $comparison $mainpath $analysis;
@@ -48,7 +50,6 @@ python experiments/${study}/plot_seasonal.py $study $experiments $runs $generati
 experiments="onlyforth,fullplasticforthright,nonplasticforthright,plasticforthright"
 comparison='forthright'
 python experiments/${study}/plot_seasonal2.py $study $experiments $runs $generations $comparison $mainpath $analysis;
-
 experiments="onlyforth,fullplasticbackforth,nonplasticbackforth,plasticbackforth"
 comparison='backforth'
 python experiments/${study}/plot_seasonal2.py $study $experiments $runs $generations $comparison $mainpath $analysis;
@@ -57,7 +58,6 @@ python experiments/${study}/plot_seasonal2.py $study $experiments $runs $generat
 experiments="plasticforthright"
 comparison='forthright'
 python experiments/${study}/brainchanges.py $study $experiments $runs $generations $mainpath $comparison;
-
 experiments="plasticbackforth"
 comparison='backforth'
 python experiments/${study}/brainchanges.py $study $experiments $runs $generations $mainpath $comparison;
@@ -71,27 +71,3 @@ python experiments/${study}/brainchanges.py $study $experiments $runs $generatio
 # forth and right are visually right and down respectively
 
 
-# to rerun, this part requires to uncomment the variable seasonal_novelty from the database
-experiments="novfullplasticforthright,novnonplasticforthright,novplasticforthright,novfullplasticbackforth,novnonplasticbackforth,novplasticbackforth"
-
-# these params are the same for all exps
-# gens for boxplots and snapshots
-generations=(50)
-#gen for lineplots
-final_gen=50
-runs=4
-mainpath="karine"
-analysis="analysisnovel"
-study="plasticoding_cppntasks"
-
-python experiments/${study}/consolidate.py $study $experiments $runs $final_gen $mainpath $analysis;
-
-comparison='forthright'
-experiments="novfullplasticforthright,novnonplasticforthright,novplasticforthright"
-python experiments/${study}/plot_seasonal.py $study $experiments $runs $generations $comparison $mainpath $analysis;
-python experiments/${study}/heatmaps_pca.py $study $experiments $runs $generations $comparison $mainpath $analysis;
-
-comparison='backforth'
-experiments="novfullplasticbackforth,novnonplasticbackforth,novplasticbackforth"
-python experiments/${study}/plot_seasonal.py $study $experiments $runs $generations $comparison $mainpath $analysis;
-python experiments/${study}/heatmaps_pca.py $study $experiments $runs $generations $comparison $mainpath $analysis;

@@ -19,7 +19,7 @@ import matplotlib.pyplot as plt
 
 
 async def main(parser) -> None:
-    await collect_data(parser)
+   # await collect_data(parser)
     await plot(parser)
 
 
@@ -30,10 +30,10 @@ async def plot(parser) -> None:
     mainpath = args.mainpath
     comparison = args.comparison
 
-    data = pd.read_csv(f'/storage/{mainpath}/{study}/analysisspeed/{comparison}/controllers_diff.txt', sep=";")
+    data = pd.read_csv(f'{mainpath}/{study}/analysis/{comparison}/controllers_diff.txt', sep=";")
 
     keys = ['experiment_name', 'run', 'gen']
-    metric = 'median'
+    metric = 'mean'
 
     data = data[data['diff'].notnull()]
 
@@ -65,7 +65,7 @@ async def plot(parser) -> None:
 
     keys = ['experiment_name', 'gen']
     metric = 'median'
-    measures_inner = ['diff_median']
+    measures_inner = ['diff_mean']
     df_outer_median = groupby(data_inner, measures_inner, metric, keys)
 
     metric = q25
@@ -84,17 +84,17 @@ async def plot(parser) -> None:
     plt.xlabel('Generation')
     plt.ylabel('Brain Changes')
 
-    ax.plot(df_outer['gen'], df_outer['diff_median_median'], c='#0066CC')
+    ax.plot(df_outer['gen'], df_outer['diff_mean_median'], c='#0066CC')
     ax.fill_between(df_outer['gen'],
-                    df_outer['diff_median_q25'],
-                    df_outer['diff_median_q75'],
+                    df_outer['diff_mean_q25'],
+                    df_outer['diff_mean_q75'],
                     alpha=0.3, facecolor='#0066CC')
 
     pprint.pprint(df_outer)
 
     ax.set_ylim(-0.05, 1.5)
 
-    plt.savefig(f'/storage/{mainpath}/{study}/analysisspeed/{comparison}/controllers_diff.png', bbox_inches='tight')
+    plt.savefig(f'{mainpath}/{study}/analysis/{comparison}/controllers_diff.png', bbox_inches='tight')
     plt.clf()
     plt.close(fig)
 
@@ -110,7 +110,7 @@ async def collect_data(parser) -> None:
     mainpath = args.mainpath
     comparison = args.comparison
 
-    with open(f'/storage/{mainpath}/{study}/analysisspeed/{comparison}/controllers_diff.txt', 'w') as f:
+    with open(f'{mainpath}/{study}/analysis/{comparison}/controllers_diff.txt', 'w') as f:
         f.write(f'experiment_name;run;gen;diff\n')
 
     for experiment_name in experiments_name:
@@ -118,7 +118,7 @@ async def collect_data(parser) -> None:
         for run in runs:
             print(' run: ', run)
 
-            db = open_async_database_sqlite(f'/storage/{mainpath}/{study}/{experiment_name}/run_{run}')
+            db = open_async_database_sqlite(f'{mainpath}/{study}/{experiment_name}/run_{run}')
 
             for gen in range(1, generations[0]+1):
                 print('  gen: ', gen)
@@ -190,7 +190,7 @@ async def collect_data(parser) -> None:
                         # print('avg')
                         # print(avg)
 
-                        with open(f'/storage/{mainpath}/{study}/analysisspeed/{comparison}/controllers_diff.txt', 'a') as f:
+                        with open(f'{mainpath}/{study}/analysis/{comparison}/controllers_diff.txt', 'a') as f:
                             f.write(f'{experiment_name};{run};{gen};{avg}\n')
 
 

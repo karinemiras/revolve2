@@ -32,11 +32,11 @@ class Analysis:
         self.analysis = args.analysis
         self.study = study
         self.experiments = experiments_name
-        self.inner_metrics = ['median', 'max']
+        self.inner_metrics = ['mean', 'max']
         self.runs = runs
         self.final_gen = int(args.final_gen)
 
-        self.path = f'/storage/{mainpath}/{study}'
+        self.path = f'{mainpath}/{study}'
 
         self.measures = {
             'pop_diversity': ['Pool Diversity', 0, 1],
@@ -95,6 +95,7 @@ class Analysis:
                         & (DbEAOptimizerGeneration.env_conditions_id == DbEAOptimizerIndividual.env_conditions_id)
                         & (DbEAOptimizerGeneration.ea_optimizer_id == DbEAOptimizerIndividual.ea_optimizer_id)
                         & (DbFloat.id == DbEAOptimizerIndividual.float_id)
+                        & (DbFloat.speed_y >-1000)
                     ),
                     db,
                 )
@@ -120,9 +121,10 @@ class Analysis:
             else:
                 return col
 
+
         def groupby(data, measures, metric, keys):
             expr = {x: metric for x in measures}
-            df_inner_group = data.groupby(keys).agg(expr).reset_index()
+            df_inner_group = data.groupby(keys, dropna=True).agg(expr).reset_index()
             df_inner_group = df_inner_group.rename(mapper=renamer, axis='columns')
             return df_inner_group
 
