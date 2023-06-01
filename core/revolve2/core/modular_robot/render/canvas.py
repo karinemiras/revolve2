@@ -7,12 +7,6 @@ class Canvas:
 	x_pos = 0
 	y_pos = 0
 
-	# orientations from revolve1
-	# SOUTH = 0 # Canvas.BACK
-	# NORTH = 1 # Canvas.FRONT
-	# EAST = 2 # Canvas.RIGHT
-	# WEST = 3 # Canvas.LEFT
-
 	BACK = 3
 	FRONT = 0
 	RIGHT = 1

@@ -47,6 +47,7 @@ class Simulator:
         parser.add_argument("simulator")
         parser.add_argument("loop")
         parser.add_argument("body_phenotype")
+        parser.add_argument("bisymmetry")
 
         args = parser.parse_args()
 
@@ -58,6 +59,7 @@ class Simulator:
         self.simulator = args.simulator
         self.loop = args.loop
         self.body_phenotype = args.body_phenotype
+        self.bisymmetry = int(args.bisymmetry)
 
         self.bests = 1
         # 'all' selects best from all individuals
@@ -152,7 +154,7 @@ class Simulator:
                     phenotype, queried_substrate = develop(genotype, genotype.mapping_seed, max_modules,
                                                            substrate_radius, env_conditions[env_conditions_id],
                                                             len(env_conditions), plastic_body, plastic_brain,
-                                                            self.loop, self.body_phenotype )
+                                                            self.loop, self.body_phenotype , self.bisymmetry)
                     render = Render()
                     img_path = f'{path}/currentinsim.png'
 

@@ -35,6 +35,7 @@ async def main(parser) -> None:
 
                     path_in = f'{path_out}/{experiment_name}/run_{run}/gen_{gen}/{env}'
                     lst = os.listdir(path_in)
+                    lst.sort(key=lambda x: int(x.split('_')[0]))
                     lst = lst[0:bests]
                     print(lst)
                     for_concats = [cv2.imread(f'{path_in}/{robot}') for robot in lst]

@@ -163,6 +163,14 @@ class Config():
         )
 
         parser.add_argument(
+            "--bisymmetry",
+            required=False,
+            default=0,
+            type=int,
+            help="0=False, 1=True",
+        )
+
+        parser.add_argument(
             "--mainpath",
             required=False,
             default="/home",

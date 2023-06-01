@@ -2,7 +2,7 @@
 #set -e
 #set -x
 
-# run this script from the root (revolve folder): ./experiments/default_study/run-analysis.sh PARAMSFILE
+# run this script from the root (revolve folder): ./experiments/default_study/run-analysis.sh pathPARAMSFILE/PARAMSFILE.sh
 
 DIR="$(dirname "${BASH_SOURCE[0]}")"
 study="$(basename $DIR)"

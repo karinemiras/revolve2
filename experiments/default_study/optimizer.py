@@ -73,6 +73,7 @@ class Optimizer(EAOptimizer[Genotype, float]):
     _substrate_radius: str
     _run_simulation: bool
     _loop: str
+    _bisymmetry: int
     _body_phenotype: str
     _headless: bool
     _env_conditions: List
@@ -103,6 +104,7 @@ class Optimizer(EAOptimizer[Genotype, float]):
         substrate_radius: str,
         run_simulation: bool,
         loop: str,
+        bisymmetry: int,
         body_phenotype: str,
         headless: bool,
         env_conditions: List,
@@ -140,6 +142,7 @@ class Optimizer(EAOptimizer[Genotype, float]):
         self._loop = loop
         self._headless = headless
         self._body_phenotype = body_phenotype
+        self._bisymmetry = bisymmetry
         self._init_runner()
         self._innov_db_body = innov_db_body
         self._innov_db_brain = innov_db_brain
@@ -178,6 +181,7 @@ class Optimizer(EAOptimizer[Genotype, float]):
         run_simulation: int,
         loop: str,
         body_phenotype: str,
+        bisymmetry: int,
         headless: bool,
         num_generations: int,
         simulator: str
@@ -202,6 +206,7 @@ class Optimizer(EAOptimizer[Genotype, float]):
         #TODO: save loop and body_phenotype in the database later
         self._loop = loop
         self._body_phenotype = body_phenotype
+        self._bisymmetry = bisymmetry
         self._headless= headless
         self._init_runner()
 
@@ -252,6 +257,7 @@ class Optimizer(EAOptimizer[Genotype, float]):
             elif self._simulator == 'mujoco':
                 self._runner[env] = (LocalRunnerM(headless=self._headless,
                                                   loop=self._loop,
+                                                  #TODO: make num_simulators a param
                                                   num_simulators=64))
 
     def _select_parents(
@@ -334,13 +340,14 @@ class Optimizer(EAOptimizer[Genotype, float]):
 
             phenotypes = []
             queried_substrates = []
-
+            i=0
             for genotype in genotypes:
+                i = i+1
                 phenotype, queried_substrate = develop(genotype, genotype.mapping_seed, self.max_modules,
                                                        self.substrate_radius,
                                                        self.env_conditions[cond], len(self.env_conditions),
                                                        self.plastic_body, self.plastic_brain,
-                                                       self._loop, self._body_phenotype )
+                                                       self._loop, self._body_phenotype,  self._bisymmetry)
                 phenotypes.append(phenotype)
                 queried_substrates.append(queried_substrate)
 

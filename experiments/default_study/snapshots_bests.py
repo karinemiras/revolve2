@@ -23,6 +23,7 @@ async def main(parser) -> None:
     mainpath = args.mainpath
     loop = args.loop
     body_phenotype = args.body_phenotype
+    bisymmetry = int(args.bisymmetry)
 
     for experiment_name in experiments_name:
         print(experiment_name)
@@ -85,7 +86,7 @@ async def main(parser) -> None:
                             phenotype, queried_substrate = develop(genotype, genotype.mapping_seed, max_modules, substrate_radius,
                                                 env_conditions[r.DbEAOptimizerGeneration.env_conditions_id],
                                                                    len(env_conditions), plastic_body, plastic_brain,
-                                                                   loop,  body_phenotype
+                                                                   loop,  body_phenotype, bisymmetry
                             )
                             render = Render()
                             img_path = f'{path_gen}/env{r.DbEAOptimizerGeneration.env_conditions_id}/' \
@@ -104,6 +105,8 @@ if __name__ == "__main__":
     parser.add_argument("mainpath")
     parser.add_argument("loop")
     parser.add_argument("body_phenotype")
+    parser.add_argument("bisymmetry")
+
     asyncio.run(main(parser))
 
 # can be run from root

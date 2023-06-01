@@ -45,7 +45,9 @@ async def main() -> None:
 
     # random number generator
     rng = Random()
-    rng.seed(random())
+    seed = random()
+    print('seed', seed)
+    rng.seed(seed)
 
     # database
     database = open_async_database_sqlite(f'{mainpath}/{args.study_name}/{args.experiment_name}/run_{args.run}', create=True)
@@ -69,6 +71,7 @@ async def main() -> None:
         run_simulation=args.run_simulation,
         loop=args.loop,
         body_phenotype=args.body_phenotype,
+        bisymmetry=args.bisymmetry,
         headless=args.headless,
         num_generations=args.num_generations,
         simulator=args.simulator
@@ -105,6 +108,7 @@ async def main() -> None:
             substrate_radius=args.substrate_radius,
             run_simulation=args.run_simulation,
             loop=args.loop,
+            bisymmetry=args.bisymmetry,
             body_phenotype=args.body_phenotype,
             headless=args.headless,
             env_conditions=seasonal_conditions_parsed,

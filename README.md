@@ -77,15 +77,20 @@ To **Run** a **single** experiment:
 
 python3 experiments/default_study/optimize.py --mainpath /home/mystuffff  --population_size 5 --offspring_size 5 --num_generations 2 --headless 0 --simulator isaac
 
-ps: for Mujoco set --simulator mujoco
+ps: for Mujoco set --headless 1 --simulator mujoco
 
 To **Run** and analyze a **batch** of experiments in the background (screens):
 
 ./experiments/default_study/run-experiments.sh
 
+To **Run** a **batch** of experiments and WITHOUT analysis and WITHOUT screens:
+
+./experiments/default_study/setup-experiments.sh /experiments/default_study/paramsdefault.sh
+
 To **Check** the status of the **batch** with:
 
-./experiments/default_study/check-experiments.sh
+./experiments/default_study/check-experiments.sh /experiments/default_study/paramsdefault.sh
+
 
 and/or 
 
@@ -95,7 +100,7 @@ ps: to parameterize your own batch, make your own version of paramsdefault.sh an
 
 To only **Analyze** the results the batch with:
 
-./experiments/default_study/run-analysis.sh
+./experiments/default_study/run-analysis.sh /experiments/default_study/paramsdefault.sh
 
 
 ## Revolve's documentation

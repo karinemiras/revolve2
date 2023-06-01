@@ -1,5 +1,5 @@
 #!/bin/bash
-# run this script from the root (revolve folder): ./experiments/default_study/run-experiments.sh PATH+PARAMSFILE
+# run this script from the root (revolve folder): ./experiments/default_study/run-experiments.sh pathPARAMSFILE/PARAMSFILE.sh
 
 DIR="$(dirname "${BASH_SOURCE[0]}")"
 study="$(basename $DIR)"

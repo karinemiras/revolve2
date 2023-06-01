@@ -1,4 +1,5 @@
 #!/bin/bash
+# run this script from the root (revolve folder): ./experiments/default_study/run-experiments.sh pathPARAMSFILE/PARAMSFILE.sh
 #set -e
 #set -x
 
@@ -137,7 +138,7 @@ while true
       printf "\nanalysis...\n"
       ./experiments/${study_path}/run-analysis.sh $params_file
 
-      ./experiments/${study_path}/makevideos.sh $params_file
+      ./experiments/${study_path}/watch_and_recor.sh $params_file
 
       pkill -f ${study}_loop
    fi

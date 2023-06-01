@@ -297,13 +297,13 @@ def crossover(
 
 
 def develop(genotype: Genotype, querying_seed: int, max_modules: int, substrate_radius: str, env_condition: list,
-            n_env_conditions: int, plastic_body: int, plastic_brain: int, loop: str, body_phenotype: str) -> ModularRobot:
+            n_env_conditions: int, plastic_body: int, plastic_brain: int, loop: str, body_phenotype: str, bisymmetry: int) -> ModularRobot:
 
     #TODO: closed loop with evolvable body does not work yet (ann expects spider inputs and outputs)
 
     if body_phenotype == 'evolvable':
         body, queried_substrate = body_develop(max_modules, substrate_radius, genotype.body, querying_seed,
-                            env_condition, n_env_conditions, plastic_body).develop()
+                            env_condition, n_env_conditions, plastic_body, bisymmetry).develop()
 
     if body_phenotype == 'spider':
         body = make_body_spider()

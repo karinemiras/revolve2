@@ -30,6 +30,7 @@ class Module:
         self._rotation = rotation
         self.rgb = None
         self.turtle_direction = None
+        self.direction_from_parent = None
         self.substrate_coordinates = None
 
         self._id = None
