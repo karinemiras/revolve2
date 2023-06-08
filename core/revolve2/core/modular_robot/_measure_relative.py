@@ -142,6 +142,40 @@ class MeasureRelative:
 
         return diversity
 
+
+    # def _speed_morphonovel(self, novelty_archive):
+    #     # works only for single season
+    #     diversity = self._pool_morpho_novelty(novelty_archive)
+    #     speed_morphonovel = self._genotype_measures[1]['speed_y'] * diversity
+    #     return speed_morphonovel
+    #
+    # def _pool_morpho_novelty(self, novelty_archive):
+    #     diversity = 0
+    #     genotype_measures = []
+    #     for key in which_measures:
+    #         genotype_measures.append(self._genotype_measures[1][key])
+    #
+    #     neighbours_measures = []
+    #     for i in range(0, len(self._neighbours_measures[1])):
+    #         neighbours_measures.append([])
+    #         for key in which_measures:
+    #             neighbours_measures[-1].append(self._neighbours_measures[2][i][key])
+    #
+    #     for i in range(0, len(novelty_archive[1])):
+    #         neighbours_measures.append([])
+    #         for key in which_measures:
+    #             neighbours_measures[-1].append(novelty_archive[1][i][key])
+    #
+    #     kdt = KDTree(neighbours_measures, leaf_size=30, metric='euclidean')
+    #     # TODO: take this as param and if 0 turn novelty off
+    #     k = 10 + 1
+    #
+    #     # distances from neighbors
+    #     distances, indexes = kdt.query([genotype_measures], k=k)
+    #     diversity = sum(distances[0]) / len(distances[0])
+    #
+    #     return diversity
+
     def _pool_backforth_dominated_individuals(self):
         which_measure = "speed_y"
         pool_dominated_individuals = 0

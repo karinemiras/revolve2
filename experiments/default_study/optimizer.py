@@ -343,11 +343,13 @@ class Optimizer(EAOptimizer[Genotype, float]):
             i=0
             for genotype in genotypes:
                 i = i+1
+              #  print(' robot',i)
                 phenotype, queried_substrate = develop(genotype, genotype.mapping_seed, self.max_modules,
                                                        self.substrate_radius,
                                                        self.env_conditions[cond], len(self.env_conditions),
                                                        self.plastic_body, self.plastic_brain,
                                                        self._loop, self._body_phenotype,  self._bisymmetry)
+
                 phenotypes.append(phenotype)
                 queried_substrates.append(queried_substrate)
 

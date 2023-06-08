@@ -23,9 +23,9 @@ async def main(parser) -> None:
     mainpath = args.mainpath
     loop = args.loop
     body_phenotype = args.body_phenotype
-    bisymmetry = int(args.bisymmetry)
+    bisymmetry = list(map(int, args.bisymmetry.split(',')))
 
-    for experiment_name in experiments_name:
+    for idsy, experiment_name in enumerate(experiments_name):
         print(experiment_name)
         for run in runs:
             print(' run: ', run)
@@ -86,7 +86,7 @@ async def main(parser) -> None:
                             phenotype, queried_substrate = develop(genotype, genotype.mapping_seed, max_modules, substrate_radius,
                                                 env_conditions[r.DbEAOptimizerGeneration.env_conditions_id],
                                                                    len(env_conditions), plastic_body, plastic_brain,
-                                                                   loop,  body_phenotype, bisymmetry
+                                                                   loop,  body_phenotype, bisymmetry[idsy]
                             )
                             render = Render()
                             img_path = f'{path_gen}/env{r.DbEAOptimizerGeneration.env_conditions_id}/' \

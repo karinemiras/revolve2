@@ -21,6 +21,11 @@ experiments=("flat" "tilted5")
 # conditions: friction_dynamicfriction_yrotation_idleparam_idleparam
 seasons_conditions=("1.0_1.0_0_0_0" "1.0_1.0_5_0_0")
 
+#bileteral symmetry
+bisymmetry=("0" "0")
+
+####
+
 runs=2
 
 watchruns="1,2"
@@ -62,7 +67,6 @@ crossover_prob=0
 # use simulation_time=30 for more interesting results
 simulation_time=5
 
-#bileteral symmetry
-bisymmetry=0
+
 
 ### PARAMS END ###

@@ -12,9 +12,9 @@ outputs_path="/home/ripper8/projects/working_data"
 # exps order is the same for all params
 # exps names should not be fully contained in each other
 
-study="bilateral"
+study="bilateralmuj"
 
-experiments=( "qbilateral" "qnotbilateral" )
+experiments=( "bilateral" "notbilateral" )
 
 # conditions have effect only for isaac
 # conditions: friction_dynamicfriction_yrotation_idleparam_idleparam
@@ -30,8 +30,8 @@ runs=15
 
 watchruns="1"
 
-simulator="isaac"
-#simulator="mujoco"
+#simulator="isaac"
+simulator="mujoco"
 
 loop="open"
 

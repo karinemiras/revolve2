@@ -42,6 +42,10 @@ git clone https://github.com/karinemiras/revolve2.git
 
 git checkout plasticoding_v2
 
+Reset to the most stable commit:
+
+git reset --hard 25ed54f1cf0c30380af30170b6d3505a56558c27
+
 **Main installation**:
 
 linux: sudo apt install libcereal-dev
@@ -87,7 +91,7 @@ To **Run** a **batch** of experiments and WITHOUT analysis and WITHOUT screens:
 
 ./experiments/default_study/setup-experiments.sh /experiments/default_study/paramsdefault.sh
 
-To **Check** the status of the **batch** with:
+To **Check** the status of the **batch**:
 
 ./experiments/default_study/check-experiments.sh /experiments/default_study/paramsdefault.sh
 
@@ -98,9 +102,14 @@ screen -list
 
 ps: to parameterize your own batch, make your own version of paramsdefault.sh and provide it to run-experiments.sh and other bashes
 
-To only **Analyze** the results the batch with:
+To only **Analyze** the results the batch:
 
 ./experiments/default_study/run-analysis.sh /experiments/default_study/paramsdefault.sh
+
+To  **Watch** the best robots of the experiments:
+
+./experiments/default_study/watch_and_record.sh /experiments/default_study/paramsdefault.sh
+
 
 
 ## Revolve's documentation

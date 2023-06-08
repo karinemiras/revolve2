@@ -16,18 +16,11 @@ async def main() -> None:
     args = Config()._get_params()
     mainpath = args.mainpath
 
-    if args.simulator == 'isaac':
-        if args.loop == 'open':
-            control_frequency = 20
-        if args.loop == 'closed':
-            control_frequency = 5
 
-    # TODO: remove this: revert to same freq to both
-    if args.simulator == 'mujoco':
-        if args.loop == 'open':
-            control_frequency = 10
-        if args.loop == 'closed':
-            control_frequency = 5
+    if args.loop == 'open':
+        control_frequency = 20
+    if args.loop == 'closed':
+        control_frequency = 5
 
     logging.basicConfig(
         level=logging.INFO,

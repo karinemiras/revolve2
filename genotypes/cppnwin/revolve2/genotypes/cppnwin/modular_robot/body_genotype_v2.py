@@ -138,7 +138,6 @@ class Develop:
 
     def attach_body(self):
         # size of substrate is (substrate_radius*2+1)^2
-
         parent_module_coor = (0, 0)
 
         self.free_slots[parent_module_coor] = [Core.LEFT,
@@ -155,15 +154,36 @@ class Develop:
 
             radius = self.substrate_radius
 
+            in_x_area = radius >= potential_module_coord[0] >= -radius
+            in_y_area = radius >= potential_module_coord[1] >= -radius
+
             # substrate limit
-            if radius >= potential_module_coord[0] >= -radius and radius >= potential_module_coord[1] >= -radius:
+            if not (in_x_area and in_y_area):
+
+                self.free_slots[parent_module_coor].remove(direction)
+                if len(self.free_slots[parent_module_coor]) == 0:
+                    self.free_slots.pop(parent_module_coor)
+                if len(self.free_slots)==0:
+                    break
+                else:
+                    parent_module_coor, parent_module, direction = self.choose_free_slot()
+
+            else:
 
                 # queries potential new module given coordinates
                 module_type, rotation = \
                     self.query_body_part(potential_module_coord[0], potential_module_coord[1])
 
                 # if position in substrate is not already occupied
-                if potential_module_coord not in self.queried_substrate.keys():
+                if potential_module_coord in self.queried_substrate.keys():
+                    self.free_slots[parent_module_coor].remove(direction)
+                    if len(self.free_slots[parent_module_coor]) == 0:
+                        self.free_slots.pop(parent_module_coor)
+                    if len(self.free_slots) == 0:
+                        break
+                    else:
+                        parent_module_coor, parent_module, direction = self.choose_free_slot()
+                else:
 
                     new_module = self.new_module(module_type, rotation, parent_module)
 
@@ -193,10 +213,9 @@ class Develop:
                     # fins new free slot
                     parent_module_coor, parent_module, direction = self.choose_free_slot()
 
-
     def attach_body_bilateral(self):
         # size of substrate is (substrate_radius*2+1)^2
-
+       # print('\n\n ----- ')
         parent_module_coor = (0, 0)
 
         self.free_slots[parent_module_coor] = [Core.LEFT,
@@ -212,25 +231,27 @@ class Develop:
             if queries_plus_mirrored >=self.max_modules:
                 break
 
-            queries_plus_mirrored +=1
+            queries_plus_mirrored += 1
 
             # calculates coordinates of potential new module
             potential_module_coord, turtle_direction = self.calculate_coordinates(parent_module, direction)
 
             radius = self.substrate_radius
 
+            # substrate limit
             in_x_area = 0 >= potential_module_coord[0] >= -radius
             in_y_area = radius >= potential_module_coord[1] >= -radius
 
-            # substrate limit
-          #  print(self.free_slots)
-            # in case tried to add stuff
             if not (in_x_area and in_y_area):
 
                 self.free_slots[parent_module_coor].remove(direction)
                 if len(self.free_slots[parent_module_coor]) == 0:
                     self.free_slots.pop(parent_module_coor)
-                parent_module_coor, parent_module, direction = self.choose_free_slot()
+                if len(self.free_slots)==0:
+                    break
+                else:
+                    parent_module_coor, parent_module, direction = self.choose_free_slot()
+
             else:
 
                 # queries potential new module given coordinates
@@ -238,7 +259,16 @@ class Develop:
                     self.query_body_part(potential_module_coord[0], potential_module_coord[1])
 
                 # if position in substrate is not already occupied
-                if potential_module_coord not in self.queried_substrate.keys():
+#                if potential_module_coord not in self.queried_substrate.keys():
+                if potential_module_coord in self.queried_substrate.keys():
+                    self.free_slots[parent_module_coor].remove(direction)
+                    if len(self.free_slots[parent_module_coor]) == 0:
+                        self.free_slots.pop(parent_module_coor)
+                    if len(self.free_slots) == 0:
+                        break
+                    else:
+                        parent_module_coor, parent_module, direction = self.choose_free_slot()
+                else:
 
                     new_module = self.new_module(module_type, rotation, parent_module)
 
@@ -247,17 +277,10 @@ class Develop:
                     new_module.turtle_direction = turtle_direction
                     new_module.direction_from_parent = direction
 
-                    # inverse_dic = {0: 'FRONT',
-                    #                2: 'LEFT',
-                    #                3: 'BACK',
-                    #                1: 'RIGHT'
-                    #                }
                     # attaches module
                     parent_module.children[direction] = new_module
                     self.queried_substrate[potential_module_coord] = new_module
 
-                    #print('\n>>>>>>>>new guy',new_module._id,' in parent ',parent_module._id,parent_module,inverse_dic[new_module.direction_from_parent], new_module)
-                    #print(parent_module.children)
                     # joints branch out only to the front
                     if module_type is ActiveHinge:
                         directions = [ActiveHinge.ATTACHMENT]
@@ -274,9 +297,7 @@ class Develop:
                     self.free_slots[potential_module_coord] = directions
 
                     # mirroring
-
                     mirror_coord = (potential_module_coord[0] * -1, potential_module_coord[1])
-                   # print('qqqq',q, new_module,direction)
 
                     if mirror_coord[0] > 0:
 
@@ -290,51 +311,32 @@ class Develop:
 
                             mirrored_module.direction_from_parent = direction
                             mirrored_parent.children[direction] = mirrored_module
-                            #print('  parents of',new_module._id,parent_module.substrate_coordinates)
                             self.queried_substrate[mirror_coord] = mirrored_module
 
                         else:
 
-
                             mirrored_parent = self.queried_substrate[parent_module.substrate_coordinates[0]*-1, parent_module.substrate_coordinates[1]]
-                           # print('parents of', new_module._id,parent_module.substrate_coordinates, mirrored_parent.substrate_coordinates)
                             mirrored_module = self.new_module(module_type, rotation, mirrored_parent)
-                           # print('mirror, ',mirrored_module._id)
                             mirrored_module.substrate_coordinates = mirror_coord
-
-                            #apply proper direction inversion here
-                          #  direction = Core.FRONT
-                            #if mirrored_parent.turtle_direction ==
 
                             current_module = mirrored_parent
                             directions_backwards = []
 
-
                             # mapping segment backwards from mirrored parent until code
                             while type(current_module) != Core:
-
-                              #  print('  bakward ',current_module._id, current_module,' is at the ',inverse_dic[current_module.direction_from_parent])
                                 directions_backwards.append(current_module.direction_from_parent)
                                 current_module = current_module._parent
 
-
-                            # create turtle sequence going traversing segment forward
                             directions_backwards.reverse()
-
                             previous_move = -1
                             turtle_orientation = Core.FRONT
                             current_forward = self.phenotype_body.core
-                           # print('forward',len(directions_backwards))
+
                             for dir in directions_backwards:
-
-                              #  print('   current guy', current_forward._id,current_forward)
                                 if type(current_forward) == ActiveHinge:
-
                                     dir = ActiveHinge.ATTACHMENT
-                              #  print('       current ', inverse_dic[turtle_orientation], 'intended', inverse_dic[dir])
-                              #  print(current_forward.children)
+
                                 current_forward = current_forward.children[dir]
-                             #   print('after',current_forward)
 
                                 if (
                                         (dir == Core.FRONT and turtle_orientation == Core.FRONT) or
@@ -342,38 +344,29 @@ class Develop:
                                         (dir == Core.LEFT and turtle_orientation == Core.RIGHT) or
                                         (dir == Core.BACK and turtle_orientation == Core.BACK)):
                                     turtle_orientation = Core.FRONT
-                               #     print('front')
                                 elif ((dir == Core.RIGHT and turtle_orientation == Core.FRONT) or
                                       (dir == Core.BACK and turtle_orientation == Core.LEFT) or
                                       (dir == Core.FRONT and turtle_orientation == Core.RIGHT) or
                                       (dir == Core.LEFT and turtle_orientation == Core.BACK)):
                                     turtle_orientation = Core.RIGHT
-                                  #  print('right')
                                 elif ((dir == Core.BACK and turtle_orientation == Core.FRONT) or
                                       (dir == Core.LEFT and turtle_orientation == Core.LEFT) or
                                       (dir == Core.RIGHT and turtle_orientation == Core.RIGHT) or
                                       (dir == Core.FRONT and turtle_orientation == Core.BACK)):
                                     turtle_orientation = Core.BACK
-                             #       print('bacxk')
                                 elif ((dir == Core.LEFT and turtle_orientation == Core.FRONT) or
                                       (dir == Core.FRONT and turtle_orientation == Core.LEFT) or
                                       (dir == Core.BACK and turtle_orientation == Core.RIGHT) or
                                       (dir == Core.RIGHT and turtle_orientation == Core.BACK)):
                                     turtle_orientation = Core.LEFT
-                                  #  print('left')
-                               # print('       next ',turtle_orientation)
-                               # previous_move = turtle_orientation
 
                             # calculates orientation of new mirrored child relative to parent
                             p_x = mirrored_parent.substrate_coordinates[0]
                             c_x = mirrored_module.substrate_coordinates[0]
                             p_y = mirrored_parent.substrate_coordinates[1]
                             c_y = mirrored_module.substrate_coordinates[1]
-                        #    print( mirrored_parent.substrate_coordinates[0] , mirrored_parent.substrate_coordinates[1], '     ',mirrored_module.substrate_coordinates[0],mirrored_module.substrate_coordinates[1] )
-                          #  print('diffs', diff_x,diff_y)
 
                             if turtle_orientation == Core.RIGHT:
-
                                 if p_y > c_y:
                                     turtle_orientation = Core.RIGHT
                                 if p_x > c_x:
@@ -382,10 +375,8 @@ class Develop:
                                     turtle_orientation = Core.FRONT
                                 if p_y < c_y:
                                     turtle_orientation = Core.LEFT
-                               # print('right',turtle_orientation)
 
                             elif turtle_orientation == Core.FRONT:
-
                                 if p_x < c_x:
                                     turtle_orientation = Core.RIGHT
                                 if p_y > c_y:
@@ -394,10 +385,8 @@ class Develop:
                                     turtle_orientation = Core.FRONT
                                 if p_x > c_x:
                                     turtle_orientation = Core.LEFT
-                               # print('right', turtle_orientation)
 
                             elif turtle_orientation == Core.LEFT:
-
                                 if p_y < c_y:
                                     turtle_orientation = Core.RIGHT
                                 if p_x < c_x:
@@ -406,10 +395,8 @@ class Develop:
                                     turtle_orientation = Core.FRONT
                                 if p_y > c_y:
                                     turtle_orientation = Core.LEFT
-                              #  print('left', turtle_orientation)
 
                             elif turtle_orientation == Core.BACK:
-
                                 if p_x > c_x:
                                     turtle_orientation = Core.RIGHT
                                 if p_y < c_y:
@@ -418,25 +405,16 @@ class Develop:
                                     turtle_orientation = Core.FRONT
                                 if p_x < c_x:
                                     turtle_orientation = Core.LEFT
-                           #    print('bsack', turtle_orientation)
-
-                     #   print('       final next ', turtle_orientation)
 
                             mirrored_module.direction_from_parent = turtle_orientation
-                       #     print('mirrorparent', type(mirrored_parent),mirrored_parent.children, direction,Core.FRONT)
                             if type(mirrored_parent) == ActiveHinge:
                                 mirrored_parent.children[ActiveHinge.ATTACHMENT] = mirrored_module
                             else:
                                 mirrored_parent.children[turtle_orientation] = mirrored_module
                             self.queried_substrate[mirror_coord] = mirrored_module
-                           # print('>>>>>>>>mirrored guy', mirrored_module._id, ' in parent ',  mirrored_parent._id,  mirrored_parent, inverse_dic[mirrored_module.direction_from_parent],mirrored_module)
-                          #  print(mirrored_parent.children)
 
                     # fins new free slot
                     parent_module_coor, parent_module, direction = self.choose_free_slot()
-
-       # print('\n ======   ')
-
 
     def place_head(self):
 

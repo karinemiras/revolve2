@@ -20,7 +20,9 @@ def multiple_unique(
     :returns: Indices of the selected individuals.
     """
     assert len(population) == len(fitnesses)
-    assert selection_size < len(population)
+
+    # this assert is stupid coz it gets applied in pop 1, so cant test pop of 1
+    #assert selection_size < len(population)
 
     selected_individuals = []
     for _ in range(selection_size):

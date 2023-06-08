@@ -82,9 +82,11 @@ while true
               lastgen=$(grep -c "Finished generation" $file);
               finishedgen=$(grep -c "Finished optimizing." $file);
 
-            #  echo "latest finished gens ${lastgen}";
+              #echo "number finished gens ${lastgen}";
 
-               if [ "$finishedgen" == 0 ]; then
+               #if [ "$finishedgen" == 0 ]; then
+               if [ "$lastgen" != "$num_generations" ]; then
+
                  unfinished+=("${experiment}_${run}")
 
                 # only if not already running
@@ -124,7 +126,7 @@ while true
                --experiment_name ${exp} --seasons_conditions ${seasons_conditions[$idx]} --run ${run} --study=${study} \
                --num_generations ${num_generations} --population_size ${population_size} --offspring_size ${offspring_size} \
                --loop ${loop} --body_phenotype ${body_phenotype} --simulator ${simulator} --simulation_time ${simulation_time} \
-               --crossover_prob ${crossover_prob} --mutation_prob ${mutation_prob};
+               --crossover_prob ${crossover_prob} --mutation_prob ${mutation_prob} --bisymmetry ${bisymmetry[$idx]} ;
 
         printf "\n >> (re)starting ${study}_${free_screens[$p]}_${to_d} \n\n"
         p=$((${p}+1))
@@ -138,7 +140,7 @@ while true
       printf "\nanalysis...\n"
       ./experiments/${study_path}/run-analysis.sh $params_file
 
-      ./experiments/${study_path}/watch_and_recor.sh $params_file
+      ./experiments/${study_path}/watch_and_record.sh $params_file
 
       pkill -f ${study}_loop
    fi

@@ -59,7 +59,7 @@ class Simulator:
         self.simulator = args.simulator
         self.loop = args.loop
         self.body_phenotype = args.body_phenotype
-        self.bisymmetry = int(args.bisymmetry)
+        self.bisymmetry = list(map(int, args.bisymmetry.split(',')))
 
         self.bests = 1
         # 'all' selects best from all individuals
@@ -69,7 +69,7 @@ class Simulator:
         if self.simulator == 'mujoco':
             self._TERRAIN = terrains.flat()
 
-        for experiment_name in self.experiments_name:
+        for ids, experiment_name in enumerate(self.experiments_name):
             print('\n', experiment_name)
             for run in self.runs:
                 print('\n run: ', run)
@@ -81,12 +81,12 @@ class Simulator:
                 if self.bests_type == 'gens':
                     for gen in self.generations:
                         print('  in gen: ', gen)
-                        await self.recover(db, gen, path)
+                        await self.recover(db, gen, path, ids)
                 elif self.bests_type == 'all':
                     pass
                     # TODO: implement
 
-    async def recover(self, db, gen, path):
+    async def recover(self, db, gen, path, ids):
         async with AsyncSession(db) as session:
 
             rows = (
@@ -118,8 +118,8 @@ class Simulator:
                             & (DbEAOptimizerGeneration.env_conditions_id == DbEAOptimizerIndividual.env_conditions_id)
                             & (DbFloat.id == DbEAOptimizerIndividual.float_id)
                             & DbEAOptimizerGeneration.generation_index.in_([gen])
-                            # IF YOU WANNA SEE A SPECIFIC ROBOT IN THA GEN
-                            #     & (DbEAOptimizerIndividual.individual_id == 4910)
+                            # IF YOU WANNA SEE A SPECIFIC ROBOT
+                              #   & (DbEAOptimizerIndividual.individual_id == 14423)
                             )
 
                 # if seasonal setup, criteria is seasonal pareto
@@ -154,10 +154,10 @@ class Simulator:
                     phenotype, queried_substrate = develop(genotype, genotype.mapping_seed, max_modules,
                                                            substrate_radius, env_conditions[env_conditions_id],
                                                             len(env_conditions), plastic_body, plastic_brain,
-                                                            self.loop, self.body_phenotype , self.bisymmetry)
+                                                            self.loop, self.body_phenotype , self.bisymmetry[ids])
+
                     render = Render()
                     img_path = f'{path}/currentinsim.png'
-
                     render.render_robot(phenotype.body.core, img_path)
 
                     actor, controller = phenotype.make_actor_and_controller()
@@ -173,13 +173,18 @@ class Simulator:
                     env.actors.append(
                         PosedActor(
                             actor,
-                            Vector3([0.0, 0.0,  bounding_box.size.z / 2.0 - bounding_box.offset.z]),
+                            Vector3(
+                                [
+                                    0.0,
+                                    0.0,
+                                    (bounding_box.size.z / 2.0 - bounding_box.offset.z),
+                                ]
+                            ),
                             Quaternion.from_eulers([robot_rotation, 0, 0]),
                             [0.0 for _ in controller.get_dof_targets()],
                         )
                     )
 
-                    states = None
                     batch = Batch(
                          simulation_time=simulation_time,
                          sampling_frequency=sampling_frequency,
