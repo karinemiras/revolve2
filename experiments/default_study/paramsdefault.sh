@@ -6,23 +6,23 @@
 # this should be the path for the output files (choose YOUR OWN dir!)
 outputs_path="/home/ripper8/projects/working_data"
 
-# DO NOT use underline ( _ ) in the study and experiments names
-# delimiter is space. example:
-#experiments=("exp1" "epx2")
-#conditions=("1.0_1.0_0_0_0" "1.0_1.0_0_0_0")
-# exps order is the same for all params
-# exps names should not be fully contained in each other
-
 study="defaultstudy"
 
-experiments=("flat" "tilted5")
+# DO NOT use underline ( _ ) in the study and experiments names
+# delimiter of three vars below is coma. example:
+#experiments="exp1,epx2"
+# exps order is the same for all three vars
+# exps names should not be fully contained in each other
+
+experiments="flat,tilted5"
 
 # conditions have effect only for isaac
 # conditions: friction_dynamicfriction_yrotation_idleparam_idleparam
-seasons_conditions=("1.0_1.0_0_0_0" "1.0_1.0_5_0_0")
+seasons_conditions="1.0_1.0_0_0_0,1.0_1.0_5_0_0"
 
 #bileteral symmetry
-bisymmetry=("0" "0")
+bisymmetry="0,0"
+
 
 ####
 

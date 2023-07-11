@@ -17,7 +17,7 @@ class EnvironmentActorController(EnvironmentController):
         """
         self.actor_controller = actor_controller
 
-    def control(self, dt: float, actor_control: ActorControl, loop, results) -> None:
+    def control(self, dt: float, actor_control: ActorControl, loop, results, joints_off) -> None:
         """
         Control the single actor in the environment using an ActorController.
 
@@ -28,4 +28,10 @@ class EnvironmentActorController(EnvironmentController):
             self.actor_controller.set_sensors(results)
 
         self.actor_controller.step(dt)
-        actor_control.set_dof_targets(0, self.actor_controller.get_dof_targets())
+        dof_targets = self.actor_controller.get_dof_targets()
+
+        if len(joints_off) > 0:
+            for j in joints_off:
+                dof_targets[j] = 0
+
+        actor_control.set_dof_targets(0, dof_targets)

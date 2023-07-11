@@ -16,7 +16,6 @@ async def main() -> None:
     args = Config()._get_params()
     mainpath = args.mainpath
 
-
     if args.loop == 'open':
         control_frequency = 20
     if args.loop == 'closed':

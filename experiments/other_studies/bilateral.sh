@@ -7,28 +7,27 @@
 outputs_path="/home/ripper8/projects/working_data"
 
 # DO NOT use underline ( _ ) in the study and experiments names
-# delimiter of arrays is space. example:
-#experiments=("exp1" "epx2")
+# delimiter of arrays is coma.
 # exps order is the same for all params
 # exps names should not be fully contained in each other
 
 study="bilateral"
 
-experiments=( "qbilateral" "qnotbilateral" )
+experiments="qbilateral,qnotbilateral"
 
 # conditions have effect only for isaac
 # conditions: friction_dynamicfriction_yrotation_idleparam_idleparam
-seasons_conditions=("1.0_1.0_0_0_0" "1.0_1.0_0_0_0")
+seasons_conditions="1.0_1.0_0_0_0,1.0_1.0_0_0_0"
 
 #bileteral symmetry
-bisymmetry=("1" "0")
+bisymmetry="1,0"
 
 
 ############
 
-runs=15
+runs=20
 
-watchruns="1"
+watchruns="1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20"
 
 simulator="isaac"
 #simulator="mujoco"
@@ -55,7 +54,7 @@ num_terminals=2
 
 # gens for boxplots, snapshots, videos (by default the last gen)
 #generations="1,$num_generations"
-generations="100,150,$num_generations"
+generations="$num_generations"
 
 # max gen to filter lineplots  (by default the last gen)
 final_gen="$num_generations"
@@ -67,6 +66,6 @@ crossover_prob=0
 # use simulation_time=30 for more interesting results
 simulation_time=30
 
-
+max_modules=30
 
 ### PARAMS END ###

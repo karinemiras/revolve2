@@ -20,10 +20,13 @@ source $params_file
 
 screen -list
 
+IFS=', ' read -r -a experiments <<< "$experiments"
+
 to_do=()
 for i in $(seq $runs)
 do
     run=$(($i))
+
 
     for experiment in "${experiments[@]}"
     do

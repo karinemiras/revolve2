@@ -190,6 +190,7 @@ class Develop:
                     new_module.substrate_coordinates = potential_module_coord
 
                     new_module.turtle_direction = turtle_direction
+                    new_module.direction_from_parent = direction
 
                     # attaches module
                     parent_module.children[direction] = new_module

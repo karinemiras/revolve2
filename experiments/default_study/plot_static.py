@@ -29,9 +29,7 @@ include_max = False
 merge_lines = True
 gens_boxes = generations
 clrs = ['#009900',
-        '#EE8610',
-        '#7550ff',
-        '#876044']
+        '#EE8610']
 path = f'{mainpath}/{study}'
 
 measures = {

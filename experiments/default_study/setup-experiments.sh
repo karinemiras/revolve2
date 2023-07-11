@@ -47,7 +47,7 @@ while true
 
        screenstudy="$(cut -d'_' -f2 <<<"$obj")"
 
-        if [[ "$screenstudy" == *"${study}"* ]]; then
+          if [[ "$screenstudy" == "${study}" ]]; then
            #   printf "\n screen ${obj} is on\n"
               screen="$(cut -d'_' -f3 <<<"$obj")"
               active_experiments+=("$(cut -d'_' -f3 -<<<"$obj")_$(cut -d'_' -f4 -<<<"$obj")")
@@ -61,6 +61,10 @@ while true
      fi
       done
 
+
+    IFS=', ' read -r -a experiments <<< "$experiments"
+    IFS=', ' read -r -a bisymmetry <<< "$bisymmetry"
+    IFS=', ' read -r -a seasons_conditions <<< "$seasons_conditions"
 
     # discover unfinished experiments
 
@@ -84,7 +88,6 @@ while true
 
               #echo "number finished gens ${lastgen}";
 
-               #if [ "$finishedgen" == 0 ]; then
                if [ "$lastgen" != "$num_generations" ]; then
 
                  unfinished+=("${experiment}_${run}")
@@ -126,7 +129,8 @@ while true
                --experiment_name ${exp} --seasons_conditions ${seasons_conditions[$idx]} --run ${run} --study=${study} \
                --num_generations ${num_generations} --population_size ${population_size} --offspring_size ${offspring_size} \
                --loop ${loop} --body_phenotype ${body_phenotype} --simulator ${simulator} --simulation_time ${simulation_time} \
-               --crossover_prob ${crossover_prob} --mutation_prob ${mutation_prob} --bisymmetry ${bisymmetry[$idx]} ;
+               --crossover_prob ${crossover_prob} --mutation_prob ${mutation_prob} --bisymmetry ${bisymmetry[$idx]} \
+               --max_modules ${max_modules};
 
         printf "\n >> (re)starting ${study}_${free_screens[$p]}_${to_d} \n\n"
         p=$((${p}+1))
@@ -140,7 +144,7 @@ while true
       printf "\nanalysis...\n"
       ./experiments/${study_path}/run-analysis.sh $params_file
 
-      ./experiments/${study_path}/watch_and_record.sh $params_file
+      #./experiments/${study_path}/watch_and_record.sh $params_file
 
       pkill -f ${study}_loop
    fi

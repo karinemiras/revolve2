@@ -13,27 +13,11 @@ fi
 source $params_file
 
 
-#TODO: ugly. make setup sh account for commas instead
-experimentscoma=""
-bisymmetrycoma=""
-for experiment in "${experiments[@]}"
-do
-  experimentscoma=("${experimentscoma}${experiment},")
-done
-experimentscoma=${experimentscoma::-1}
-for bisy in "${bisymmetry[@]}"
-do
-  bisymmetrycoma=("${bisymmetrycoma}${bisy},")
-done
-bisymmetrycoma=${bisymmetrycoma::-1}
-
-
-
 file="${outputs_path}/${study}/analysis/video_bests.mpg";
 
 printf " \n making video..."
 screen -d -m -S ${study}_videos ffmpeg -f x11grab -r 25 -i :1 -qscale 0 $file;
-python3 experiments/${study_path}/watch_robots.py $study $experimentscoma $watchruns $generations $outputs_path $simulator $loop $body_phenotype $bisymmetrycoma;
+python3 experiments/${study_path}/watch_robots.py $study $experiments $watchruns $generations $outputs_path $simulator $loop $body_phenotype $bisymmetry;
 
 pkill -f ${study}_videos
 pkill -f ${study}_loop

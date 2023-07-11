@@ -75,6 +75,7 @@ class LocalRunner(Runner):
         _real_time: bool
         _env_conditions: List
         _loop: str
+        _joints_off: List
 
         _gym: gymapi.Gym
         _batch: Batch
@@ -93,6 +94,7 @@ class LocalRunner(Runner):
             real_time: bool,
             env_conditions: List,
             loop: str,
+            joints_off: List,
             max_gpu_contact_pairs: int,
             terrain_generator: Callable[[gymapi.Gym, gymapi.Sim], None],
             sim_params: gymapi.SimParams,
@@ -101,6 +103,7 @@ class LocalRunner(Runner):
             self._batch = batch
             self._env_conditions = env_conditions
             self._loop = loop
+            self._joints_off = joints_off
 
             sim_params.physx.max_gpu_contact_pairs = max_gpu_contact_pairs
             self._sim = self._create_sim(sim_params)
@@ -339,7 +342,7 @@ class LocalRunner(Runner):
                     controls = [ActorControl() for _ in self._batch.environments]
                     control_i = 0
                     for control, env in zip(controls, self._batch.environments):
-                        env.controller.control(control_step, control, self._loop, dof_states[control_i]['pos'])
+                        env.controller.control(control_step, control, self._loop, dof_states[control_i]['pos'], self._joints_off)
                         control_i = control_i +1
 
                     dof_targets = [
@@ -486,6 +489,7 @@ class LocalRunner(Runner):
         self,
         env_conditions: List,
         loop: str,
+        joints_off: List = [],
         headless: bool = False,
         real_time: bool = False,
         max_gpu_contact_pairs: int = 1048576,
@@ -507,6 +511,7 @@ class LocalRunner(Runner):
         self._real_time = real_time
         self._env_conditions = env_conditions
         self._loop = loop
+        self._joints_off = joints_off
         self._max_gpu_contact_pairs = max_gpu_contact_pairs
         self._terrain_generator = terrain_generator
         self._sim_params = sim_params
@@ -560,6 +565,7 @@ class LocalRunner(Runner):
                 self._sim_params,
                 self._env_conditions,
                 self._loop,
+                self._joints_off,
             ),
         )
         process.start()
@@ -590,6 +596,7 @@ class LocalRunner(Runner):
         sim_params: gymapi.SimParams,
         env_conditions: List,
         loop: str,
+        joints_off: List,
     ) -> None:
         _Simulator = cls._Simulator(
             batch=batch,
@@ -600,6 +607,7 @@ class LocalRunner(Runner):
             sim_params=sim_params,
             env_conditions=env_conditions,
             loop=loop,
+            joints_off=joints_off,
         )
 
         batch_results = _Simulator.run()
