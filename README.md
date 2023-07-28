@@ -42,9 +42,9 @@ git clone https://github.com/karinemiras/revolve2.git
 
 git checkout plasticoding_v2
 
-Reset to the most stable commit:
+Reset to the latest stable commit:
 
-git reset --hard 25ed54f1cf0c30380af30170b6d3505a56558c27
+git reset --hard 76c3bdeb8e8bcc7f7b8bc585749721260a445ec3
 
 **Main installation**:
 
