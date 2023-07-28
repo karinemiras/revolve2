@@ -27,11 +27,14 @@ for t in $(seq 1 $((${num_terminals}))); do
     possible_screens+=($t)
 done
 
+IFS=', ' read -r -a experiments <<< "$experiments"
+IFS=', ' read -r -a bisymmetry <<< "$bisymmetry"
+IFS=', ' read -r -a seasons_conditions <<< "$seasons_conditions"
 
 while true
 	do
 
-   # printf "\n  >>>> loop ... \n"
+    printf "\n  >>>> loop ... \n"
 
     # discover free terminals
 
@@ -48,9 +51,10 @@ while true
        screenstudy="$(cut -d'_' -f2 <<<"$obj")"
 
           if [[ "$screenstudy" == "${study}" ]]; then
-           #   printf "\n screen ${obj} is on\n"
+           printf "\n screen ${obj} is on\n"
               screen="$(cut -d'_' -f3 <<<"$obj")"
-              active_experiments+=("$(cut -d'_' -f3 -<<<"$obj")_$(cut -d'_' -f4 -<<<"$obj")")
+
+              active_experiments+=("$(cut -d'_' -f4 -<<<"$obj")_$(cut -d'_' -f5 -<<<"$obj")")
               active_screens+=($screen)
           fi
     done
@@ -62,15 +66,11 @@ while true
       done
 
 
-    IFS=', ' read -r -a experiments <<< "$experiments"
-    IFS=', ' read -r -a bisymmetry <<< "$bisymmetry"
-    IFS=', ' read -r -a seasons_conditions <<< "$seasons_conditions"
-
     # discover unfinished experiments
 
     to_do=()
     unfinished=()
-    for i in $(seq $runs)
+    for i in $(seq $nruns)
     do
         run=$(($i))
 
@@ -139,15 +139,15 @@ while true
 
    # if all experiments are finished, run analysis and make videos
    # (NOTE: IF THE SCREEN IS LOCKED, YOU JUST GET VIDEO WITH A LOCKED SCREEN...)
-   if [ -z "$unfinished" ]; then
-
-      printf "\nanalysis...\n"
-      ./experiments/${study_path}/run-analysis.sh $params_file
-
-      #./experiments/${study_path}/watch_and_record.sh $params_file
-
-      pkill -f ${study}_loop
-   fi
+#   if [ -z "$unfinished" ]; then
+#
+#      printf "\nanalysis...\n"
+#      ./experiments/${study_path}/run-analysis.sh $params_file
+#
+#      #./experiments/${study_path}/watch_and_record.sh $params_file
+#
+#      pkill -f ${study}_loop
+#   fi
 
     # use this longer period for longer experiments
     sleep $delay_setup_script;

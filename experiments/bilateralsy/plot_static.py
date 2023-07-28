@@ -71,9 +71,11 @@ def plots():
 
     df_inner = pandas.read_csv(f'{path}/analysis/{comparison}/df_inner.csv')
     df_outer = pandas.read_csv(f'{path}/analysis/{comparison}/df_outer.csv')
+    #all_df = pandas.read_csv(f'{path}/analysis/{comparison}/all_df.csv')
 
-    plot_lines(df_outer)
+ #   plot_lines(df_outer)
     plot_boxes(df_inner)
+   # plot_corr(all_df)
    
 
 def plot_lines(df_outer):
@@ -131,10 +133,8 @@ def plot_boxes(df_inner):
     for gen_boxes in gens_boxes:
 
         df_inner2 = df_inner[(df_inner['generation_index'] == gen_boxes)]
-
         plt.clf()
-        tests_combinations = [(experiments[i], experiments[j]) \
-                              for i in range(len(experiments)) for j in range(i+1, len(experiments))]
+        tests_combinations = [('bilateralbetter', 'bilateralworse')]
         for idx_measure, measure in enumerate(measures.keys()):
             sb.set(rc={"axes.titlesize": 23, "axes.labelsize": 23, 'ytick.labelsize': 21, 'xtick.labelsize': 21})
             sb.set_style("whitegrid")
@@ -149,7 +149,7 @@ def plot_boxes(df_inner):
                     add_stat_annotation(plot, data=df_inner2, x='experiment', y=f'{measure}_{inner_metrics[0]}',
                                         box_pairs=tests_combinations,
                                         comparisons_correction=None,
-                                        test='Wilcoxon',
+                                        test='Mann-Whitney',
                                         text_format = 'star', fontsize = 'xx-large', loc = 'inside',
                                         verbose=1)
             except Exception as error:
@@ -164,6 +164,48 @@ def plot_boxes(df_inner):
             plt.close()
 
     print('plotted boxes!')
+
+
+def plot_corr(all_df):
+
+    def corrfunc(x, y, **kws):
+
+        if kws['label'] == 'bilateral':
+            xpos = 0.1
+            ypos = 0.1
+        else:
+            xpos = 0.1
+            ypos = .3
+
+        r, _ = stats.pearsonr(x, y)
+        ax = plt.gca()
+        ax.annotate("r = {:.2f}".format(r),
+                    xy=(xpos, ypos), xycoords=ax.transAxes, fontsize=10)
+
+    font = {'font.size': 20}
+    plt.rcParams.update(font)
+
+    measures_names = [
+        'speed_y', 'modules_count', 'hinge_prop', 'brick_prop',
+        'branching_prop', 'extremities_prop',
+        'extensiveness_prop', 'coverage', 'proportion', 'symmetry']
+
+    #sample = all_df[(all_df['generation_index'] >= 140)]
+    sample = all_df[(all_df['generation_index'] >= 50)]
+    prop = int(len(sample)*0.1)
+    sample = sample.sample(n=prop)
+
+    suball = sample.filter(items=measures_names+['experiment'])
+
+    g = sb.PairGrid(suball, hue='experiment')
+    g.map_upper(plt.scatter, s=10)
+    g.map_diag(sb.distplot, kde=False)
+    g.map_lower(sb.kdeplot, cmap="Blues_d")
+    g.map_lower(corrfunc)
+
+    plt.savefig(f'{path}/analysis/{comparison}/corr_last100_0.1.png', bbox_inches='tight')
+    plt.clf()
+    plt.close()
 
 
 plots()

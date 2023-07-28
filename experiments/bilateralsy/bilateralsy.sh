@@ -11,9 +11,9 @@ outputs_path="/home/ripper8/projects/working_data"
 # exps order is the same for all params
 # exps names should not be fully contained in each other
 
-study="bilateral"
+study="bilateralsy"
 
-experiments="qbilateral,qnotbilateral"
+experiments="bilateral,notbilateral"
 
 # conditions have effect only for isaac
 # conditions: friction_dynamicfriction_yrotation_idleparam_idleparam
@@ -22,12 +22,16 @@ seasons_conditions="1.0_1.0_0_0_0,1.0_1.0_0_0_0"
 #bileteral symmetry
 bisymmetry="1,0"
 
+nruns=40
 
-############
+runs=""
+for i in $(seq 1 $nruns);
+do
+  runs=("${runs}${i},")
+done
+runs=${runs::-1}
 
-runs=20
-
-watchruns="1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20"
+watchruns=$runs
 
 simulator="isaac"
 #simulator="mujoco"
@@ -37,13 +41,13 @@ loop="open"
 body_phenotype="evolvable"
 
 # use num_generations=100 for more interesting results
-num_generations="200"
+num_generations="150"
 
 # use population_size=100 for more interesting results
-population_size="100"
+population_size="50"
 
 # use offspring_size=100 for more interesting results
-offspring_size="100"
+offspring_size="50"
 
 # bash loop frequency: adjust seconds according to exp size, e.g, 300.
 # (low values for short experiments will try to spawn and log too often)
@@ -64,7 +68,7 @@ mutation_prob=1
 crossover_prob=0
 
 # use simulation_time=30 for more interesting results
-simulation_time=30
+simulation_time=20
 
 max_modules=30
 

@@ -26,10 +26,13 @@ class Analysis:
     def __init__(self, args):
 
         study = args.study
-        experiments_name = args.experiments.split(',')
-        runs = list(map(int, args.runs.split(',')))
-        mainpath = args.mainpath
+        #experiments_name = args.experiments.split(',')
+        experiments_name = [args.experiments.split(',')[0], args.experiments.split(',')[0]]
+        runs_both = args.runs.split('|')
+        runs = [list(map(int, runs_both[0].split(','))),
+                list(map(int, runs_both[1].split(',')))]
 
+        mainpath = args.mainpath
         self.study = study
         self.experiments = experiments_name
         self.inner_metrics = ['mean', 'max']
@@ -77,8 +80,8 @@ class Analysis:
             os.makedirs(f'{self.path}/analysis/{self.comparison}')
             
         all_df = None
-        for experiment in self.experiments:
-            for run in self.runs:
+        for idx, experiment in enumerate(self.experiments):
+            for run in self.runs[idx]:
                 print(experiment, run)
                 db = open_database_sqlite(f'{self.path}/{experiment}/run_{run}')
 
@@ -96,7 +99,12 @@ class Analysis:
                     ),
                     db,
                 )
-                df["experiment"] = experiment
+                # comment this out for basic_plots_better and basic_plots_worse
+                if idx == 0:
+                    df["experiment"] = experiment+'better'
+                else:
+                    df["experiment"] = experiment+'worse'
+
                 df["run"] = run
 
                 if all_df is None:

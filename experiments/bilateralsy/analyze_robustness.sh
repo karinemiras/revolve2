@@ -12,5 +12,5 @@ fi
 
 source $params_file
 
-python3 experiments/${study_path}/analyze_robutsness.py $study $experiments $runs $generations $outputs_path $simulator $loop $body_phenotype $bisymmetry;
-
+comparison="all"
+python3 experiments/default_study/analyze_robutsness.py $study $experiments $runs $generations $outputs_path $simulator $loop $body_phenotype $bisymmetry $comparison;

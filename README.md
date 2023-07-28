@@ -83,33 +83,33 @@ python3 experiments/default_study/optimize.py --mainpath /home/mystuffff  --popu
 
 ps: for Mujoco set --headless 1 --simulator mujoco
 
-To **Run** and analyze a **batch** of experiments in the background (screens):
+To **Run** a **batch** of experiments in the background:
 
 ./experiments/default_study/run-experiments.sh
 
-To **Run** a **batch** of experiments and WITHOUT analysis and WITHOUT screens:
+To **Run** a **batch** of experiments using current terminal:
 
-./experiments/default_study/setup-experiments.sh /experiments/default_study/paramsdefault.sh
+./experiments/default_study/setup-experiments.sh experiments/default_study/paramsdefault.sh
 
 To **Check** the status of the **batch**:
 
-./experiments/default_study/check-experiments.sh /experiments/default_study/paramsdefault.sh
+./experiments/default_study/check-experiments.sh experiments/default_study/paramsdefault.sh
 
 
 and/or 
 
 screen -list
 
+To only **Analyze** the results of the batch:
+
+./experiments/default_study/run-analysis.sh experiments/default_study/paramsdefault.sh
+
+To  **Watch** the best robots of the batch:
+
+./experiments/default_study/watch_and_record.sh experiments/default_study/paramsdefault.sh
+
+
 ps: to parameterize your own batch, make your own version of paramsdefault.sh and provide it to run-experiments.sh and other bashes
-
-To only **Analyze** the results the batch:
-
-./experiments/default_study/run-analysis.sh /experiments/default_study/paramsdefault.sh
-
-To  **Watch** the best robots of the experiments:
-
-./experiments/default_study/watch_and_record.sh /experiments/default_study/paramsdefault.sh
-
 
 
 ## Revolve's documentation

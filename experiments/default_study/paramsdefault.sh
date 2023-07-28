@@ -26,9 +26,17 @@ bisymmetry="0,0"
 
 ####
 
-runs=2
+nruns=2
 
-watchruns="1,2"
+runs=""
+for i in $(seq 1 $nruns);
+do
+  runs=("${runs}${i},")
+done
+runs=${runs::-1}
+
+watchruns=$runs
+
 
 simulator="isaac"
 #simulator="mujoco"
@@ -67,6 +75,6 @@ crossover_prob=0
 # use simulation_time=30 for more interesting results
 simulation_time=5
 
-
+max_modules=30
 
 ### PARAMS END ###

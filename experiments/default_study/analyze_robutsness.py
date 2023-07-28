@@ -41,6 +41,12 @@ from body_spider import *
 
 from revolve2.standard_resources import terrains
 
+import statsmodels.stats.api as sms
+from scipy.stats import shapiro
+from scipy.stats import mannwhitneyu
+import scipy.stats as st
+import math
+
 
 class Simulator:
     _controller: ActorController
@@ -56,24 +62,26 @@ class Simulator:
         parser.add_argument("loop")
         parser.add_argument("body_phenotype")
         parser.add_argument("bisymmetry")
+        parser.add_argument("comparison")
 
         args = parser.parse_args()
 
         self.study = args.study
         self.experiments_name = args.experiments.split(',')
-        self.runs = list(range(1, int(args.runs) + 1))
+        self.runs = list(map(int, args.runs.split(',')))
         mainpath = args.mainpath
         self.simulator = args.simulator
         self.loop = args.loop
         self.body_phenotype = args.body_phenotype
         self.bisymmetry = list(map(int, args.bisymmetry.split(',')))
-        self.generations = [0, 50, 100, 150, 200]
+        self.generations = [150]
         self.type_damage = ['body', 'brain']
-        self.damages = {'body': [0, 0.2, 0.3, 0.4], 'brain': [0.2, 0.3, 0.4]}
+        self.damages = {'body': [0, 0.2, 0.4], 'brain': [0.2, 0.4]}
         self.sample_size = 10
         self.colors = ['#009900', '#EE8610']
         self.path = f'{mainpath}/{self.study}'
-        self.anal_path = f'{self.path}/analysis/damage'
+        self.anal_path = f'{self.path}/analysis/damage/all'
+        self.comparison = args.comparison
         self.measures_names = [
             'speed_y',  'modules_count',  'hinge_prop',  'brick_prop', 'branching_prop', 'extremities_prop',
             'extensiveness_prop', 'coverage', 'proportion', 'symmetry']
@@ -278,8 +286,12 @@ class Simulator:
     async def treat(self) -> None:
 
         keys = ['experiment_name', 'run', 'gen', 'individual_id']
-        data = pd.read_csv(f'{self.anal_path}/damage_perf_bkp.txt', sep=";")
+        data = pd.read_csv(f'{self.anal_path}/damage_perf.txt', sep=";")
+        pprint.pprint(data)
+        data = data.astype({'run': int})
+        print(self.runs)
 
+        data = data[data['run'].isin(self.runs)]
         non_damaged = data[(data['damage'] == 0)].filter(items=keys+['speed_y'])
         non_damaged = non_damaged.rename(columns={'speed_y': 'speed_y_original'})
         data = pd.merge(data, non_damaged, on=keys)
@@ -335,7 +347,6 @@ class Simulator:
 
         outer = pd.read_csv(f'{self.anal_path}/damage_outer.txt')
         inner = pd.read_csv(f'{self.anal_path}/damage_inner.txt')
-        all = pd.read_csv(f'{self.anal_path}/damage_perf_bkp.txt', delimiter=';')
 
         for type_damage in self.type_damage:
             print(type_damage)
@@ -345,110 +356,149 @@ class Simulator:
             else:
                 damages = self.damages[type_damage]
 
-            for idxd, damage in enumerate(damages):
-                font = {'font.size': 20}
-                plt.rcParams.update(font)
-                fig, ax = plt.subplots()
-                plt.xlabel('Generation')
-                plt.ylabel('Speed proportion')
-
-
-               # line_styles = ['solid', 'dashed', 'dotted']
-
-                for idex, experiment in enumerate(self.experiments_name):
-                #    print(experiment, self.colors[idex])
-                    subouter = outer[(outer['experiment_name'] == experiment) & (outer['type_damage'] == type_damage) & (outer['damage'] == damage)]
-
-                #    pprint.pprint(subouter)
-                    ax.plot(subouter['gen'], subouter['speed_prop_median_median'], c=self.colors[idex])#, linestyle=line_styles[idxd])
-                    ax.fill_between(subouter['gen'],
-                                    subouter['speed_prop_median_q25'],
-                                    subouter['speed_prop_median_q75'],
-                                    alpha=0.3, facecolor=self.colors[idex])
-              #  ax.set_ylim(-0.05, 1.5)
-
-                plt.savefig(f'{self.anal_path}/{type_damage}_{damage}.png', bbox_inches='tight')
-                plt.clf()
-                plt.close(fig)
+            # for idxd, damage in enumerate(damages):
+            #     font = {'font.size': 20}
+            #     plt.rcParams.update(font)
+            #     fig, ax = plt.subplots()
+            #     plt.xlabel('Generation')
+            #     plt.ylabel('Speed proportion')
+            #
+            #     for idex, experiment in enumerate(self.experiments_name):
+            #         subouter = outer[(outer['experiment_name'] == experiment) & (outer['type_damage'] == type_damage) & (outer['damage'] == damage)]
+            #
+            #         pprint.pprint(subouter)
+            #         ax.plot(subouter['gen'], subouter['speed_prop_median_median'], c=self.colors[idex])
+            #         ax.fill_between(subouter['gen'],
+            #                         subouter['speed_prop_median_q25'],
+            #                         subouter['speed_prop_median_q75'],
+            #                         alpha=0.3, facecolor=self.colors[idex])
+            #
+            #     plt.savefig(f'{self.anal_path}/{type_damage}_{damage}.png', bbox_inches='tight')
+            #     plt.clf()
+            #     plt.close(fig)
 
             ####
 
-            pd.set_option('display.max_rows', 500)
-            for idxd, damage in enumerate(damages):
-                print(damage)
-                subinner = inner[(inner['type_damage'] == type_damage) & (inner['damage'] == damage)]
-             #   pprint.pprint(subinner)
-                x = subinner[(subinner['experiment_name'] == 'qbilateral')]
-                y = subinner[(subinner['experiment_name'] == 'qnotbilateral')]
-            #    pprint.pprint(x)
-              #  pprint.pprint(y)
-          #      wilc = wilcoxon(x['speed_prop_median'], y['speed_prop_median'])
-          #     print(type_damage, damage, gen, wilc)
+            comparison = ["all", "better", "worse"]
+            runs_pairs = ["1,2,3,4,5,7,8,12,13,14,18,20,24,25,26,28,31,34,35,36,38,39|1,2,3,6,8,9,10,14,16,18,19,20,21,25,26,27,28,29,30,31,32,33,35,38,40",
+                         "6,11,15,17,22,27,30,37|1,2,3,6,8,9,10,14,16,18,19,20,21,25,26,27,28,29,30,31,32,33,35,38,40"]
 
-                sb.set(rc={"axes.titlesize": 23, "axes.labelsize": 23, 'ytick.labelsize': 21, 'xtick.labelsize': 21})
-                sb.set_style("whitegrid")
+            for idc, comp in enumerate(comparison):
+                print(comp)
+                if idc > 0:
+                    runs_pair = runs_pairs[idc-1]
+                    runs_pair = runs_pair.split('|')
+                    runs = [list(map(int, runs_pair[0].split(','))),
+                            list(map(int, runs_pair[1].split(',')))]
+                    print(runs)
+                    subinner = inner[( (inner['experiment_name'] == 'bilateral') & (inner['run'].isin(runs[0])) ) | (inner['experiment_name'] == 'notbilateral') & (inner['run'].isin(runs[1])) ]
+                    pprint.pprint(subinner)
+                else:
+                    subinner = inner
 
-                plot = sb.boxplot(x='experiment_name', y='speed_prop_median', data=subinner,
-                                  palette=self.colors, width=0.4, showmeans=True, linewidth=2, fliersize=6,
-                                  meanprops={"marker": "o", "markerfacecolor": "yellow", "markersize": "12"})
-                plot.tick_params(axis='x', labelrotation=10)
+                for idxd, damage in enumerate(damages):
+                    print(damage)
+                    subinner2 = subinner[(subinner['type_damage'] == type_damage) & (subinner['damage'] == damage)]
 
-                # tests_combinations = [('qbilateral', 'qnotbilateral')]
-                # try:
-                #     if len(tests_combinations) > 0:
-                #         add_stat_annotation(plot, data=subinner, x='experiment_name', y='speed_prop_median',
-                #                             box_pairs=tests_combinations,
-                #                             comparisons_correction=None,
-                #                             test='Wilcoxon', text_format='star', fontsize='xx-large', loc='inside',
-                #                             verbose=1)
-                # except Exception as error:
-                #     print('test:',error)
+                    sb.set(rc={"axes.titlesize": 23, "axes.labelsize": 23, 'ytick.labelsize': 21, 'xtick.labelsize': 21})
+                    sb.set_style("whitegrid")
 
-              #  plot.set_ylim(measures[measure][1], measures[measure][2])
-                plt.xlabel('')
-                plt.ylabel('')
-                plot.get_figure().savefig(f'{self.anal_path}/box_{type_damage}_{damage}.png', bbox_inches='tight')
-                plt.clf()
-                plt.close()
+                    plot = sb.boxplot(x='experiment_name', y='speed_prop_median', data=subinner2,
+                                      palette=self.colors, width=0.4, showmeans=True, linewidth=2, fliersize=6,
+                                      meanprops={"marker": "o", "markerfacecolor": "yellow", "markersize": "12"})
+                    plot.tick_params(axis='x', labelrotation=10)
+
+                    tests_combinations = [('bilateral', 'notbilateral')]
+
+                    pd.set_option('display.max_rows', 500)
+                    pprint.pprint(subinner2)
+                    try:
+                        if len(tests_combinations) > 0:
+                            add_stat_annotation(plot, data=subinner2, x='experiment_name', y='speed_prop_median',
+                                                box_pairs=tests_combinations,
+                                                comparisons_correction=None,
+                                                test='Mann-Whitney', text_format='star', fontsize='xx-large', loc='inside',
+                                                verbose=1)
+                    except Exception as error:
+                        print('test:', error)
+
+                    plt.xlabel('')
+                    plt.ylabel('')
+                    plot.get_figure().savefig(f'{self.anal_path}/box_{comp}_{type_damage}_{damage}.png', bbox_inches='tight')
+                    plt.clf()
+                    plt.close()
 
             font = {'font.size': 20}
             plt.rcParams.update(font)
 
-            # TODO: replace vars
-            # suball = all[(all['type_damage'] == type_damage)].filter(items=self.measures_names+['experiment_name'])
-            #
-            # def corrfunc(x, y, **kws):
-            #
-            #     if kws['label'] == 'qbilateral':
-            #         xpos = .1
-            #         ypos = .9
-            #     else:
-            #         xpos = 0.7
-            #         ypos = .9
-            #
-            #     r, _ = stats.pearsonr(x, y)
-            #     ax = plt.gca()
-            #     ax.annotate("r = {:.2f}".format(r),
-            #                 xy=(xpos, ypos), xycoords=ax.transAxes, fontsize=10)
-            #
-            # g = sb.PairGrid(suball, hue='experiment_name')
-            # g.map_upper(plt.scatter, s=10)
-            # g.map_diag(sb.distplot, kde=False)
-            # g.map_lower(sb.kdeplot, cmap="Blues_d")
-            # g.map_lower(corrfunc)
-            #
-            # plt.savefig(f'{self.anal_path}/{type_damage}_corr.png', bbox_inches='tight')
-            # plt.clf()
-            # plt.close()
+    async def compare(self) -> None:
+
+        pd.set_option('display.max_rows', 500)
+
+        df_inner = pd.read_csv(f'{self.path}/analysis/basic_plots/df_inner.csv')
+        df_inner2 = df_inner[(df_inner['generation_index'] == self.generations[0])]
+
+        ref = df_inner2[(df_inner2['experiment'] == 'notbilateral')]
+        ref_mean = np.mean(np.array(ref[["speed_y_mean"]]))
+        ref_dev = np.std(np.array(ref[["speed_y_mean"]]))
+        print('ref mean std', ref_mean, ref_dev, '\n')
+        print('ref', shapiro(ref[["speed_y_mean"]]))
+        font = {'font.size': 20}
+        plt.rcParams.update(font)
+        g = sb.distplot(ref["speed_y_mean"])
+        plt.xlabel('Speed (cm/s)')
+
+        #compared = df_inner2[(df_inner2['experiment'] == 'bilateral') & (df_inner2['speed_y_mean'] <= 4.44)]
+        compared = df_inner2[(df_inner2['experiment'] == 'bilateral')]
+        print("\n")
+        pprint.pprint(compared[["experiment", "run", "speed_y_mean"]])
+        print('compared', shapiro(compared[["speed_y_mean"]]))
+
+        g = sb.distplot(compared["speed_y_mean"])
+        plt.xlabel('Speed (cm/s)')
+        g.set_ylim(0, 0.6)
+        g.set_xlim(0, 8)
+        plt.savefig(f'{self.anal_path}/hist.png', bbox_inches='tight')
+        plt.clf()
+        plt.close()
+
+        wilc = wilcoxon(ref[["speed_y_mean"]], compared[["speed_y_mean"]])
+        #wilc = mannwhitneyu(ref[["speed_y_mean"]], compared[["speed_y_mean"]])
+
+        print('wilcoxon', wilc)
+
+        # print(st.t.interval(alpha=0.95, df=len(ref[["speed_y_mean"]])-1,
+        #       loc=np.mean(ref[["speed_y_mean"]]),
+        #       scale=st.sem(ref[["speed_y_mean"]])))
+        # min = sms.DescrStatsW(ref["speed_y_mean"]).tconfint_mean(alpha=0.05)[0]
+        # max = sms.DescrStatsW(ref["speed_y_mean"]).tconfint_mean(alpha=0.05)[1]
+
+        min = ref_mean - 1.96 * (ref_dev/math.sqrt(len(ref)))
+        max = ref_mean + 1.96 * (ref_dev/math.sqrt(len(ref)))
+        print('\n interval', min, max)
+
+        sample = ref[(ref['speed_y_mean'] <= max)] #&  (ref['speed_y_mean'] >= min)
+        print("\n max interval runs of ref")
+        pprint.pprint(sample[["experiment", "run", "speed_y_mean"]])
+
+        sample = compared[(compared['speed_y_mean'] > max)]
+        print("\n better runs of compared")
+        pprint.pprint(sample[["experiment", "run", "speed_y_mean"]])
+
+        sample = compared[(compared['speed_y_mean'] < min)]
+        print("\n worse runs of compared")
+        pprint.pprint(sample[["experiment", "run", "speed_y_mean"]])
 
 
 async def main() -> None:
 
     sim = Simulator()
     await sim.init()
-  # await sim.collect_data()
-  # await sim.treat()
+  #  await sim.collect_data()
+  #  await sim.compare()
+  #  await sim.treat()
     await sim.plot()
+
 
 if __name__ == "__main__":
     import asyncio

@@ -18,7 +18,7 @@ async def main(parser) -> None:
 
     study = args.study
     experiments_name = args.experiments.split(',')
-    runs = list(range(1, int(args.runs)+1))
+    runs = list(map(int, args.runs.split(',')))
     generations = list(map(int, args.generations.split(',')))
     mainpath = args.mainpath
     loop = args.loop
