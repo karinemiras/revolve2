@@ -82,7 +82,7 @@ async def main(parser) -> None:
                                     session, [r.DbEAOptimizerIndividual.genotype_id]
                                 )
                             )[0]
-
+                          
                             phenotype, queried_substrate = develop(genotype, genotype.mapping_seed, max_modules, substrate_radius,
                                                 env_conditions[r.DbEAOptimizerGeneration.env_conditions_id],
                                                                    len(env_conditions), plastic_body, plastic_brain,

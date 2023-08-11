@@ -340,7 +340,7 @@ class Optimizer(EAOptimizer[Genotype, float]):
 
             phenotypes = []
             queried_substrates = []
-            i=0
+            i = 0
             for genotype in genotypes:
                 i = i+1
               #  print(' robot',i)

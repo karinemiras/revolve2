@@ -50,10 +50,11 @@ class CpgActorController(ActorController):
         A2: npt.NDArray[np.float_] = np.matmul(A, (state + dt / 2 * A1))
         A3: npt.NDArray[np.float_] = np.matmul(A, (state + dt / 2 * A2))
         A4: npt.NDArray[np.float_] = np.matmul(A, (state + dt * A3))
+
         return state + dt / 6 * (A1 + 2 * (A2 + A3) + A4)
 
     def get_dof_targets(self) -> List[float]:
-
+      
         return list(
             np.clip(
                 self._state[0 : self._num_output_neurons],

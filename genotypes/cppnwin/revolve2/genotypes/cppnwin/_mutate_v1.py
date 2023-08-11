@@ -28,3 +28,11 @@ def mutate_v1(
         rng,
     )
     return Genotype(new_genotype)
+
+
+def mutate_grn(
+    genotype: Genotype,
+    rng: multineat.RNG,
+) -> Genotype:
+
+   return genotype

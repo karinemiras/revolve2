@@ -53,6 +53,8 @@ async def main() -> None:
 
     process_id = process_id_gen.gen()
 
+    # TODO: recovery in this branch seems to be problematic:
+    #  it recovers without error, but offspring performs strangely (a bit) worse than parents
     maybe_optimizer = await Optimizer.from_database(
         database=database,
         process_id=process_id,

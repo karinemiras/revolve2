@@ -1,6 +1,7 @@
 from typing import List, Set, Tuple, cast
 
 import multineat
+import sys
 
 from revolve2.core.modular_robot import ActiveHinge, Body
 from revolve2.core.modular_robot.brains import (
@@ -64,9 +65,10 @@ class BrainCpgNetworkNeighbourV1(ModularRobotBrainCpgNetworkNeighbour):
                     for (active_hinge1, active_hinge2) in connections
                 ]
             ]
-            # print('external')
-            # print(connections)
+
         else:
+
+            # TODO: make conditions-checking dynamic
 
             staticfriction, dynamicfriction, yrotationdegrees, platform, toxic = \
                 float(self._env_condition[0]), \
@@ -74,13 +76,6 @@ class BrainCpgNetworkNeighbourV1(ModularRobotBrainCpgNetworkNeighbour):
                 float(self._env_condition[2]), \
                 float(self._env_condition[3]), \
                 float(self._env_condition[4])
-
-            # TODO: make conditions-checking dynamic
-            # if inclined
-            # if yrotationdegrees > 0:
-            #     inclined = -1
-            # else:
-            #     inclined = 1
 
             # obsolete name: toxic here means just a change in task
             if toxic > 0:
@@ -99,7 +94,6 @@ class BrainCpgNetworkNeighbourV1(ModularRobotBrainCpgNetworkNeighbour):
                         float(pos.x),
                         float(pos.y),
                         float(pos.z),
-                        #inclined,
                         toxicenv,
                     ],
                 )
@@ -119,7 +113,6 @@ class BrainCpgNetworkNeighbourV1(ModularRobotBrainCpgNetworkNeighbour):
                         float(pos2.x),
                         float(pos2.y),
                         float(pos2.z),
-                        #inclined,
                         toxicenv,
                     ],
                 )
@@ -128,6 +121,9 @@ class BrainCpgNetworkNeighbourV1(ModularRobotBrainCpgNetworkNeighbour):
                     for (active_hinge1, active_hinge2) in connections
                 ]
             ]
+
+        # test: turning off the inter cpg connection
+        # external_weights = [0] * len(external_weights)
 
         return (internal_weights, external_weights)
 

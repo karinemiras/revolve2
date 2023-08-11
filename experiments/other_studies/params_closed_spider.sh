@@ -19,6 +19,8 @@ seasons_conditions=("1.0_1.0_0_0_0")
 
 runs=10
 
+bisymmetry="0"
+
 watchruns="1,2,3,4,5,6,7,8"
 
 simulator="isaac"

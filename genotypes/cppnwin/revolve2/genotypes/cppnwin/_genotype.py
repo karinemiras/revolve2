@@ -34,7 +34,15 @@ class GenotypeSerializer(Serializer[Genotype]):
         cls, session: AsyncSession, objects: List[Genotype]
     ) -> List[int]:
         dbfitnesses = [
-            DbGenotype(serialized_multineat_genome=o.genotype.Serialize())
+
+            # TODO: make this dynamic
+
+            # for saving cppns
+            # DbGenotype(serialized_multineat_genome=o.genotype.Serialize())
+
+            # for saving grn
+            DbGenotype(serialized_multineat_genome=str(o.genotype))
+
             for o in objects
         ]
         session.add_all(dbfitnesses)
@@ -61,5 +69,13 @@ class GenotypeSerializer(Serializer[Genotype]):
         id_map = {t.id: t for t in rows}
         genotypes = [Genotype(multineat.Genome()) for _ in ids]
         for id, genotype in zip(ids, genotypes):
-            genotype.genotype.Deserialize(id_map[id].serialized_multineat_genome)
+
+            # TODO: make this dynamic
+
+            # for saving cppns
+            # genotype.genotype.Deserialize(id_map[id].serialized_multineat_genome)
+
+            # for saving grn
+            genotype.genotype = id_map[id].serialized_multineat_genome
+
         return genotypes

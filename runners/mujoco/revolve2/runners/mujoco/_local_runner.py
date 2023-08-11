@@ -146,7 +146,7 @@ class LocalRunner(Runner):
                 last_control_time = math.floor(time / control_step) * control_step
                 control_user = ActorControl()
                 # TODO: closed loop inputs (also fix loop param)
-                env_descr.controller.control(control_step, control_user, 'open', np.array([0,0,0,0,0,0,0,0]))
+                env_descr.controller.control(control_step, control_user, 'open', np.array([0,0,0,0,0,0,0,0]) , [])
                 actor_targets = control_user._dof_targets
                 actor_targets.sort(key=lambda t: t[0])
                 targets = [

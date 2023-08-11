@@ -12,11 +12,11 @@ from revolve2.core.database import IncompatibleError, Serializer
 from revolve2.core.modular_robot import ModularRobot
 from revolve2.genotypes.cppnwin import Genotype as CppnwinGenotype
 from revolve2.genotypes.cppnwin import GenotypeSerializer as CppnwinGenotypeSerializer
+
+from revolve2.genotypes.cppnwin.modular_robot.body_genotype_v2 import Develop as cppn_body_develop
+from revolve2.genotypes.cppnwin.modular_robot.body_genotype_v2 import (random_v1 as cppn_body_random)
 from revolve2.genotypes.cppnwin import crossover_v1, mutate_v1
-from revolve2.genotypes.cppnwin.modular_robot.body_genotype_v2 import Develop as body_develop
-from revolve2.genotypes.cppnwin.modular_robot.body_genotype_v2 import (
-    random_v1 as body_random,
-)
+
 from revolve2.genotypes.cppnwin.modular_robot.brain_genotype_cpg_v1 import (
     develop_v1 as brain_cpg_develop,
 )
@@ -31,7 +31,13 @@ from revolve2.genotypes.cppnwin.modular_robot.brain_genotype_ann import (
     random_v1 as brain_ann_random,
 )
 
+from revolve2.genotypes.cppnwin.modular_robot.genotype_grn import Develop as grn_develop
+from revolve2.genotypes.cppnwin.modular_robot.genotype_grn import (random_v1 as grn_random)
+from revolve2.genotypes.cppnwin import mutate_grn
+
+
 from body_spider import *
+
 
 def _make_multineat_params_cppn() -> multineat.Parameters:
     multineat_params = multineat.Parameters()
@@ -217,20 +223,20 @@ def random(
             plastic_brain,
         )
 
-    # TODO: when body is not evolvable, this gets generated anyway
-    #  remove it dynamically! here and in mutation and crossover
-    #if body_phenotype == 'evolvable':
+    # TODO: when body is not evolvable, this gets unecessarily generated anyway
 
-    _MULTINEAT_PARAMS_BODY = _make_multineat_params_cppn()
-    body = body_random(
-        innov_db_body,
-        multineat_rng,
-        _MULTINEAT_PARAMS_BODY,
-        multineat.ActivationFunction.TANH,
-        num_initial_mutations,
-        n_env_conditions,
-        plastic_body,
-    )
+    # _MULTINEAT_PARAMS_BODY = _make_multineat_params_cppn()
+    # body = cppn_body_random(
+    #     innov_db_body,
+    #     multineat_rng,
+    #     _MULTINEAT_PARAMS_BODY,
+    #     multineat.ActivationFunction.TANH,
+    #     num_initial_mutations,
+    #     n_env_conditions,
+    #     plastic_body,
+    # )
+
+    body = grn_random(rng)
 
     mapping_seed = rng.randint(0, 2 ** 31)
 
@@ -254,7 +260,8 @@ def mutate(
     _MULTINEAT_PARAMS_BODY = _make_multineat_params_cppn()
 
     return Genotype(
-        mutate_v1(genotype.body, _MULTINEAT_PARAMS_BODY, innov_db_body, multineat_rng),
+        #mutate_v1(genotype.body, _MULTINEAT_PARAMS_BODY, innov_db_body, multineat_rng),
+        mutate_grn(genotype.body, rng),
         mutate_v1(genotype.brain, _MULTINEAT_PARAMS_BRAIN, innov_db_brain, multineat_rng),
         genotype.mapping_seed,
     )
@@ -298,20 +305,30 @@ def crossover(
 
 def develop(genotype: Genotype, querying_seed: int, max_modules: int, substrate_radius: str, env_condition: list,
             n_env_conditions: int, plastic_body: int, plastic_brain: int, loop: str, body_phenotype: str, bisymmetry: int) -> ModularRobot:
+    
+    # TODO: ugly rules to overcome revolves low modularity
+    #  additionally, im treating cppnwin as a source of representations.
 
-    #TODO: closed loop with evolvable body does not work yet (ann expects spider inputs and outputs)
+    # TODO: closed loop with evolvable body does not work yet (ann expects spider inputs and outputs)
 
     if body_phenotype == 'evolvable':
-        body, queried_substrate = body_develop(max_modules, substrate_radius, genotype.body, querying_seed,
-                            env_condition, n_env_conditions, plastic_body, bisymmetry).develop()
+        # body, queried_substrate = cppn_body_develop(max_modules, substrate_radius, genotype.body, querying_seed,
+        #                     env_condition, n_env_conditions, plastic_body, bisymmetry).develop()
+    
+        body, queried_substrate = grn_develop(max_modules, genotype.body, querying_seed,
+                                                   env_condition, n_env_conditions, plastic_body, bisymmetry).develop()
 
     if body_phenotype == 'spider':
         body = make_body_spider()
         queried_substrate = []
 
+    ###
+
+    # cpg
     if loop == 'open':
         brain = brain_cpg_develop(genotype.brain, body, env_condition, n_env_conditions, plastic_brain)
 
+    # proprioceptive ann
     if loop == 'closed':
         brain = brain_ann_develop(genotype.brain, body, env_condition, n_env_conditions, plastic_brain)
 

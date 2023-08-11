@@ -229,7 +229,7 @@ class Develop:
         queries_plus_mirrored = 0
         for q in range(0, self.max_modules):
 
-            if queries_plus_mirrored >=self.max_modules:
+            if queries_plus_mirrored >= self.max_modules:
                 break
 
             queries_plus_mirrored += 1

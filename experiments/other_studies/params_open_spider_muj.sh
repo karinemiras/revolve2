@@ -20,6 +20,9 @@ seasons_conditions=("1.0_1.0_0_0_0")
 
 runs=10
 
+bisymmetry="0"
+
+
 simulator="mujoco"
 watchruns="5"
 

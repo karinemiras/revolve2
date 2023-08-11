@@ -130,7 +130,7 @@ while true
                --num_generations ${num_generations} --population_size ${population_size} --offspring_size ${offspring_size} \
                --loop ${loop} --body_phenotype ${body_phenotype} --simulator ${simulator} --simulation_time ${simulation_time} \
                --crossover_prob ${crossover_prob} --mutation_prob ${mutation_prob} --bisymmetry ${bisymmetry[$idx]} \
-               --max_modules ${max_modules};
+               --max_modules ${max_modules} --run_simulation 0;
 
         printf "\n >> (re)starting ${study}_${free_screens[$p]}_${to_d} \n\n"
         p=$((${p}+1))
@@ -139,15 +139,17 @@ while true
 
    # if all experiments are finished, run analysis and make videos
    # (NOTE: IF THE SCREEN IS LOCKED, YOU JUST GET VIDEO WITH A LOCKED SCREEN...)
-#   if [ -z "$unfinished" ]; then
-#
-#      printf "\nanalysis...\n"
-#      ./experiments/${study_path}/run-analysis.sh $params_file
-#
-#      #./experiments/${study_path}/watch_and_record.sh $params_file
-#
-#      pkill -f ${study}_loop
-#   fi
+
+   if [ -z "$unfinished" ]; then
+
+      printf "\n analysis...\n"
+      ./experiments/${study_path}/run-analysis.sh $params_file
+
+      #./experiments/${study_path}/watch_and_record.sh $params_file
+
+      pkill -f ${study}_loop
+      exit;
+   fi
 
     # use this longer period for longer experiments
     sleep $delay_setup_script;
