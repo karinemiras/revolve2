@@ -11,7 +11,7 @@ class Canvas:
 	FRONT = 0
 	RIGHT = 1
 	LEFT = 2
-	
+
 	# Orientation of robot
 	orientation = FRONT
 

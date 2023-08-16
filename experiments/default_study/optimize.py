@@ -39,7 +39,7 @@ async def main() -> None:
     rng = Random()
     seed = random()
     print('seed', seed)
-    seed=0.7305330456557736
+ #   seed=0.586
     rng.seed(seed)
 
     # database

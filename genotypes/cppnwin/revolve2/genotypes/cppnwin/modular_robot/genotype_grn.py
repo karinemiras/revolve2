@@ -15,7 +15,7 @@ def random_v1(
     rng
 ) -> Genotype:
 
-    genome_size = 100
+    genome_size = 100+1
     genotype = [round(rng.uniform(0, 1), 2) for _ in range(genome_size)]
     return Genotype(genotype)
 
@@ -50,12 +50,13 @@ class Develop:
         self.expected_genes = 10
         self.concentration_decay = 0.005
         self.structural_trs = 3 # tfs = (B, A1, A2) # the last three
-        self.regulatory_tfs = math.ceil(self.structural_trs * 2.5)
+        self.regulatory_tfs = math.ceil(self.structural_trs * 1)
         self.increase_scaling = 100
         self.intra_diffusion_rate = self.concentration_decay/2
-        self.inter_diffusion_rate  = self.intra_diffusion_rate/8
-        self.dev_steps = 20#500
-        self.concentration_threshold = 0.1
+        self.inter_diffusion_rate = self.intra_diffusion_rate/8
+        self.dev_steps = 100 #0
+        self.concentration_threshold = 0.5 # self.genotype[0]
+        self.genotype = self.genotype[1:]
 
     def develop(self):
 
@@ -144,10 +145,13 @@ class Develop:
                     self.increase(tf, cell)
                     self.intra_diffusion(tf, cell)
                     self.inter_diffusion(tf, cell)
-                    self.decay(tf, cell)
 
                 print('\n place module')
                 self.place_module(cell)
+
+                print('decay')
+                for tf in cell.transcription_factors:
+                    self.decay(tf, cell)
 
             #
             # for tf in cell.transcription_factors:
@@ -165,6 +169,7 @@ class Develop:
     def inter_diffusion(self, tf, cell):
         # inter diffusion
         pass
+
     def intra_diffusion(self, tf, cell):
 
         # intra diffusion in all sites: clockwise and right-left
@@ -190,7 +195,11 @@ class Develop:
 
     def place_module(self, cell):
 
-        product_tfs = ['TF9', 'TF10', 'TF11']
+        tds_qt = (self.structural_trs + self.regulatory_tfs)
+        product_tfs = []
+        for tf in range(tds_qt-2, tds_qt+1):
+            product_tfs.append(f'TF{tf}')
+
         modules_types = [Brick, ActiveHinge, ActiveHinge]  # fix A rotation later
 
         concentration1 = sum(cell.transcription_factors[product_tfs[0]]) \
@@ -202,28 +211,66 @@ class Develop:
         concentration3 = sum(cell.transcription_factors[product_tfs[2]]) \
             if cell.transcription_factors.get(product_tfs[2]) else 0  # A2
 
+        # chooses tf with the highest concentration
         product_concentrations = [concentration1, concentration2, concentration3]
         idx_max = product_concentrations.index(max(product_concentrations))
 
-        print(product_concentrations, idx_max)
-        # tries fo grow the product with the highest concentration if above a threshold
-        # grows in the free diffusion site with the highest concentration
+        print('concentrations',product_concentrations, idx_max)
+        # if tf concentration above a threshold
         if product_concentrations[idx_max] > self.concentration_threshold:
 
-            # TODO: and slot free
-            slot = cell.transcription_factors[product_tfs[idx_max]]. \
-                index(max(cell.transcription_factors[product_tfs[idx_max]]))
-            new_module = None
-            print('type',module_type, slot)
+            # grows in the free diffusion site with the highest concentration
+            freeslots = np.array([c is None for c in cell.developed_cell.children])
+            if type(cell.developed_cell) == Brick:
+                freeslots = np.append(freeslots, [False]) # brick has no back
+            elif type(cell.developed_cell) == ActiveHinge:
+                freeslots = np.append(freeslots, [False, False, False]) # joint has no back nos left or right
 
-            module_type = modules_types[idx_max]
-            self.new_cell(product_tfs[idx_max], cell, new_module, slot)
+            print('free',freeslots, np.where(freeslots)[0])
+            if any(freeslots): # TODO: check also if substrate free
 
-    def new_cell(self, tf, cell, new_module, slot):
+                true_indices = np.where(freeslots)[0]
+                values_at_true_indices = np.array(cell.transcription_factors[product_tfs[idx_max]])[true_indices]
+                max_value_index = np.argmax(values_at_true_indices)
+                position_of_max_value = true_indices[max_value_index]
+                slot = position_of_max_value
+
+                print('choice',cell.transcription_factors[product_tfs[idx_max]],true_indices, slot)
+
+                module_type = modules_types[idx_max]
+                orientation = 0
+                absolute_rotation = 0
+                new_module = module_type(orientation * (math.pi / 2.0))
+                self.quantity_modules += 1
+                new_module._id = str(self.quantity_modules)
+                new_module._absolute_rotation = absolute_rotation
+                new_module.rgb = self.get_color(module_type, orientation)
+                new_module._parent = cell.developed_cell
+                cell.developed_cell.children[slot] = new_module
+
+                self.new_cell(cell, new_module, slot)
+            else:
+                print('no slots!')
+
+    def new_cell(self, source_cell, new_module, slot):
         print('new')
-        cell.transcription_factors[tf][slot] = cell.transcription_factors[tf][slot]/2
+        new_cell = Cell()
 
-        print(tf, cell.transcription_factors[tf], sum(cell.transcription_factors[tf]))
+        # share concentrations in diffusion sites
+        for tf in source_cell.transcription_factors:
+            print('old cell', tf, source_cell.transcription_factors[tf], sum(source_cell.transcription_factors[tf]))
+            if source_cell.transcription_factors[tf][slot] > 0:
+                half_concentration = source_cell.transcription_factors[tf][slot] / 2
+                source_cell.transcription_factors[tf][slot] = half_concentration
+                new_cell.transcription_factors[tf] = [0, 0, 0, 0]
+                new_cell.transcription_factors[tf][Core.BACK] = half_concentration
+
+                print('new cell', tf, new_cell.transcription_factors[tf], sum(new_cell.transcription_factors[tf]))
+
+        print('\n mod', new_module)
+        self.express_promoters(new_cell)
+        self.cells.append(new_cell)
+        new_cell.developed_cell = new_module
 
     def maternal_injection(self):
 
@@ -245,7 +292,6 @@ class Develop:
         self.cells.append(first_cell)
         first_cell.developed_cell = self.place_head(first_cell)
 
-
     def express_promoters(self, new_cell):
 
         for promotor in self.promotors:
@@ -262,9 +308,10 @@ class Develop:
                  and sum(new_cell.transcription_factors[promotor[self.regulatory_transcription_factor_idx]]) \
                     <= regulatory_max_val:
 
+                # update or add
                 if new_cell.transcription_factors.get(promotor[self.transcription_factor_idx]):
                     new_cell.transcription_factors[promotor[self.transcription_factor_idx]] \
-                        [int(promotor[self.diffusion_site_idx])] +=  float(promotor[self.transcription_factor_amount_idx])
+                        [int(promotor[self.diffusion_site_idx])] += float(promotor[self.transcription_factor_amount_idx])
                 else:
                     new_cell.transcription_factors[promotor[self.transcription_factor_idx]] = [0] * self.diffusion_sites_qt
                     new_cell.transcription_factors[promotor[self.transcription_factor_idx]] \

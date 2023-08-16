@@ -22,7 +22,7 @@ seasons_conditions="1.0_1.0_0_0_0"
 #bileteral symmetry
 bisymmetry="0"
 
-nruns=2
+nruns=1
 
 runs=""
 for i in $(seq 1 $nruns);
@@ -41,13 +41,13 @@ loop="open"
 body_phenotype="evolvable"
 
 # use num_generations=100 for more interesting results
-num_generations="2"
+num_generations="1"
 
 # use population_size=100 for more interesting results
-population_size="1"
+population_size="100"
 
 # use offspring_size=100 for more interesting results
-offspring_size="1"
+offspring_size="100"
 
 # bash loop frequency: adjust seconds according to exp size, e.g, 300.
 # (low values for short experiments will try to spawn and log too often)

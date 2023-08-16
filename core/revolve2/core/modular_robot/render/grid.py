@@ -15,12 +15,6 @@ class Grid:
 	RIGHT = 1
 	LEFT = 2
 
-	# orientations from revolve1
-	# SOUTH = 0 # Canvas.BACK
-	# NORTH = 1 # Canvas.FRONT
-	# EAST = 2 # Canvas.RIGHT
-	# WEST = 3 # Canvas.LEFT
-
 	# Current position of last drawn element
 	x_pos = 0
 	y_pos = 0

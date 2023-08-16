@@ -76,6 +76,9 @@ class GenotypeSerializer(Serializer[Genotype]):
             # genotype.genotype.Deserialize(id_map[id].serialized_multineat_genome)
 
             # for saving grn
-            genotype.genotype = id_map[id].serialized_multineat_genome
+            if id_map[id].serialized_multineat_genome[0] == '[':
+                genotype.genotype = eval(id_map[id].serialized_multineat_genome)
+            else:
+                genotype.genotype = id_map[id].serialized_multineat_genome
 
         return genotypes
