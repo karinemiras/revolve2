@@ -13,7 +13,7 @@ outputs_path="/home/ripper8/projects/working_data"
 
 study="GRN"
 
-experiments="GRNcppncpg"
+experiments="GRNcppnnovel"
 
 # conditions have effect only for isaac
 # conditions: friction_dynamicfriction_yrotation_idleparam_idleparam
@@ -41,7 +41,7 @@ loop="open"
 body_phenotype="evolvable"
 
 # use num_generations=100 for more interesting results
-num_generations="1"
+num_generations="2"
 
 # use population_size=100 for more interesting results
 population_size="100"
@@ -54,11 +54,11 @@ offspring_size="100"
 delay_setup_script=5
 
 # for issac, recommended not more than two in the rippers
-num_terminals=2
+num_terminals=1
 
 # gens for boxplots, snapshots, videos (by default the last gen)
 #generations="1,$num_generations"
-generations="$num_generations"
+generations="0,$num_generations"
 
 # max gen to filter lineplots  (by default the last gen)
 final_gen="$num_generations"
@@ -70,6 +70,6 @@ crossover_prob=0
 # use simulation_time=30 for more interesting results
 simulation_time=30
 
-max_modules=30
+max_modules=20
 
 ### PARAMS END ###

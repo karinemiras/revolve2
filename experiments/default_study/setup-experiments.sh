@@ -130,7 +130,7 @@ while true
                --num_generations ${num_generations} --population_size ${population_size} --offspring_size ${offspring_size} \
                --loop ${loop} --body_phenotype ${body_phenotype} --simulator ${simulator} --simulation_time ${simulation_time} \
                --crossover_prob ${crossover_prob} --mutation_prob ${mutation_prob} --bisymmetry ${bisymmetry[$idx]} \
-               --max_modules ${max_modules} --run_simulation 0;
+               --max_modules ${max_modules} --run_simulation 0 --fitness_measure novelty;
 
         printf "\n >> (re)starting ${study}_${free_screens[$p]}_${to_d} \n\n"
         p=$((${p}+1))
