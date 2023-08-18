@@ -37,8 +37,7 @@ path = f'{mainpath}/{study}'
 
 measures = {
     'pop_diversity': ['Diversity', 0, 1],
-    'dominated_quality_youth': ['Dominated individuals', 0, 1],
-    'fullydominated_quality_youth': ['Fully dominated individuals', 0, 1],
+    'novelty': ['Novelty', 0, 1],
     'seasonal_dominated': ['Seasonal Dominated', 0, 1],
     'age': ['Age', 0, 1],
     'speed_y': ['Speed (cm/s)', 0, 1],

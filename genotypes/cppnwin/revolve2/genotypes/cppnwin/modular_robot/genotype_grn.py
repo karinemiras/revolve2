@@ -49,8 +49,8 @@ class Develop:
 
         self.expected_expression = 0.8
         self.concentration_decay = 0.005
-        self.structural_trs = 2
-        # when increasing number of regulatory tfs, genotype size must also increase
+        self.structural_trs = len(['brick', 'joint', 'rotation'])
+        # when increasing number of regulatory tfs, genotype size should also increase
         self.regulatory_tfs = 2
         self.increase_scaling = 100
         self.intra_diffusion_rate = self.concentration_decay/2
@@ -135,15 +135,16 @@ class Develop:
        # print('\ngrowth')
         for t in range(0, self.dev_steps):
            # print('\n> ----t ',t, '\n')
+            # develops cells in order of age
             for idxc in range(0, len(self.cells)):
-              #  print(' \n ---cell ', idxc, '\n')
+                #print(' \n ---cell ', idxc, '\n')
                 cell = self.cells[idxc]
                 for tf in cell.transcription_factors:
                    # print(' ', tf)
                     self.increase(tf, cell)
                     self.intra_diffusion(tf, cell)
                     self.inter_diffusion(tf, cell)
-                   # print(tf, [ '%.4f' % elem for elem in cell.transcription_factors[tf]], round(sum(cell.transcription_factors[tf]),2))
+                #    print(tf, [ '%.4f' % elem for elem in cell.transcription_factors[tf]], round(sum(cell.transcription_factors[tf]),2))
 
                # print('\n place module')
                 self.place_module(cell)
@@ -162,12 +163,53 @@ class Develop:
                 / float(self.increase_scaling)
 
     def inter_diffusion(self, tf, cell):
-        # inter diffusion
-        pass
+
+        for ds in range(0, self.diffusion_sites_qt):
+
+            # back slot of all modules but core send to a parent
+            if ds == Core.BACK and \
+                    (type(cell.developed_module) == ActiveHinge or type(cell.developed_module) == Brick):
+                if cell.transcription_factors[tf][Core.BACK] >= self.inter_diffusion_rate:
+
+                    cell.transcription_factors[tf][Core.BACK] -= self.inter_diffusion_rate
+
+                    # updates or includes
+                    if cell.developed_module._parent.cell.transcription_factors.get(tf):
+                        cell.developed_module._parent.cell.transcription_factors[tf][cell.developed_module.direction_from_parent] += self.inter_diffusion_rate
+                    else:
+                        cell.developed_module._parent.cell.transcription_factors[tf] = [0] * self.diffusion_sites_qt
+                        cell.developed_module._parent.cell.transcription_factors[tf][cell.developed_module.direction_from_parent] += self.inter_diffusion_rate
+
+            # in the case of joint, shares also concentrations of sites without slot
+            elif type(cell.developed_module) == ActiveHinge and \
+                    ds in [Core.LEFT, Core.FRONT, Core.RIGHT]:
+
+                if cell.developed_module.children[Core.FRONT] is not None \
+                        and cell.transcription_factors[tf][ds] >= self.inter_diffusion_rate:
+                    cell.transcription_factors[tf][ds] -= self.inter_diffusion_rate
+
+                    # updates or includes
+                    if cell.developed_module.children[Core.FRONT].cell.transcription_factors.get(tf):
+                        cell.developed_module.children[Core.FRONT].cell.transcription_factors[tf][Core.BACK] += self.inter_diffusion_rate
+                    else:
+                        cell.developed_module.children[Core.FRONT].cell.transcription_factors[tf] = [0] * self.diffusion_sites_qt
+                        cell.developed_module.children[Core.FRONT].cell.transcription_factors[tf][Core.BACK] += self.inter_diffusion_rate
+            else:
+
+                if cell.developed_module.children[ds] is not None \
+                    and cell.transcription_factors[tf][ds] >= self.inter_diffusion_rate:
+                    cell.transcription_factors[tf][ds] -= self.inter_diffusion_rate
+
+                    # updates or includes
+                    if cell.developed_module.children[ds].cell.transcription_factors.get(tf):
+                        cell.developed_module.children[ds].cell.transcription_factors[tf][Core.BACK] += self.inter_diffusion_rate
+                    else:
+                        cell.developed_module.children[ds].cell.transcription_factors[tf] = [0] * self.diffusion_sites_qt
+                        cell.developed_module.children[ds].cell.transcription_factors[tf][Core.BACK] += self.inter_diffusion_rate
 
     def intra_diffusion(self, tf, cell):
 
-        # intra diffusion in all sites: clockwise and right-left
+        # for each site: first right then left
         for ds in range(0, self.diffusion_sites_qt):
             # print(' ds', ds)
             ds_left = ds - 1 if ds - 1 >= 0 else self.diffusion_sites_qt - 1
@@ -191,21 +233,21 @@ class Develop:
 
         tds_qt = (self.structural_trs + self.regulatory_tfs)
         product_tfs = []
-        modules_types = [Brick, ActiveHinge] #, ActiveHinge]  # fix A rotation later
-        for tf in range(tds_qt+1-len(modules_types), tds_qt+1):
-            product_tfs.append(f'TF{tf}')
-        #print(product_tfs)
+        modules_types = [Brick, ActiveHinge]
+        for tf in range(tds_qt-len(modules_types)-1, tds_qt):
+            product_tfs.append(f'TF{tf+1}')
+      #  print(product_tfs)
         concentration1 = sum(cell.transcription_factors[product_tfs[0]]) \
             if cell.transcription_factors.get(product_tfs[0]) else 0  # B
 
         concentration2 = sum(cell.transcription_factors[product_tfs[1]]) \
-            if cell.transcription_factors.get(product_tfs[1]) else 0  # A1
-        #
-        # concentration3 = sum(cell.transcription_factors[product_tfs[2]]) \
-        #     if cell.transcription_factors.get(product_tfs[2]) else 0  # A2
+            if cell.transcription_factors.get(product_tfs[1]) else 0  # A
 
+        concentration3 = sum(cell.transcription_factors[product_tfs[2]]) \
+            if cell.transcription_factors.get(product_tfs[2]) else 0  # rotation
+      #  print('conc rot', concentration3)
         # chooses tf with the highest concentration
-        product_concentrations = [concentration1, concentration2]#, concentration3]
+        product_concentrations = [concentration1, concentration2]
         idx_max = product_concentrations.index(max(product_concentrations))
 
        # print('concent prod', [ '%.4f' % elem for elem in product_concentrations])
@@ -213,10 +255,10 @@ class Develop:
         if product_concentrations[idx_max] > self.concentration_threshold:
 
             # grows in the free diffusion site with the highest concentration
-            freeslots = np.array([c is None for c in cell.developed_cell.children])
-            if type(cell.developed_cell) == Brick:
+            freeslots = np.array([c is None for c in cell.developed_module.children])
+            if type(cell.developed_module) == Brick:
                 freeslots = np.append(freeslots, [False]) # brick has no back
-            elif type(cell.developed_cell) == ActiveHinge:
+            elif type(cell.developed_module) == ActiveHinge:
                 freeslots = np.append(freeslots, [False, False, False]) # joint has no back nor left or right
 
          #   print('free in highest',freeslots )
@@ -228,20 +270,35 @@ class Develop:
                 position_of_max_value = true_indices[max_value_index]
                 slot = position_of_max_value
 
-                potential_module_coord, turtle_direction = self.calculate_coordinates(cell.developed_cell, slot)
+                potential_module_coord, turtle_direction = self.calculate_coordinates(cell.developed_module, slot)
                 if potential_module_coord not in self.queried_substrate.keys() and self.quantity_modules < self.max_modules-1:
                     module_type = modules_types[idx_max]
-                    orientation = 0
+
+                    # rotates only joints and if defined by concentration
+                    orientation = 1 if concentration3 > 0.5 and module_type == ActiveHinge else 0
                     absolute_rotation = 0
+                    if module_type == ActiveHinge and orientation == 1:
+                        if type(cell.developed_module) == ActiveHinge and cell.developed_module._absolute_rotation == 1:
+                            absolute_rotation = 0
+                        else:
+                            absolute_rotation = 1
+                    else:
+                        if type(cell.developed_module) == ActiveHinge and cell.developed_module._absolute_rotation == 1:
+                            absolute_rotation = 1
+                    if module_type == Brick and type(cell.developed_module) == ActiveHinge and cell.developed_module._absolute_rotation == 1:
+                        orientation = 1
+
+                 #   print(orientation, absolute_rotation)
                     new_module = module_type(orientation * (math.pi / 2.0))
                     self.quantity_modules += 1
                     new_module._id = str(self.quantity_modules)
                     new_module._absolute_rotation = absolute_rotation
                     new_module.rgb = self.get_color(module_type, orientation)
-                    new_module._parent = cell.developed_cell
+                    new_module._parent = cell.developed_module
                     new_module.substrate_coordinates = potential_module_coord
                     new_module.turtle_direction = turtle_direction
-                    cell.developed_cell.children[slot] = new_module
+                    new_module.direction_from_parent = slot
+                    cell.developed_module.children[slot] = new_module
                     self.queried_substrate[potential_module_coord] = new_module
 
                     self.new_cell(cell, new_module, slot)
@@ -260,8 +317,8 @@ class Develop:
 
             new_cell.transcription_factors[tf] = [0, 0, 0, 0]
 
-            # in the case oj joint, shares also concentrations of sites without slot
-            if type(source_cell.developed_cell) == ActiveHinge:
+            # in the case of joint, shares also concentrations of sites without slot
+            if type(source_cell.developed_module) == ActiveHinge:
                 sites = [Core.LEFT, Core.FRONT, Core.RIGHT]
                 for s in sites:
                     if source_cell.transcription_factors[tf][s] > 0:
@@ -280,7 +337,8 @@ class Develop:
        # print('\n mod', new_module, 'at',slot)
         self.express_promoters(new_cell)
         self.cells.append(new_cell)
-        new_cell.developed_cell = new_module
+        new_cell.developed_module = new_module
+        new_module.cell = new_cell
 
     def maternal_injection(self):
 
@@ -300,7 +358,7 @@ class Develop:
        # print('\n head', mother_tf_label, mother_tf_injection)
         self.express_promoters(first_cell)
         self.cells.append(first_cell)
-        first_cell.developed_cell = self.place_head(first_cell)
+        first_cell.developed_module = self.place_head(first_cell)
 
     def express_promoters(self, new_cell):
 
@@ -336,12 +394,11 @@ class Develop:
         self.phenotype_body = Body()
         self.phenotype_body.core._id = self.quantity_modules
         orientation = 0
-        self.phenotype_body.core._rotation = orientation * (math.pi / 2.0)
-        self.phenotype_body.core._orientation = 0
+        self.phenotype_body.core._rotation = orientation
         self.phenotype_body.core.rgb = self.get_color(module_type, orientation)
-        self.phenotype_body.core.developed_cell = new_cell
         self.phenotype_body.core.substrate_coordinates = (0, 0)
         self.phenotype_body.core.turtle_direction = Core.FRONT
+        self.phenotype_body.core.cell = new_cell
         self.queried_substrate[(0, 0)] = self.phenotype_body.core
 
         return self.phenotype_body.core
@@ -391,8 +448,9 @@ class Develop:
 
         return coordinates, turtle_direction
 
+
 class Cell:
 
     def __init__(self) -> None:
-        self.developed_cell = None
+        self.developed_module = None
         self.transcription_factors = {}

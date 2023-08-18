@@ -425,7 +425,7 @@ class Develop:
         orientation = 0
         self.phenotype_body.core._id = self.quantity_modules
         self.phenotype_body.core._rotation = orientation * (math.pi / 2.0)
-        self.phenotype_body.core._orientation = 0
+        self.phenotype_body.core._orientation = orientation
         self.phenotype_body.core.rgb = self.get_color(module_type, orientation)
         self.phenotype_body.core.substrate_coordinates = (0, 0)
         self.queried_substrate[(0, 0)] = self.phenotype_body.core

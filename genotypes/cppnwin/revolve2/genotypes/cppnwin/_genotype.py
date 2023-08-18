@@ -33,18 +33,12 @@ class GenotypeSerializer(Serializer[Genotype]):
     async def to_database(
         cls, session: AsyncSession, objects: List[Genotype]
     ) -> List[int]:
-        dbfitnesses = [
 
-            # TODO: make this dynamic
+        if callable(getattr(objects[0].genotype, 'Serialize', None)):
+            dbfitnesses = [DbGenotype(serialized_multineat_genome=o.genotype.Serialize())for o in objects]
+        else:
+            dbfitnesses = [DbGenotype(serialized_multineat_genome=str(o.genotype)) for o in objects]
 
-            # for saving cppns
-            # DbGenotype(serialized_multineat_genome=o.genotype.Serialize())
-
-            # for saving grn
-            DbGenotype(serialized_multineat_genome=str(o.genotype))
-
-            for o in objects
-        ]
         session.add_all(dbfitnesses)
         await session.flush()
         ids = [
@@ -69,16 +63,9 @@ class GenotypeSerializer(Serializer[Genotype]):
         id_map = {t.id: t for t in rows}
         genotypes = [Genotype(multineat.Genome()) for _ in ids]
         for id, genotype in zip(ids, genotypes):
-
-            # TODO: make this dynamic
-
-            # for saving cppns
-            # genotype.genotype.Deserialize(id_map[id].serialized_multineat_genome)
-
-            # for saving grn
             if id_map[id].serialized_multineat_genome[0] == '[':
                 genotype.genotype = eval(id_map[id].serialized_multineat_genome)
             else:
-                genotype.genotype = id_map[id].serialized_multineat_genome
+                genotype.genotype.Deserialize(id_map[id].serialized_multineat_genome)
 
         return genotypes

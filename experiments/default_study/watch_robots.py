@@ -61,7 +61,7 @@ class Simulator:
         self.body_phenotype = args.body_phenotype
         self.bisymmetry = list(map(int, args.bisymmetry.split(',')))
 
-        self.bests = 1
+        self.bests = 10
         # 'all' selects best from all individuals
         # 'gens' selects best from chosen generations
         self.bests_type = 'gens'
@@ -119,7 +119,7 @@ class Simulator:
                             & (DbFloat.id == DbEAOptimizerIndividual.float_id)
                             & DbEAOptimizerGeneration.generation_index.in_([gen])
                             # IF YOU WANNA SEE A SPECIFIC ROBOT
-                              #   & (DbEAOptimizerIndividual.individual_id == 14423)
+                          #  & (DbEAOptimizerIndividual.individual_id == 9)
                             )
 
                 # if seasonal setup, criteria is seasonal pareto

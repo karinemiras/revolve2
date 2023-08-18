@@ -35,4 +35,9 @@ def mutate_grn(
     rng: multineat.RNG,
 ) -> Genotype:
 
+   mutation_size = 0.1
+   positions = rng.sample(range(0, len(genotype.genotype)), int(len(genotype.genotype) * mutation_size))
+   for p in positions:
+       genotype.genotype[p] = round(rng.uniform(0, 1), 2)
+
    return genotype

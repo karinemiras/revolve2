@@ -201,7 +201,7 @@ class EAOptimizer(Process, Generic[Genotype, Measure]):
         self.__plastic_body = plastic_body
         self.__plastic_brain = plastic_brain
         # TODO: turn into proper param
-        self.__novelty_on = True
+        self.__novelty_on = False
 
         self.__latest_population = [
             _Individual(self.__gen_next_individual_id(), g, [])
@@ -646,9 +646,8 @@ class EAOptimizer(Process, Generic[Genotype, Measure]):
                                                neighbours_measures=pool_measures)._pool_dominated_individuals()
 
         for i in range(len(pool_individuals)):
-            if self.__novelty_on:
-                pool_measures[i] = MeasureRelative(genotype_measures=pool_measures[i],
-                                                   neighbours_measures=pool_measures)._pool_novelty(novelty_archive, self.__novelty_on)
+            pool_measures[i] = MeasureRelative(genotype_measures=pool_measures[i],
+                                               neighbours_measures=pool_measures)._pool_novelty(novelty_archive, self.__novelty_on)
     # consolidates dominance among seasons/tasks
     def _pool_seasonal_relative_measures(self, pool_individuals, pool_measures):
 

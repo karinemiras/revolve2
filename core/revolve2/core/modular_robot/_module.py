@@ -32,6 +32,7 @@ class Module:
         self.turtle_direction = None
         self.direction_from_parent = None
         self.substrate_coordinates = None
+        self.cell = None
 
         self._id = None
         self._parent = None

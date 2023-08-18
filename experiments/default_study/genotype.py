@@ -130,9 +130,11 @@ class GenotypeSerializer(Serializer[Genotype]):
     async def to_database(
         cls, session: AsyncSession, objects: List[Genotype]
     ) -> List[int]:
+
         body_ids = await CppnwinGenotypeSerializer.to_database(
             session, [o.body for o in objects]
         )
+
         brain_ids = await CppnwinGenotypeSerializer.to_database(
             session, [o.brain for o in objects]
         )
@@ -172,6 +174,7 @@ class GenotypeSerializer(Serializer[Genotype]):
         body_genotypes = await CppnwinGenotypeSerializer.from_database(
             session, body_ids
         )
+
         brain_genotypes = await CppnwinGenotypeSerializer.from_database(
             session, brain_ids
         )
