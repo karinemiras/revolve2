@@ -11,28 +11,28 @@ class Config():
         parser.add_argument(
             "--population_size",
             required=False,
-            default=100,
+            default=11,
             type=int,
         )
 
         parser.add_argument(
             "--offspring_size",
             required=False,
-            default=100,
+            default=11,
             type=int,
         )
 
         parser.add_argument(
             "--num_generations",
             required=False,
-            default=100,
+            default=10,
             type=int,
         )
 
         parser.add_argument(
             "--max_modules",
             required=False,
-            default=30,
+            default=20,
             type=int,
             help="",
         )
@@ -102,7 +102,7 @@ class Config():
         parser.add_argument(
             "--study_name",
             required=False,
-            default="default_study",
+            default="defaultstudy",
             type=str,
             help="",
         )
@@ -139,6 +139,14 @@ class Config():
         )
 
         parser.add_argument(
+            "--headless",
+            required=False,
+            default=1,
+            type=int,
+            help="1=True or 0=False",
+        )
+
+        parser.add_argument(
             "--mainpath",
             required=False,
             default="/home",
@@ -164,6 +172,7 @@ class Config():
         parser.add_argument(
             "--control_frequency",
             required=False,
+            # 20 for cpgs and 5 for anns
             default=20,
             type=int,
         )

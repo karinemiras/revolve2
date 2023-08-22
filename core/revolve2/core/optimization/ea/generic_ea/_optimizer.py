@@ -196,6 +196,8 @@ class EAOptimizer(Process, Generic[Genotype, Measure]):
         self.__env_conditions = env_conditions
         self.__plastic_body = plastic_body
         self.__plastic_brain = plastic_brain
+        # TODO: turn into proper param
+        self.__novelty_on = False
 
         self.__latest_population = [
             _Individual(self.__gen_next_individual_id(), g, [])
@@ -291,6 +293,7 @@ class EAOptimizer(Process, Generic[Genotype, Measure]):
         self.__measures_type = measures_type
         self.__measures_serializer = measures_serializer
         self.__run_simulation = run_simulation
+        self.__novelty_on = False
 
         try:
             eo_row = (
@@ -467,9 +470,9 @@ class EAOptimizer(Process, Generic[Genotype, Measure]):
             for cond in self.__env_conditions:
                 initial_measures[cond] = self.__latest_measures[cond]
                 initial_states[cond] = self.__latest_states[cond]
-                self._pool_and_time_relative_measures(self.__latest_population, self.__latest_measures[cond])
+                self._pool_and_time_relative_measures(self.__latest_population, self.__latest_measures[cond], novelty_archive)
 
-            self._pool_seasonal_relative_measures(self.__latest_population, self.__latest_measures, novelty_archive)
+            self._pool_seasonal_relative_measures(self.__latest_population, self.__latest_measures)
             self._pop_relative_measures()
 
             for cond in self.__env_conditions:
@@ -493,8 +496,8 @@ class EAOptimizer(Process, Generic[Genotype, Measure]):
             any_cond = list(self.__env_conditions.keys())[0]
             # relative measures for pool parents
             for cond in self.__env_conditions:
-                self._pool_and_time_relative_measures(self.__latest_population, self.__latest_measures[cond])
-            self._pool_seasonal_relative_measures(self.__latest_population, self.__latest_measures, novelty_archive)
+                self._pool_and_time_relative_measures(self.__latest_population, self.__latest_measures[cond], novelty_archive)
+            self._pool_seasonal_relative_measures(self.__latest_population, self.__latest_measures)
 
             # let user select parents
             latest_fitnesses = self.collect_key_value(self.__latest_measures[any_cond],
@@ -544,8 +547,8 @@ class EAOptimizer(Process, Generic[Genotype, Measure]):
             # relative measures for pool parents + offspring
             for cond in self.__env_conditions:
                 pool_measures[cond] = self.__latest_measures[cond] + new_measures[cond]
-                self._pool_and_time_relative_measures(pool_individuals, pool_measures[cond])
-            self._pool_seasonal_relative_measures(pool_individuals, pool_measures, novelty_archive)
+                self._pool_and_time_relative_measures(pool_individuals, pool_measures[cond], novelty_archive)
+            self._pool_seasonal_relative_measures(pool_individuals, pool_measures)
 
             # let user select survivors between old and new individuals
             new_fitnesses = self.collect_key_value(new_measures[any_cond], self.__fitness_measure)
@@ -625,7 +628,7 @@ class EAOptimizer(Process, Generic[Genotype, Measure]):
                 self.__latest_measures[cond][i] = MeasureRelative(genotype_measures=self.__latest_measures[cond][i],
                                                             neighbours_measures=self.__latest_measures[cond])._diversity('pop')
 
-    def _pool_and_time_relative_measures(self, pool_individuals, pool_measures):
+    def _pool_and_time_relative_measures(self, pool_individuals, pool_measures, novelty_archive):
 
         # populational-interdependent measures must be calculated sequentially (for after for)
         for i in range(len(pool_individuals)):
@@ -637,28 +640,24 @@ class EAOptimizer(Process, Generic[Genotype, Measure]):
             pool_measures[i] = MeasureRelative(genotype_measures=pool_measures[i],
                                                neighbours_measures=pool_measures)._pool_dominated_individuals()
 
+        for i in range(len(pool_individuals)):
+            pool_measures[i] = MeasureRelative(genotype_measures=pool_measures[i],
+                                               neighbours_measures=pool_measures)._pool_novelty(novelty_archive,
+                                                                                                self.__novelty_on)
+
     # consolidates dominance among seasons/tasks
-    def _pool_seasonal_relative_measures(self, pool_individuals, pool_measures, novelty_archive):
+    def _pool_seasonal_relative_measures(self, pool_individuals, pool_measures):
 
         for i in range(len(pool_individuals)):
             pool_measures_conds = {}
             for cond in pool_measures:
                 pool_measures_conds[cond] = pool_measures[cond][i]
 
-            seasonal_dominated, seasonal_fullydominated = MeasureRelative(genotype_measures=pool_measures_conds,
+            seasonal_dominated = MeasureRelative(genotype_measures=pool_measures_conds,
                                                neighbours_measures=pool_measures)._pool_seasonal_dominated_individuals()
-            backforth_dominated = MeasureRelative(genotype_measures=pool_measures_conds,
-                                               neighbours_measures=pool_measures)._pool_backforth_dominated_individuals()
-            forthright_dominated = MeasureRelative(genotype_measures=pool_measures_conds,
-                                               neighbours_measures=pool_measures)._pool_forthright_dominated_individuals()
-            seasonal_novelty = MeasureRelative(genotype_measures=pool_measures_conds,
-                                               neighbours_measures=pool_measures)._pool_seasonal_novelty(novelty_archive)
+
             for cond in pool_measures:
                 pool_measures[cond][i]['seasonal_dominated'] = seasonal_dominated
-                pool_measures[cond][i]['seasonal_fullydominated'] = seasonal_fullydominated
-                pool_measures[cond][i]['backforth_dominated'] = backforth_dominated
-                pool_measures[cond][i]['forthright_dominated'] = forthright_dominated
-                pool_measures[cond][i]['seasonal_novelty'] = seasonal_novelty
     @property
     def generation_index(self) -> Optional[int]:
         """
@@ -841,15 +840,11 @@ class EAOptimizer(Process, Generic[Genotype, Measure]):
 
                 for i, row in enumerate(rows):
                     row.pop_diversity = initial_relative_measures[cond][i]['pop_diversity']
-                    row.dominated_quality_youth = initial_relative_measures[cond][i]['dominated_quality_youth']
-                    row.fullydominated_quality_youth = initial_relative_measures[cond][i]['fullydominated_quality_youth']
+                    row.dominated_fast_young = initial_relative_measures[cond][i]['dominated_fast_young']
                     row.age = initial_relative_measures[cond][i]['age']
-                    row.inverse_age = initial_relative_measures[cond][i]['inverse_age']
+                    row.youth = initial_relative_measures[cond][i]['youth']
                     row.seasonal_dominated = initial_relative_measures[cond][i]['seasonal_dominated']
-                    row.seasonal_fullydominated = initial_relative_measures[cond][i]['seasonal_fullydominated']
-                    row.backforth_dominated = initial_relative_measures[cond][i]['backforth_dominated']
-                    row.forthright_dominated = initial_relative_measures[cond][i]['forthright_dominated']
-                    row.seasonal_novelty = initial_relative_measures[cond][i]['seasonal_novelty']
+                    row.novelty = initial_relative_measures[cond][i]['novelty']
 
         # save current optimizer state
         session.add(
@@ -942,26 +937,18 @@ class EAOptimizer(Process, Generic[Genotype, Measure]):
             for cond in self.__env_conditions:
                 if latest_relative_measures is None:
                     pop_diversity = None
-                    dominated_quality_youth = None
-                    fullydominated_quality_youth = None
+                    dominated_fast_young = None
                     age = None
-                    inverse_age = None
+                    youth = None
                     seasonal_dominated = None
-                    seasonal_fullydominated = None
-                    backforth_dominated = None
-                    forthright_dominated = None
-                    seasonal_novelty = None
+                    novelty = None
                 else:
                     pop_diversity = latest_relative_measures[cond][index]['pop_diversity']
-                    dominated_quality_youth = latest_relative_measures[cond][index]['dominated_quality_youth']
-                    fullydominated_quality_youth = latest_relative_measures[cond][index]['fullydominated_quality_youth']
+                    dominated_fast_young = latest_relative_measures[cond][index]['dominated_fast_young']
                     age = latest_relative_measures[cond][index]['age']
-                    inverse_age = latest_relative_measures[cond][index]['inverse_age']
+                    youth = latest_relative_measures[cond][index]['youth']
                     seasonal_dominated = latest_relative_measures[cond][index]['seasonal_dominated']
-                    seasonal_fullydominated = latest_relative_measures[cond][index]['seasonal_fullydominated']
-                    backforth_dominated = latest_relative_measures[cond][index]['backforth_dominated']
-                    forthright_dominated = latest_relative_measures[cond][index]['forthright_dominated']
-                    seasonal_novelty = latest_relative_measures[cond][index]['seasonal_novelty']
+                    novelty = latest_relative_measures[cond][index]['novelty']
 
                 session.add(
                         DbEAOptimizerGeneration(
@@ -971,15 +958,11 @@ class EAOptimizer(Process, Generic[Genotype, Measure]):
                             individual_index=index,
                             individual_id=individual.id,
                             pop_diversity=pop_diversity,
-                            dominated_quality_youth=dominated_quality_youth,
-                            fullydominated_quality_youth=fullydominated_quality_youth,
+                            dominated_fast_young=dominated_fast_young,
                             age=age,
-                            inverse_age=inverse_age,
+                            youth=youth,
                             seasonal_dominated=seasonal_dominated,
-                            seasonal_fullydominated=seasonal_fullydominated,
-                            backforth_dominated=backforth_dominated,
-                            forthright_dominated=forthright_dominated,
-                            seasonal_novelty=seasonal_novelty,
+                            novelty=novelty,
                         )
                 )
 

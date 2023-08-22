@@ -9,4 +9,4 @@ pip install -e ./core[dev] && \
 pip install -e ./rpi_controller[dev] && \
 pip install -e ./actor_controller[dev] && \
 pip install -e ./serialization[dev]
-pip install -e ./runners/isaacgym[dev] 
+pip install -e ./runners/isaacgym[dev]

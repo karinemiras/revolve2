@@ -47,15 +47,11 @@ class DbEAOptimizerGeneration(DbBase):
     individual_index = Column(Integer, nullable=False, primary_key=True)
     individual_id = Column(Integer, nullable=False)
     pop_diversity = Column(Float, nullable=True)
-    dominated_quality_youth = Column(Float, nullable=True)
-    fullydominated_quality_youth = Column(Float, nullable=True)
+    dominated_fast_young = Column(Float, nullable=True)
     age = Column(Float, nullable=True)
-    inverse_age = Column(Float, nullable=True)
+    youth = Column(Float, nullable=True)
     seasonal_dominated = Column(Float, nullable=True)
-    seasonal_fullydominated = Column(Float, nullable=True)
-    backforth_dominated = Column(Float, nullable=True)
-    forthright_dominated = Column(Float, nullable=True)
-    seasonal_novelty = Column(Float, nullable=True)
+    novelty = Column(Float, nullable=True)
 
 # all history of born individuals
 class DbEAOptimizerIndividual(DbBase):

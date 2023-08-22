@@ -21,15 +21,11 @@ class MeasureRelative:
         # they are overwritten, and only the values of survival selection are persisted.
         # persist it in the future?
         relative_measures = ['pop_diversity',
-                             'dominated_quality_youth',
-                             'fullydominated_quality_youth',
+                             'dominated_fast_young',
                              'seasonal_dominated',
-                             'seasonal_fullydominated',
-                             'backforth_dominated',
-                             'forthright_dominated',
-                             'seasonal_novelty',
+                             'novelty',
                              'age',
-                             'inverse_age']
+                             'youth']
 
         copy_genotype_measures = copy.deepcopy(self._genotype_measures)
 
@@ -75,12 +71,12 @@ class MeasureRelative:
     # an individual a dominates an individual b if a is better in at least one measure and not worse in any measure
     # better=higher > maximization
     def _pool_dominated_individuals(self):
-        self._pareto_dominance(['speed_y', 'inverse_age'], 'quality_youth')
+        self._pareto_dominance(['speed_y', 'youth'], 'fast_young')
         return self._genotype_measures
 
     def _pareto_dominance(self, which_measures, type):
         pool_dominated_individuals = 0
-        pool_fulldominated_individuals = 0
+
         for neighbour_measures in self._neighbours_measures:
             better = 0
             worse = 0
@@ -91,16 +87,12 @@ class MeasureRelative:
                     worse += 1
             if better > 0 and worse == 0:
                 pool_dominated_individuals += 1
-            if better == len(which_measures):
-                pool_fulldominated_individuals += 1
 
         self._genotype_measures[f'dominated_{type}'] = pool_dominated_individuals
-        self._genotype_measures[f'fullydominated_{type}'] = pool_fulldominated_individuals
 
     def _pool_seasonal_dominated_individuals(self):
         which_measure = "speed_y"
         pool_dominated_individuals = 0
-        pool_fulldominated_individuals = 0
         for i in range(0, len(self._neighbours_measures[1])):
             better = 0
             worse = 0
@@ -111,90 +103,55 @@ class MeasureRelative:
                     worse += 1
             if better > 0 and worse == 0:
                 pool_dominated_individuals += 1
-            if better == len(self._genotype_measures):
-                pool_fulldominated_individuals += 1
-        return pool_dominated_individuals, pool_fulldominated_individuals
 
-    def _pool_seasonal_novelty(self, novelty_archive):
-        #TODO: call this only for novelty experiments / for now it is commented out when not needed
-        diversity = 0
-        # genotype_measures = []
-        # genotype_measures.append(max(self._genotype_measures[1]['speed_y'], -1000))
-        # genotype_measures.append(max(self._genotype_measures[2]['speed_x'], -1000))
-        #
-        # neighbours_measures = []
-        # for i in range(0, len(self._neighbours_measures[1])):
-        #     neighbours_measures.append([])
-        #     neighbours_measures[-1].append(max(self._neighbours_measures[1][i]['speed_y'], -1000))
-        #     neighbours_measures[-1].append(max(self._neighbours_measures[2][i]['speed_x'], -1000))
-        #
-        # for i in range(0, len(novelty_archive[1])):
-        #         neighbours_measures.append([])
-        #         neighbours_measures[-1].append(max(novelty_archive[1][i]['speed_y'], -1000))
-        #         neighbours_measures[-1].append(max(novelty_archive[2][i]['speed_x'], -1000))
-        #
-        # kdt = KDTree(neighbours_measures, leaf_size=30, metric='euclidean')
-        # # TODO: take this as param and if 0 turn novelty off
-        # k = 10+1
-        #
-        # # distances from neighbors
-        # distances, indexes = kdt.query([genotype_measures], k=k)
-        # diversity = sum(distances[0])/len(distances[0])
-
-        return diversity
-
-    def _pool_backforth_dominated_individuals(self):
-        which_measure = "speed_y"
-        pool_dominated_individuals = 0
-        for i in range(0, len(self._neighbours_measures[1])):
-            better = 0
-            worse = 0
-            for cond in self._genotype_measures:
-                value_individual = self._genotype_measures[cond][which_measure]
-                value_neighbour = self._neighbours_measures[cond][i][which_measure]
-
-                # this is (sadly) hardcoded. cond=2 means the 'back' setup, when target direction gets inverted
-                if cond == 2:
-                    value_individual = value_individual * -1
-                    value_neighbour = value_neighbour * -1
-
-                if value_individual > value_neighbour:
-                    better += 1
-                if value_individual < value_neighbour:
-                    worse += 1
-            if better > 0 and worse == 0:
-                pool_dominated_individuals += 1
         return pool_dominated_individuals
 
-    def _pool_forthright_dominated_individuals(self):
-        pool_dominated_individuals = 0
-        for i in range(0, len(self._neighbours_measures[1])):
-            better = 0
-            worse = 0
-            for cond in self._genotype_measures:
+    def _pool_novelty(self, novelty_archive, novelty_on):
 
-                # this is (sadly) hardcoded.
-                if cond == 1:
-                    which_measure = "speed_y"
-                if cond == 2:
-                    which_measure = "speed_x"
+        if not novelty_on:
+            diversity = None
+        else:
+            which_measures = ['symmetry',
+                              'proportion',
+                              'coverage',
+                              'extremities_prop',
+                              'hinge_prop',
+                              'hinge_ratio',
+                              'branching_prop']
 
-                value_individual = self._genotype_measures[cond][which_measure]
-                value_neighbour = self._neighbours_measures[cond][i][which_measure]
+            genotype_measures = []
+            for key in which_measures:
+                genotype_measures.append(self._genotype_measures[key])
 
-                if value_individual > value_neighbour:
-                    better += 1
-                if value_individual < value_neighbour:
-                    worse += 1
-            if better > 0 and worse == 0:
-                pool_dominated_individuals += 1
-        return pool_dominated_individuals
+            neighbours_measures = []
+            for neighbour_measures in self._neighbours_measures:
+                neighbours_measures.append([])
+                for key in which_measures:
+                    neighbours_measures[-1].append(neighbour_measures[key])
+
+            if novelty_archive is not None:
+                for i in range(0, len(novelty_archive)):
+                        neighbours_measures.append([])
+                        for key in which_measures:
+                            neighbours_measures[-1].append(neighbour_measures[key])
+
+            kdt = KDTree(neighbours_measures, leaf_size=30, metric='euclidean')
+            # TODO: take this as param
+            k = 10+1
+
+            # distances from neighbors
+            distances, indexes = kdt.query([genotype_measures], k=k)
+            diversity = sum(distances[0])/len(distances[0])
+
+        self._genotype_measures['novelty'] = diversity
+        return self._genotype_measures
+
 
     def _age(self, generation_index):
 
         age = generation_index - self._genotype_measures['birth'] + 1
         inverse_age = 1/age
         self._genotype_measures['age'] = age
-        self._genotype_measures['inverse_age'] = inverse_age
+        self._genotype_measures['youth'] = inverse_age
 
         return self._genotype_measures

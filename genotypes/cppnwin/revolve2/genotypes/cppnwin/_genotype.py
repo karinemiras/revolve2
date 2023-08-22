@@ -32,11 +32,11 @@ class GenotypeSerializer(Serializer[Genotype]):
         cls, session: AsyncSession, objects: List[Genotype]
     ) -> List[int]:
        
-        dbfitnesses = [
-            DbGenotype(serialized_multineat_genome=o.genotype.Serialize())
-            for o in objects
-        ]
-      
+        if callable(getattr(objects[0].genotype, 'Serialize', None)):
+            dbfitnesses = [DbGenotype(serialized_multineat_genome=o.genotype.Serialize())for o in objects]
+        else:
+            dbfitnesses = [DbGenotype(serialized_multineat_genome=str(o.genotype)) for o in objects]
+
         session.add_all(dbfitnesses)
 
         await session.flush()
@@ -62,5 +62,9 @@ class GenotypeSerializer(Serializer[Genotype]):
         id_map = {t.id: t for t in rows}
         genotypes = [Genotype(multineat.Genome()) for _ in ids]
         for id, genotype in zip(ids, genotypes):
-            genotype.genotype.Deserialize(id_map[id].serialized_multineat_genome)
+            if id_map[id].serialized_multineat_genome[0] == '[':
+                genotype.genotype = eval(id_map[id].serialized_multineat_genome)
+            else:
+                genotype.genotype.Deserialize(id_map[id].serialized_multineat_genome)
+
         return genotypes
