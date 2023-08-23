@@ -1,14 +1,12 @@
 import math
-import multineat
 import random
 import numpy as np
-import operator
 import sys
 import pprint
 
 from revolve2.core.modular_robot import ActiveHinge, Body, Brick, Core, Module
 from .._genotype import Genotype
-from .._random_v1 import random_v1 as base_random_v1
+
 
 
 def random_v1(
@@ -21,6 +19,7 @@ def random_v1(
 
 class Develop:
 
+    # develops a Gene Regulatory network
     def __init__(self, max_modules, genotype, querying_seed, env_condition, n_env_conditions, plastic_body):
 
         self.max_modules = max_modules
@@ -45,7 +44,7 @@ class Develop:
         self.types_nucleotypes = 6
         self.diffusion_sites_qt = 4
 
-        self.expected_expression = 0.8
+        self.promoter_threshold = 0.8
         self.concentration_decay = 0.005
         self.structural_trs = len(['brick', 'joint', 'rotation'])
         # when increasing number of regulatory tfs, genotype size should also increase
@@ -67,7 +66,6 @@ class Develop:
         return self.phenotype_body, {}
 
     def develop_body(self):
-       # print('\n\n')
         self.gene_parser()
         self.regulate()
 
@@ -75,12 +73,11 @@ class Develop:
 
     # parses genotype to discover promotor sites and compose genes
     def gene_parser(self):
-
-        promoter_threshold = self.expected_expression
+        #print('genotype', self.genotype)
         nucleotide_idx = 0
         while nucleotide_idx < len(self.genotype):
 
-            if self.genotype[nucleotide_idx] < promoter_threshold:
+            if self.genotype[nucleotide_idx] < self.promoter_threshold:
                 # if there are nucleotypes enough to compose a gene
                 if (len(self.genotype)-1-nucleotide_idx) >= self.types_nucleotypes:
                     regulatory_transcription_factor = self.genotype[nucleotide_idx+self.regulatory_transcription_factor_idx+1]  # gene product
@@ -89,7 +86,8 @@ class Develop:
                     transcription_factor = self.genotype[nucleotide_idx+self.transcription_factor_idx+1]
                     transcription_factor_amount = self.genotype[nucleotide_idx+self.transcription_factor_amount_idx+1]
                     diffusion_site = self.genotype[nucleotide_idx+self.diffusion_site_idx+1]
-
+                    #print(nucleotide_idx)
+                    #print(regulatory_transcription_factor,regulatory_min,regulatory_max,transcription_factor,transcription_factor_amount,diffusion_site)
                     # begin: converts tfs values into labels #
                     range_size = 1 / (self.structural_trs + self.regulatory_tfs)
                     limits = [round(limit / 100, 2) for limit in range(0, 1 * 100, int(range_size * 100))]
@@ -116,11 +114,12 @@ class Develop:
                             diffusion_site_label = len(limits)-1
                     # ends: converts diffusion sites values into labels #
 
-                    genes = [regulatory_transcription_factor_label, regulatory_min, regulatory_max,
+                    gene = [regulatory_transcription_factor_label, regulatory_min, regulatory_max,
                              transcription_factor_label, transcription_factor_amount, diffusion_site_label]
-                    self.promotors.append(genes)
 
-                    nucleotide_idx += len(genes)
+                    self.promotors.append(gene)
+
+                    nucleotide_idx += self.types_nucleotypes
             nucleotide_idx += 1
         self.promotors = np.array(self.promotors)
         #pprint.pprint(self.promotors)

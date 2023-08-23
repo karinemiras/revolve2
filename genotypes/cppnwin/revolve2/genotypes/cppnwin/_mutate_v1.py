@@ -19,15 +19,26 @@ def mutate_brain(
     return Genotype(new_genotype)
 
 def mutate_body(
-        genotype: Genotype,
-        rng: multineat.RNG,
+        genotype,
+        rng,
 ) -> Genotype:
     pertub_qt = 1
-    positions = rng.sample(range(0, len(genotype.genotype)), pertub_qt)
+    #print('----------naaaa')
+    positions = rng.sample(range(0, len(genotype.genotype)), int(len(genotype.genotype)*0.03))
     for p in positions:
-        genotype.genotype[p] = round(rng.uniform(0, 1), 2)
+        #print('coco',p)
+        #genotype.genotype[p] = round(rng.uniform(0, 1), 2)
+        newv = round(genotype.genotype[p]+rng.normalvariate(0, 0.1), 2)
+       # print(genotype.genotype[p],newv)
+        if newv > 1:
+            genotype.genotype[p] = 1
+        elif newv < 0:
+            genotype.genotype[p] = 0
+        else:
+            genotype.genotype[p] = newv
+       # print(genotype.genotype[p] )
+            # mutation_size = 0.05
 
-    # mutation_size = 0.05
     # positions = rng.sample(range(0, len(genotype.genotype)), int(len(genotype.genotype) * mutation_size))
     # for p in positions:
     #     genotype.genotype[p] = round(rng.uniform(0, 1), 2)

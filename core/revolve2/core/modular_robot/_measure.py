@@ -92,7 +92,7 @@ class Measure:
         displacement_x = float((end_state.position[0] - begin_state.position[0]))
 
         # TODO: check if outlier from pop avg
-        if displacement_x > 5 or displacement_y > 5:
+        if abs(displacement_x) > 3 or abs(displacement_y) > 3:
             print('suspicious displacement gets minus inf')
             self._measures['speed_y'] = -math.inf
             self._measures['speed_x'] = -math.inf

@@ -10,7 +10,7 @@ import os
 import sys
 import argparse
 from ast import literal_eval
-
+import math
 
 async def main(parser) -> None:
 
@@ -58,11 +58,12 @@ async def main(parser) -> None:
                         plastic_brain = rows[0].DbEAOptimizer.plastic_brain
 
                         query = select(DbEAOptimizerGeneration, DbEAOptimizerIndividual, DbFloat)\
-                            .filter(DbEAOptimizerGeneration.generation_index.in_([gen])) \
-                                                   .filter((DbEAOptimizerGeneration.individual_id == DbEAOptimizerIndividual.individual_id)
-                                                           & (DbEAOptimizerGeneration.env_conditions_id == DbEAOptimizerIndividual.env_conditions_id)
-                                                           & (DbFloat.id == DbEAOptimizerIndividual.float_id)
-                                                           )
+                            .filter(DbEAOptimizerGeneration.generation_index.in_([gen]) \
+                                   & (DbEAOptimizerGeneration.individual_id == DbEAOptimizerIndividual.individual_id)
+                                   & (DbEAOptimizerGeneration.env_conditions_id == DbEAOptimizerIndividual.env_conditions_id)
+                                   & (DbFloat.id == DbEAOptimizerIndividual.float_id)
+                                   )
+
                         if len(env_conditions) > 1:
                             query = query.order_by(DbEAOptimizerGeneration.seasonal_dominated.desc(),
                                                    DbEAOptimizerGeneration.individual_id.asc(),
@@ -73,7 +74,8 @@ async def main(parser) -> None:
                         rows = ((await session.execute(query)).all())
 
                         for idx, r in enumerate(rows):
-                            #print('geno',r.DbEAOptimizerIndividual.genotype_id)
+                            #print('ind',r.DbEAOptimizerIndividual.individual_id )
+                            
                             genotype = (
                                 await GenotypeSerializer.from_database(
                                     session, [r.DbEAOptimizerIndividual.genotype_id]
@@ -85,8 +87,10 @@ async def main(parser) -> None:
                                                                    len(env_conditions), plastic_body, plastic_brain
                             )
                             render = Render()
+                            fit = r.DbFloat.speed_y
+                            fit = round(fit, 2) if fit is not None and fit is not -math.inf else 'none'
                             img_path = f'{path_gen}/env{r.DbEAOptimizerGeneration.env_conditions_id}/' \
-                                       f'{idx}_{r.DbEAOptimizerIndividual.individual_id}.png'
+                                       f'{idx}_{fit}_{r.DbEAOptimizerIndividual.individual_id}.png'
                             render.render_robot(phenotype.body.core, img_path)
 
 

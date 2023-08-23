@@ -24,10 +24,8 @@ IFS=', ' read -r -a experiments <<< "$experiments"
 IFS=', ' read -r -a runs <<< "$runs"
 
 to_do=()
- for run in "${runs[@]}"
+for run in "${runs[@]}"
 do
-    run=$(($i))
-
     for experiment in "${experiments[@]}"
     do
 

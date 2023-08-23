@@ -41,6 +41,7 @@ class MeasureRelative:
                           'proportion',
                           'coverage',
                           'extremities_prop',
+                          'extensiveness_prop',
                           'hinge_prop',
                           'hinge_ratio',
                           'branching_prop']

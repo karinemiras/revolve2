@@ -44,10 +44,11 @@ class Simulator:
         self.study = args.study
         self.experiments_name = args.experiments.split(',')
         self.runs = args.watchruns.split(',')
-        self.generations = list(map(int, args.generations.split(',')))
+        self.generations =list(map(int, args.generations.split(',')))
+        test_robots = []
         mainpath = args.mainpath
 
-        self.bests = 1
+        self.bests = 4
         # 'all' selects best from all individuals
         # 'gens' selects best from chosen generations
         self.bests_type = 'gens'
@@ -66,12 +67,12 @@ class Simulator:
                 if self.bests_type == 'gens':
                     for gen in self.generations:
                         print('  in gen: ', gen)
-                        await self.recover(db, gen, path, ids)
+                        await self.recover(db, gen, path, test_robots)
                 elif self.bests_type == 'all':
                     pass
                     # TODO: implement
 
-    async def recover(self, db, gen, path, ids):
+    async def recover(self, db, gen, path, test_robots):
         async with AsyncSession(db) as session:
 
             rows = (
@@ -103,9 +104,10 @@ class Simulator:
                             & (DbEAOptimizerGeneration.env_conditions_id == DbEAOptimizerIndividual.env_conditions_id)
                             & (DbFloat.id == DbEAOptimizerIndividual.float_id)
                             & DbEAOptimizerGeneration.generation_index.in_([gen])
-                            # IF YOU WANNA SEE A SPECIFIC ROBOT
-                          #  & (DbEAOptimizerIndividual.individual_id == 13775)
                             )
+
+                if len(test_robots) > 0:
+                    query = query.filter(DbEAOptimizerIndividual.individual_id.in_(test_robots))
 
                 # if seasonal setup, criteria is seasonal pareto
                 if len(rows) > 1:

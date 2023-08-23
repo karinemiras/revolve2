@@ -14,7 +14,7 @@ outputs_path="/home/ripper8/projects/working_data"
 
 study="GRN"
 
-experiments="bodymut"
+experiments="mutcrossk2"
 
 # conditions have effect only for isaac
 # conditions: friction_dynamicfriction_yrotation_idleparam_idleparam
@@ -51,14 +51,14 @@ num_terminals=2
 
 # gens for boxplots, snapshots, videos (by default the last gen)
 #generations="1,$num_generations"
-generations="0,$num_generations"
+generations="0,20,50,$num_generations"
 
 # max gen to filter lineplots  (by default the last gen)
 final_gen="$num_generations"
 
-mutation_prob=1
+mutation_prob=0.1
 
-crossover_prob=0
+crossover_prob=0.9
 
 # use simulation_time=20 for more interesting results
 simulation_time=30

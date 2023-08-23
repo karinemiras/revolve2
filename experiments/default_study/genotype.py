@@ -13,8 +13,6 @@ from revolve2.core.modular_robot import ModularRobot
 from revolve2.genotypes.cppnwin import Genotype as CppnwinGenotype
 from revolve2.genotypes.cppnwin import GenotypeSerializer as CppnwinGenotypeSerializer
 
-from revolve2.genotypes.cppnwin.modular_robot.body_genotype_v2 import Develop as cppn_body_develop
-from revolve2.genotypes.cppnwin.modular_robot.body_genotype_v2 import (random_v1 as cppn_body_random)
 from revolve2.genotypes.cppnwin import crossover_v1, mutate_brain, mutate_body
 
 from revolve2.genotypes.cppnwin.modular_robot.brain_genotype_cpg_v1 import (
@@ -27,6 +25,7 @@ from revolve2.genotypes.cppnwin.modular_robot.brain_genotype_cpg_v1 import (
 from revolve2.genotypes.cppnwin.modular_robot.body_genotype_v2 import Develop as grn_develop
 from revolve2.genotypes.cppnwin.modular_robot.body_genotype_v2 import (random_v1 as grn_random)
 
+# TODO: mentions to cppnwin are obsolete. using GRNs now.
 
 def _make_multineat_params_cppn() -> multineat.Parameters:
     multineat_params = multineat.Parameters()
@@ -203,7 +202,6 @@ def crossover(
     parent1: Genotype,
     parent2: Genotype,
     rng: Random,
-    loop: str,
 ) -> Genotype:
     multineat_rng = _multineat_rng_from_random(rng)
 
@@ -215,12 +213,9 @@ def crossover(
         crossover_v1(
             parent1.body,
             parent2.body,
-            _MULTINEAT_PARAMS_BRAIN,
-            multineat_rng,
-            False,
-            False,
+            rng
         ),
-        parent1.brain,
+        parent1.brain, # no crossover in cpg cppn
         parent1.mapping_seed,
     )
 

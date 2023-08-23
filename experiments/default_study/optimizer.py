@@ -247,7 +247,7 @@ class Optimizer(EAOptimizer[Genotype, float]):
                 population,
                 fitnesses,
                 number_of_parents,
-                lambda _, fitnesses: selection.tournament(self._rng, fitnesses, k=4), #2),
+                lambda _, fitnesses: selection.tournament(self._rng, fitnesses, k=2), #2),
             )
             for _ in range(num_parent_groups)
         ]
@@ -268,7 +268,7 @@ class Optimizer(EAOptimizer[Genotype, float]):
             old_fitnesses,
             new_individuals,
             new_fitnesses,
-            lambda _, fitnesses: selection.tournament(self._rng, fitnesses, k=4), #2),
+            lambda _, fitnesses: selection.tournament(self._rng, fitnesses, k=2), #2),
         )
 
     def _must_do_next_gen(self) -> bool:

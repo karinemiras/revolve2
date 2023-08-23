@@ -15,13 +15,10 @@ fi
 source $params_file
 
 
-python experiments/${study_path}/snapshots_bests.py $study $experiments $runs $generations $outputs_path;
-python experiments/${study_path}/bests_snap_2d.py $study $experiments $runs $generations $outputs_path;
-##python experiments/${study_path}/genealogy.py $study $experiments $runs $generations $outputs_path;
-
 comparison='basic_plots'
 python experiments/${study_path}/consolidate.py $study $experiments $runs $final_gen $comparison $outputs_path;
 python experiments/${study_path}/plot_static.py $study $experiments $runs $generations $comparison $outputs_path;
-
-
+python experiments/${study_path}/snapshots_bests.py $study $experiments $runs $generations $outputs_path;
+python experiments/${study_path}/bests_snap_2d.py $study $experiments $runs $generations $outputs_path;
+#python experiments/${study_path}/genealogy.py $study $experiments $runs $generations $outputs_path;
 

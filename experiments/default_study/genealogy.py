@@ -1,7 +1,7 @@
 from sqlalchemy.ext.asyncio.session import AsyncSession
 from revolve2.core.database import open_async_database_sqlite
 from sqlalchemy.future import select
-from revolve2.core.optimization.ea.generic_ea import DbEAOptimizerGeneration, DbEAOptimizerIndividual, DbEAOptimizer, DbEnvconditions
+from revolve2.core.optimization.ea.generic_ea import DbEAOptimizerGeneration, DbEAOptimizerIndividual, DbEAOptimizer, DbEnvconditions, DbEAOptimizerParent
 from revolve2.core.modular_robot.render.render import Render
 from genotype import GenotypeSerializer, develop
 from revolve2.core.database.serializers import DbFloat
@@ -19,18 +19,18 @@ async def main(parser) -> None:
     study = args.study
     experiments_name = args.experiments.split(',')
     runs = list(map(int, args.runs.split(',')))
-    generations = list(map(int, args.generations.split(',')))
+    generations = [list(map(int, args.generations.split(',')))[-1]]
     mainpath = args.mainpath
-    loop = args.loop
-    body_phenotype = args.body_phenotype
-    bisymmetry = list(map(int, args.bisymmetry.split(',')))
+    max_best = 10
+    genealogy_length = 10
 
     for idsy, experiment_name in enumerate(experiments_name):
         print(experiment_name)
         for run in runs:
             print(' run: ', run)
 
-            path = f'{mainpath}/{study}/analysis/snapshots/{experiment_name}/run_{run}'
+            path = f'{mainpath}/{study}/analysis/genealogy/{experiment_name}/' \
+                   f'run_{run}'
             if not os.path.exists(path):
                 os.makedirs(path)
 
@@ -60,12 +60,14 @@ async def main(parser) -> None:
                         plastic_body = rows[0].DbEAOptimizer.plastic_body
                         plastic_brain = rows[0].DbEAOptimizer.plastic_brain
 
-                        query = select(DbEAOptimizerGeneration, DbEAOptimizerIndividual, DbFloat)\
-                            .filter(DbEAOptimizerGeneration.generation_index.in_([gen])) \
-                                                   .filter((DbEAOptimizerGeneration.individual_id == DbEAOptimizerIndividual.individual_id)
-                                                           & (DbEAOptimizerGeneration.env_conditions_id == DbEAOptimizerIndividual.env_conditions_id)
-                                                           & (DbFloat.id == DbEAOptimizerIndividual.float_id)
-                                                           )
+                        query = select(DbEAOptimizerGeneration, DbEAOptimizerIndividual, DbFloat, DbEAOptimizerParent)\
+                            .filter(DbEAOptimizerGeneration.generation_index.in_([gen]) \
+                                   & (DbEAOptimizerGeneration.individual_id == DbEAOptimizerIndividual.individual_id)
+                                   & (DbEAOptimizerGeneration.env_conditions_id == DbEAOptimizerIndividual.env_conditions_id)
+                                   & (DbFloat.id == DbEAOptimizerIndividual.float_id)
+                                   & (DbEAOptimizerIndividual.individual_id == DbEAOptimizerParent.child_individual_id)
+                                   )
+
                         if len(env_conditions) > 1:
                             query = query.order_by(DbEAOptimizerGeneration.seasonal_dominated.desc(),
                                                    DbEAOptimizerGeneration.individual_id.asc(),
@@ -73,25 +75,80 @@ async def main(parser) -> None:
                         else:
                             query = query.order_by(DbFloat.speed_y.desc())
 
-                        rows = ((await session.execute(query)).all())
+                        leafs = ((await session.execute(query)).all())
 
-                        for idx, r in enumerate(rows):
-                            #print('geno',r.DbEAOptimizerIndividual.genotype_id)
-                            genotype = (
-                                await GenotypeSerializer.from_database(
-                                    session, [r.DbEAOptimizerIndividual.genotype_id]
-                                )
-                            )[0]
-                          
-                            phenotype, queried_substrate = develop(genotype, genotype.mapping_seed, max_modules, substrate_radius,
-                                                env_conditions[r.DbEAOptimizerGeneration.env_conditions_id],
-                                                                   len(env_conditions), plastic_body, plastic_brain,
-                                                                   loop,  body_phenotype, bisymmetry[idsy]
-                            )
-                            render = Render()
-                            img_path = f'{path_gen}/env{r.DbEAOptimizerGeneration.env_conditions_id}/' \
-                                       f'{idx}_{r.DbEAOptimizerIndividual.individual_id}.png'
-                            render.render_robot(phenotype.body.core, img_path)
+                        diffs = []
+                        #for idx, leaf in enumerate(leafs[0:max_best]):
+                        for idx, leaf in enumerate(leafs):
+                            leaf_id = leaf.DbEAOptimizerParent.child_individual_id
+                            current_child = leaf_id
+
+                            for idxb in range(0, genealogy_length+1):
+
+                                query = select(DbEAOptimizerParent, DbEAOptimizerIndividual, DbFloat). \
+                                    filter((DbEAOptimizerParent.child_individual_id == current_child)
+                                           & (DbEAOptimizerIndividual.individual_id == DbEAOptimizerParent.parent_individual_id)
+                                           & (DbFloat.id == DbEAOptimizerIndividual.float_id)
+                                           )
+
+                                parent = ((await session.execute(query)).all())
+
+                                if len(parent) > 0:
+                                    parent_id = parent[0].DbEAOptimizerParent.parent_individual_id
+                                    diff = abs(leaf.DbFloat.symmetry - parent[0].DbFloat.symmetry)+ \
+                                           abs(leaf.DbFloat.proportion - parent[0].DbFloat.proportion) + \
+                                           abs(leaf.DbFloat.coverage - parent[0].DbFloat.coverage) + \
+                                           abs(leaf.DbFloat.extremities_prop - parent[0].DbFloat.extremities_prop) + \
+                                           abs(leaf.DbFloat.hinge_prop - parent[0].DbFloat.hinge_prop) + \
+                                           abs(leaf.DbFloat.hinge_ratio - parent[0].DbFloat.hinge_ratio) + \
+                                           abs(leaf.DbFloat.branching_prop - parent[0].DbFloat.branching_prop) + \
+                                           abs(leaf.DbFloat.extensiveness_prop - parent[0].DbFloat.extensiveness_prop)
+
+                                    if diff > 0:
+                                        diffs.append(diff)
+
+                                        genotype = (
+                                            await GenotypeSerializer.from_database(
+                                                session, [current_child]
+                                            )
+                                        )[0]
+                                        phenotype, queried_substrate = develop(genotype, genotype.mapping_seed,
+                                                                               max_modules,
+                                                                               substrate_radius,
+                                                                               env_conditions[
+                                                                                   leaf.DbEAOptimizerGeneration.env_conditions_id],
+                                                                               len(env_conditions), plastic_body,
+                                                                               plastic_brain,  )
+                                        render = Render()
+                                        img_path = f'{path_gen}/env{leaf.DbEAOptimizerGeneration.env_conditions_id}/' \
+                                                   f'{leaf_id}_{idxb}_{current_child}.png'
+                                        render.render_robot(phenotype.body.core, img_path)
+
+                                        genotype = (
+                                            await GenotypeSerializer.from_database(
+                                                session, [parent_id]
+                                            )
+                                        )[0]
+                                        phenotype, queried_substrate = develop(genotype, genotype.mapping_seed,
+                                                                               max_modules,
+                                                                               substrate_radius,
+                                                                               env_conditions[
+                                                                                   leaf.DbEAOptimizerGeneration.env_conditions_id],
+                                                                               len(env_conditions), plastic_body,
+                                                                               plastic_brain,  )
+                                        render = Render()
+                                        img_path = f'{path_gen}/env{leaf.DbEAOptimizerGeneration.env_conditions_id}/' \
+                                                   f'{leaf_id}_{idxb}_{parent_id}.png'
+                                        render.render_robot(phenotype.body.core, img_path)
+
+                                    current_child = parent_id
+                                else:
+                                    current_child = -1
+                        if len(diffs) > 0:
+                            print('mean', sum(diffs)/len(diffs))
+                        else:
+                            print('mean', 0)
+
 
 
 if __name__ == "__main__":
@@ -103,9 +160,6 @@ if __name__ == "__main__":
     parser.add_argument("runs")
     parser.add_argument("generations")
     parser.add_argument("mainpath")
-    parser.add_argument("loop")
-    parser.add_argument("body_phenotype")
-    parser.add_argument("bisymmetry")
 
     asyncio.run(main(parser))
 
