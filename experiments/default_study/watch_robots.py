@@ -48,7 +48,7 @@ class Simulator:
         test_robots = []
         mainpath = args.mainpath
 
-        self.bests = 4
+        self.bests = 1
         # 'all' selects best from all individuals
         # 'gens' selects best from chosen generations
         self.bests_type = 'gens'

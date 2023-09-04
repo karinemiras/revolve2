@@ -73,7 +73,6 @@ class Develop:
 
     # parses genotype to discover promotor sites and compose genes
     def gene_parser(self):
-        #print('genotype', self.genotype)
         nucleotide_idx = 0
         while nucleotide_idx < len(self.genotype):
 
@@ -345,6 +344,7 @@ class Develop:
         first_gene_idx = 0
         tf_label_idx = 0
         min_value_idx = 1
+        # TODO: do not inject nor grow if there are no promotors (unlikely)
         mother_tf_label = self.promotors[first_gene_idx][tf_label_idx]
         mother_tf_injection = float(self.promotors[first_gene_idx][min_value_idx])
 

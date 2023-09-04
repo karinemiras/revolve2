@@ -62,9 +62,15 @@ class Measure:
         else:
             self._measures['hinge_ratio'] = 0
 
-        self._measures['hinge_prop'] = self._measures['hinge_count'] / self._measures['modules_count']
-        self._measures['brick_prop'] = self._measures['brick_count'] / self._measures['modules_count']
-
+        if self._measures['hinge_count'] > 0:
+            self._measures['hinge_prop'] = self._measures['hinge_count'] / (self._measures['modules_count']-1)
+        else:
+            self._measures['hinge_prop'] = 0
+        if self._measures['brick_count'] > 0:
+            self._measures['brick_prop'] = self._measures['brick_count'] / (self._measures['modules_count']-1)
+        else:
+            self._measures['brick_prop'] = 0
+            
     # behavioral measures
     # TODO simulation can continue slightly passed the defined sim time.
     def _displacement(self):

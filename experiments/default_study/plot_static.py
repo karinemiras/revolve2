@@ -27,12 +27,16 @@ mainpath = args.mainpath
 
 experiments = experiments_name
 inner_metrics = ['mean', 'max']
-include_max = True
+include_max = False
 merge_lines = True
 by_run = True
 gens_boxes = generations
 clrs = ['#009900',
-        '#EE8610']
+        '#EE8610',
+        '#95fc7a',
+        '#434699',
+        '#221210',
+        '#87ac65']
 path = f'{mainpath}/{study}'
 
 measures = {

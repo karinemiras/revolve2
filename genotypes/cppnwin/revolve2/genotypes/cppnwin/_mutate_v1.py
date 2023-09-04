@@ -18,29 +18,38 @@ def mutate_brain(
     )
     return Genotype(new_genotype)
 
+
 def mutate_body(
         genotype,
         rng,
 ) -> Genotype:
-    pertub_qt = 1
-    #print('----------naaaa')
-    positions = rng.sample(range(0, len(genotype.genotype)), int(len(genotype.genotype)*0.03))
-    for p in positions:
-        #print('coco',p)
-        #genotype.genotype[p] = round(rng.uniform(0, 1), 2)
-        newv = round(genotype.genotype[p]+rng.normalvariate(0, 0.1), 2)
-       # print(genotype.genotype[p],newv)
-        if newv > 1:
-            genotype.genotype[p] = 1
-        elif newv < 0:
-            genotype.genotype[p] = 0
-        else:
-            genotype.genotype[p] = newv
-       # print(genotype.genotype[p] )
-            # mutation_size = 0.05
 
-    # positions = rng.sample(range(0, len(genotype.genotype)), int(len(genotype.genotype) * mutation_size))
-    # for p in positions:
-    #     genotype.genotype[p] = round(rng.uniform(0, 1), 2)
+    position = rng.sample(range(0, len(genotype.genotype)), 1)[0]
+    type = rng.sample(['perturbation', 'deletion', 'addition', 'swap'], 1)[0]
+
+    if type == 'perturbation':
+        newv = round(genotype.genotype[position]+rng.normalvariate(0, 0.1), 2)
+        if newv > 1:
+            genotype.genotype[position] = 1
+        elif newv < 0:
+            genotype.genotype[position] = 0
+        else:
+            genotype.genotype[position] = newv
+
+    if type == 'deletion':
+        genotype.genotype.pop(position)
+
+    if type == 'addition':
+        genotype.genotype.insert(position, round(rng.uniform(0, 1), 2))
+
+    if type == 'swap':
+        position2 = rng.sample(range(0, len(genotype.genotype)), 1)[0]
+        while position == position2:
+            position2 = rng.sample(range(0, len(genotype.genotype)), 1)[0]
+
+        position_v = genotype.genotype[position]
+        position2_v = genotype.genotype[position2]
+        genotype.genotype[position] = position2_v
+        genotype.genotype[position2] = position_v
 
     return genotype

@@ -14,7 +14,7 @@ outputs_path="/home/ripper8/projects/working_data"
 
 study="GRN"
 
-experiments="mutcrossk2"
+experiments="fullmut9crossk4"
 
 # conditions have effect only for isaac
 # conditions: friction_dynamicfriction_yrotation_idleparam_idleparam
@@ -22,7 +22,7 @@ seasons_conditions="1.0_1.0_0_0_0"
 
 ####
 
-nruns=10
+nruns=30
 
 runs=""
 for i in $(seq 1 $nruns);
@@ -33,13 +33,13 @@ runs=${runs::-1}
 
 watchruns=$runs
 
-# use num_generations=100 for more interesting results
+# use num_generations>=50 for more interesting results
 num_generations="100"
 
-# use population_size=100 for more interesting results
+# use population_size>=100 for more interesting results
 population_size="100"
 
-# use offspring_size=100 for more interesting results
+# use offspring_size>=100 for more interesting results
 offspring_size="100"
 
 # bash loop frequency: adjust seconds according to exp size, e.g, 300.
@@ -51,16 +51,17 @@ num_terminals=2
 
 # gens for boxplots, snapshots, videos (by default the last gen)
 #generations="1,$num_generations"
-generations="0,20,50,$num_generations"
+#generations="0,20,50,100,$num_generations"
+generations="$num_generations"
 
 # max gen to filter lineplots  (by default the last gen)
 final_gen="$num_generations"
 
-mutation_prob=0.1
+mutation_prob=0.9
 
-crossover_prob=0.9
+crossover_prob=1
 
-# use simulation_time=20 for more interesting results
+# use simulation_time>=20 for more interesting results
 simulation_time=30
 
 max_modules=20
