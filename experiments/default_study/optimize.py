@@ -49,8 +49,6 @@ async def main() -> None:
 
     process_id = process_id_gen.gen()
 
-    # TODO: recovery in this branch seems to be problematic:
-    #  it recovers without error, but offspring performs strangely (a bit) worse than parents
     maybe_optimizer = await Optimizer.from_database(
         database=database,
         process_id=process_id,
@@ -61,7 +59,8 @@ async def main() -> None:
         run_simulation=args.run_simulation,
         headless=args.headless,
         num_generations=args.num_generations,
-        simulator=args.simulator
+        simulator=args.simulator,
+        tfs=args.tfs
     )
 
     if maybe_optimizer is not None:
@@ -90,6 +89,7 @@ async def main() -> None:
             offspring_size=args.offspring_size,
             experiment_name=args.experiment_name,
             max_modules=args.max_modules,
+            tfs=args.tfs,
             crossover_prob=args.crossover_prob,
             mutation_prob=args.mutation_prob,
             substrate_radius=args.substrate_radius,

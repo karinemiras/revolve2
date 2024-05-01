@@ -138,6 +138,7 @@ class EAOptimizer(Process, Generic[Genotype, Measure]):
     __fitness_measure: str
     __experiment_name: str
     __max_modules: int
+    __tfs: int
     __substrate_radius: str
     __crossover_prob: float
     __mutation_prob: float
@@ -162,6 +163,7 @@ class EAOptimizer(Process, Generic[Genotype, Measure]):
         fitness_measure: str,
         experiment_name: str,
         max_modules: int,
+        tfs: int,
         crossover_prob: float,
         mutation_prob: float,
         substrate_radius: str,
@@ -189,6 +191,7 @@ class EAOptimizer(Process, Generic[Genotype, Measure]):
         self.__fitness_measure = fitness_measure
         self.__experiment_name = experiment_name
         self.__max_modules = max_modules
+        self.__tfs = tfs
         self.__crossover_prob = crossover_prob
         self.__mutation_prob = mutation_prob
         self.__substrate_radius = substrate_radius
@@ -250,6 +253,10 @@ class EAOptimizer(Process, Generic[Genotype, Measure]):
         return self.__max_modules
 
     @property
+    def tfs(self):
+        return self.__tfs
+
+    @property
     def substrate_radius(self):
         return self.__substrate_radius
 
@@ -284,7 +291,8 @@ class EAOptimizer(Process, Generic[Genotype, Measure]):
         states_serializer: List[Tuple[float, State]],
         measures_type: Type[Measure],
         measures_serializer: Type[Serializer[Measure]],
-        run_simulation: int
+        run_simulation: int,
+        tfs: int
     ) -> bool:
         self.__database = database
         self.__genotype_type = genotype_type
@@ -293,6 +301,8 @@ class EAOptimizer(Process, Generic[Genotype, Measure]):
         self.__measures_type = measures_type
         self.__measures_serializer = measures_serializer
         self.__run_simulation = run_simulation
+        # TODO: save/load tfs in database
+        self.__tfs = tfs
         self.__novelty_on = False
 
         try:

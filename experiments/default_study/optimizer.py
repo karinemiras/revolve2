@@ -58,6 +58,7 @@ class Optimizer(EAOptimizer[Genotype, float]):
     _fitness_measure: str
     _experiment_name: str
     _max_modules: int
+    _tfs: int
     _crossover_prob: float
     _mutation_prob: float
     _substrate_radius: str
@@ -86,6 +87,7 @@ class Optimizer(EAOptimizer[Genotype, float]):
         fitness_measure: str,
         experiment_name: str,
         max_modules: int,
+        tfs: int,
         crossover_prob: float,
         mutation_prob: float,
         substrate_radius: str,
@@ -111,6 +113,7 @@ class Optimizer(EAOptimizer[Genotype, float]):
             offspring_size=offspring_size,
             experiment_name=experiment_name,
             max_modules=max_modules,
+            tfs=tfs,
             crossover_prob=crossover_prob,
             mutation_prob=mutation_prob,
             substrate_radius=substrate_radius,
@@ -135,6 +138,7 @@ class Optimizer(EAOptimizer[Genotype, float]):
         self._offspring_size = offspring_size
         self._experiment_name = experiment_name
         self._max_modules = max_modules
+        self._tfs = tfs
         self._crossover_prob = crossover_prob
         self._mutation_prob = mutation_prob
         self._substrate_radius = substrate_radius
@@ -161,7 +165,8 @@ class Optimizer(EAOptimizer[Genotype, float]):
         run_simulation: int,
         headless: bool,
         num_generations: int,
-        simulator: str
+        simulator: str,
+        tfs: int
     ) -> bool:
 
         if not await super().ainit_from_database(
@@ -175,6 +180,7 @@ class Optimizer(EAOptimizer[Genotype, float]):
                 measures_type=float,
                 measures_serializer=FloatSerializer,
                 run_simulation=run_simulation,
+                tfs=tfs,
         ):
             return False
 
@@ -247,7 +253,7 @@ class Optimizer(EAOptimizer[Genotype, float]):
                 population,
                 fitnesses,
                 number_of_parents,
-                lambda _, fitnesses: selection.tournament(self._rng, fitnesses, k=4), #2),
+                lambda _, fitnesses: selection.tournament(self._rng, fitnesses, k=4),
             )
             for _ in range(num_parent_groups)
         ]
@@ -268,7 +274,7 @@ class Optimizer(EAOptimizer[Genotype, float]):
             old_fitnesses,
             new_individuals,
             new_fitnesses,
-            lambda _, fitnesses: selection.tournament(self._rng, fitnesses, k=4), #2),
+            lambda _, fitnesses: selection.tournament(self._rng, fitnesses, k=4),
         )
 
     def _must_do_next_gen(self) -> bool:
@@ -316,7 +322,7 @@ class Optimizer(EAOptimizer[Genotype, float]):
                 #print(' >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> robot', i)
                 i = i+1
                 
-                phenotype, queried_substrate = develop(genotype, genotype.mapping_seed, self.max_modules,
+                phenotype, queried_substrate = develop(genotype, genotype.mapping_seed, self.max_modules, self.tfs,
                                                        self.substrate_radius,
                                                        self.env_conditions[cond], len(self.env_conditions),
                                                        self.plastic_body, self.plastic_brain,

@@ -3,7 +3,8 @@ from revolve2.core.database import open_async_database_sqlite
 from sqlalchemy.future import select
 from revolve2.core.optimization.ea.generic_ea import DbEAOptimizerGeneration, DbEAOptimizerIndividual, DbEAOptimizer, DbEnvconditions
 from revolve2.core.modular_robot.render.render import Render
-from genotype import GenotypeSerializer, develop
+from genotype import GenotypeSerializer #, develop
+from revolve2.genotypes.cppnwin.modular_robot.geno_body_GRN_knock import GRN
 from revolve2.core.database.serializers import DbFloat
 
 import os
@@ -11,6 +12,8 @@ import sys
 import argparse
 from ast import literal_eval
 import math
+from itertools import combinations
+
 
 async def main(parser) -> None:
 
@@ -22,23 +25,24 @@ async def main(parser) -> None:
     generations = list(map(int, args.generations.split(',')))
     tfs = list(args.tfs.split(','))
     mainpath = args.mainpath
-    numberrobots = 10
+    bests = 1
 
     for idsy, experiment_name in enumerate(experiments_name):
         print(experiment_name)
         for run in runs:
-            print(' run: ', run)
+            #print('\n run: ', run)
 
-            path = f'{mainpath}/{study}/analysis/snapshots/{experiment_name}/run_{run}'
+            path = f'{mainpath}/{study}/analysis/knockouts/{experiment_name}/run_{run}'
             if not os.path.exists(path):
                 os.makedirs(path)
 
             db = open_async_database_sqlite(f'{mainpath}/{study}/{experiment_name}/run_{run}')
 
             for gen in generations:
-                print('  gen: ', gen)
+               # print('  gen: ', gen)
                 path_gen = f'{path}/gen_{gen}'
                 if os.path.exists(path_gen):
+
                     print(f'{path_gen} already exists!')
                 else:
                     os.makedirs(path_gen)
@@ -74,9 +78,9 @@ async def main(parser) -> None:
                             query = query.order_by(DbFloat.speed_y.desc())
 
                         rows = ((await session.execute(query)).all())
+                        num_lines = bests * len(env_conditions)
 
-                        #for idx, r in enumerate(rows):
-                        for idx, r in enumerate(rows[0:numberrobots]):
+                        for idx, r in enumerate(rows[0:num_lines]):
                             #print('ind',r.DbEAOptimizerIndividual.individual_id )
                             
                             genotype = (
@@ -84,17 +88,37 @@ async def main(parser) -> None:
                                     session, [r.DbEAOptimizerIndividual.genotype_id]
                                 )
                             )[0]
-                          
-                            phenotype, queried_substrate = develop(genotype, genotype.mapping_seed, max_modules, tfs[idsy], substrate_radius,
-                                                env_conditions[r.DbEAOptimizerGeneration.env_conditions_id],
-                                                                   len(env_conditions), plastic_body, plastic_brain
-                            )
-                            render = Render()
-                            fit = r.DbFloat.speed_y
-                            fit = round(fit, 2) if fit is not None and fit is not -math.inf else 'none'
-                            img_path = f'{path_gen}/env{r.DbEAOptimizerGeneration.env_conditions_id}/' \
-                                       f'{idx}_{fit}_{r.DbEAOptimizerIndividual.individual_id}.png'
-                            render.render_robot(phenotype.body.core, img_path)
+                            #print(run, gen, r.DbEAOptimizerIndividual.individual_id, len(genotype.body.genotype))
+                            #
+                            # phenotype, queried_substrate = develop(genotype, genotype.mapping_seed, max_modules, substrate_radius,
+                            #                     env_conditions[r.DbEAOptimizerGeneration.env_conditions_id],
+                            #                                        len(env_conditions), plastic_body, plastic_brain
+                            # )
+
+
+                            phenotype = GRN(max_modules, tfs[idsy], genotype.body, genotype.mapping_seed,
+                                                                  env_conditions[r.DbEAOptimizerGeneration.env_conditions_id],
+                                                                  len(env_conditions), plastic_body).develop()
+
+                            #print(phenotype.promotors)
+
+                            #vector = list(range(1, len(phenotype.promotors)))
+
+                            single = list(range(1, len(phenotype.promotors)+1))
+                            # plus end with final
+                            pairs = [(single[i], single[i+1]) for i in range(len(single)-1)]
+                            #print( len(genotype.body.genotype),'\t' ,len(phenotype.promotors),   '\t', len(single)+ len(pairs) )
+                            print(len(genotype.body.genotype))
+                            #print(r.DbFloat.hinge_count)
+
+
+
+                            # render = Render()
+                            # fit = r.DbFloat.speed_y
+                            # fit = round(fit, 2) if fit is not None and fit is not -math.inf else 'none'
+                            # img_path = f'{path_gen}/env{r.DbEAOptimizerGeneration.env_conditions_id}/' \
+                            #            f'{idx}_{fit}_{r.DbEAOptimizerIndividual.individual_id}.png'
+                            # render.render_robot(phenotype.body.core, img_path)
 
 
 if __name__ == "__main__":

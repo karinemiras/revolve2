@@ -35,6 +35,7 @@ class Simulator:
         parser = argparse.ArgumentParser()
         parser.add_argument("study")
         parser.add_argument("experiments")
+        parser.add_argument("tfs")
         parser.add_argument("watchruns")
         parser.add_argument("generations")
         parser.add_argument("mainpath")
@@ -43,8 +44,9 @@ class Simulator:
 
         self.study = args.study
         self.experiments_name = args.experiments.split(',')
+        self.tfs = list(args.tfs.split(','))
         self.runs = args.watchruns.split(',')
-        self.generations =list(map(int, args.generations.split(',')))
+        self.generations = list(map(int, args.generations.split(',')))
         test_robots = []
         mainpath = args.mainpath
 
@@ -67,12 +69,12 @@ class Simulator:
                 if self.bests_type == 'gens':
                     for gen in self.generations:
                         print('  in gen: ', gen)
-                        await self.recover(db, gen, path, test_robots)
+                        await self.recover(db, gen, path, test_robots, self.tfs[ids])
                 elif self.bests_type == 'all':
                     pass
                     # TODO: implement
 
-    async def recover(self, db, gen, path, test_robots):
+    async def recover(self, db, gen, path, test_robots, tfs):
         async with AsyncSession(db) as session:
 
             rows = (
@@ -140,11 +142,11 @@ class Simulator:
                         )
                     )[0]
 
-                    phenotype, queried_substrate = develop(genotype, genotype.mapping_seed, max_modules,
+                    phenotype, queried_substrate = develop(genotype, genotype.mapping_seed, max_modules, tfs,
                                                            substrate_radius, env_conditions[env_conditions_id],
                                                             len(env_conditions), plastic_body, plastic_brain,
                                                             )
-
+                    print(len(genotype.body.genotype))
                     render = Render()
                     img_path = f'{path}/currentinsim.png'
                     render.render_robot(phenotype.body.core, img_path)

@@ -3,6 +3,7 @@ import pandas
 import matplotlib.pyplot as plt
 import seaborn as sb
 from statannot import add_stat_annotation
+from scipy.stats import wilcoxon, ttest_ind
 import pprint
 import os
 import sys
@@ -27,14 +28,14 @@ mainpath = args.mainpath
 
 experiments = experiments_name
 inner_metrics = ['mean', 'max']
-include_max = False
+include_max = True
 merge_lines = True
 by_run = True
 gens_boxes = generations
 clrs = ['#009900',
         '#EE8610',
-        '#95fc7a',
         '#434699',
+        '#95fc7a',
         '#221210',
         '#87ac65']
 path = f'{mainpath}/{study}'
@@ -147,16 +148,30 @@ def plot_boxes(df_inner):
                               meanprops={"marker": "o", "markerfacecolor": "yellow", "markersize": "12"})
             plot.tick_params(axis='x', labelrotation=10)
 
-            try:
-                if len(tests_combinations) > 0:
-                    add_stat_annotation(plot, data=df_inner2, x='experiment', y=f'{measure}_{inner_metrics[0]}',
-                                        box_pairs=tests_combinations,
-                                        comparisons_correction=None,
-                                        test='Wilcoxon',
-                                        text_format = 'star', fontsize = 'xx-large', loc = 'inside',
-                                        verbose=1)
-            except Exception as error:
-                print(error)
+            # TODO: fix this later / test for normality and then choose test. show test name and p value at the top
+            # try:
+            #     if len(tests_combinations) > 0:
+            #
+            #         add_stat_annotation(plot, data=df_inner2, x='experiment', y=f'{measure}_{inner_metrics[0]}',
+            #                             box_pairs=tests_combinations,
+            #                             comparisons_correction=None,
+            #                             test='Wilcoxon',
+            #                             text_format = 'star', fontsize = 'xx-large', loc = 'inside',
+            #                             verbose=1)
+            # except AttributeError as error:
+            #     print('stat test fail',error)
+
+            # Calculate Wilcoxon test statistics for each box pair
+            print(tests_combinations)
+            for pair in tests_combinations:
+
+                group1_data = df_inner2[df_inner2['experiment'] == pair[0]][f'{measure}_{inner_metrics[0]}']
+                group2_data = df_inner2[df_inner2['experiment'] == pair[1]][f'{measure}_{inner_metrics[0]}']
+                _, p_value = wilcoxon(group1_data, group2_data)
+
+                # Add text annotation for p-value
+                x_pos = tests_combinations.index(pair)
+                plot.text(x_pos, max(group1_data.max(), group2_data.max()) + 0.1, f'p={p_value:.2f}', ha='center')
 
             # if measures[measure][1] != -math.inf and measures[measure][2] != -math.inf:
             #     plot.set_ylim(measures[measure][1], measures[measure][2])

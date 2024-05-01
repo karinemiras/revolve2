@@ -37,6 +37,15 @@ class Config():
             help="",
         )
 
+
+        parser.add_argument(
+            "--tfs",
+            required=False,
+            default="b", # b=baseline, r=regulatory, m=modules
+            type=str,
+            help="",
+        )
+
         parser.add_argument(
             "--substrate_radius",
             required=False,

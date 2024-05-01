@@ -30,6 +30,7 @@ done
 IFS=', ' read -r -a experiments <<< "$experiments"
 IFS=', ' read -r -a bisymmetry <<< "$bisymmetry"
 IFS=', ' read -r -a seasons_conditions <<< "$seasons_conditions"
+IFS=', ' read -r -a tfs <<< "$tfs"
 
 while true
 	do
@@ -130,7 +131,8 @@ while true
                --num_generations ${num_generations} --population_size ${population_size} --offspring_size ${offspring_size} \
                --simulation_time ${simulation_time} \
                --crossover_prob ${crossover_prob} --mutation_prob ${mutation_prob}  \
-               --max_modules ${max_modules};
+               --max_modules ${max_modules}  --tfs ${tfs[$idx]} \
+               ;
 
         printf "\n >> (re)starting ${study}_${free_screens[$p]}_${to_d} \n\n"
         p=$((${p}+1))

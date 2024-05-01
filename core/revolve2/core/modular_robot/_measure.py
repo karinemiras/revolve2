@@ -2,6 +2,7 @@ import math
 from typing import List, Optional, Tuple
 from squaternion import Quaternion
 import pprint
+import numpy as np
 
 from ._module import Module
 from .render.render import Render
@@ -103,7 +104,26 @@ class Measure:
             self._measures['speed_y'] = -math.inf
             self._measures['speed_x'] = -math.inf
         else:
-            self._measures['speed_y'] = float((displacement_y/self._simulation_time)*100)
+
+            dists = []
+            sts = self._states.environment_results[self._genotype_idx].environment_states
+            for st in range(0, len(sts)-1):
+                dist = sts[st+1].actor_states[0].position[1] - sts[st].actor_states[0].position[1]
+                dists.append(dist)
+            mean = np.mean(dists)
+            std_dev = np.std(dists)
+            threshold = 3 * std_dev
+            outliers = [number for number in dists if abs(number - mean) > threshold]
+            clean_numbers = [number for number in dists if number not in outliers]
+            disp = sum(clean_numbers)
+
+            # TODO: rename speed_y to out_displacement - it is the sum of displacement disregarding outliers
+            # these outliers regard unrealistic exploitative behavior, eg, jumping or spinning too fast
+            self._measures['speed_y'] = float(disp)
+
+            ######
+
+            # self._measures['speed_y'] = float((displacement_y/self._simulation_time)*100)
             self._measures['speed_x'] = float((displacement_x/self._simulation_time)*100)
 
         # average z

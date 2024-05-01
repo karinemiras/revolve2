@@ -8,7 +8,6 @@ from revolve2.core.modular_robot import ActiveHinge, Body, Brick, Core, Module
 from .._genotype import Genotype
 
 
-
 def random_v1(
     rng
 ) -> Genotype:
@@ -16,11 +15,13 @@ def random_v1(
     genotype = [round(rng.uniform(0, 1), 2) for _ in range(genome_size)]
     return Genotype(genotype)
 
+# V1: simple maternal injection
 
-class Develop:
+
+class GRN:
 
     # develops a Gene Regulatory network
-    def __init__(self, max_modules, genotype, querying_seed, env_condition, n_env_conditions, plastic_body):
+    def __init__(self, max_modules, tfs, genotype, querying_seed, env_condition, n_env_conditions, plastic_body):
 
         self.max_modules = max_modules
         self.genotype = genotype.genotype
@@ -36,19 +37,41 @@ class Develop:
         self.quantity_modules = 0
 
         self.regulatory_transcription_factor_idx = 0
-        self.regulatory_min_idx = 1
-        self.regulatory_max_idx = 2
+        self.regulatory_v1_idx = 1
+        self.regulatory_v2_idx = 2
         self.transcription_factor_idx = 3
         self.transcription_factor_amount_idx = 4
         self.diffusion_site_idx = 5
-        self.types_nucleotypes = 6
+        self.types_nucleotides = 6
         self.diffusion_sites_qt = 4
 
         self.promoter_threshold = 0.8
         self.concentration_decay = 0.005
-        self.structural_trs = len(['brick', 'joint', 'rotation'])
-        # when increasing number of regulatory tfs, genotype size should also increase
-        self.regulatory_tfs = 2
+        self.structural_trs = None
+
+        two_modules = [Brick, ActiveHinge, 'rotation']
+        four_modules = [Brick, ActiveHinge, Brick, ActiveHinge, 'rotation']
+
+        # if u increase number of reg tfs without increasing modules tf or geno size,
+        # too many only-head robots are sampled
+        self.regulatory_tfs = tfs
+
+        if tfs == 'reg2m2':  # balanced, number of regulatory tfs equals number of modules tfs
+            self.regulatory_tfs = 2
+            self.structural_trs = two_modules
+        elif tfs == 'reg4m2':  # more regulatory, number of regulatory tfs is double the number of modules tfs
+            self.regulatory_tfs = 4
+            self.structural_trs = two_modules
+
+        elif tfs == 'reg2m4':  # more modules, number of modules tfs is double the number of regulatory tfs
+            self.regulatory_tfs = 2
+            self.structural_trs = four_modules
+
+        # structural_trs use initial indexes and regulatory tfs uses final indexes
+        self.product_tfs = []
+        for tf in range(1, len(self.structural_trs)+1):
+            self.product_tfs.append(f'TF{tf}')
+
         self.increase_scaling = 100
         self.intra_diffusion_rate = self.concentration_decay/2
         self.inter_diffusion_rate = self.intra_diffusion_rate/8
@@ -77,18 +100,17 @@ class Develop:
         while nucleotide_idx < len(self.genotype):
 
             if self.genotype[nucleotide_idx] < self.promoter_threshold:
-                # if there are nucleotypes enough to compose a gene
-                if (len(self.genotype)-1-nucleotide_idx) >= self.types_nucleotypes:
+                # if there are nucleotides enough to compose a gene
+                if (len(self.genotype)-1-nucleotide_idx) >= self.types_nucleotides:
                     regulatory_transcription_factor = self.genotype[nucleotide_idx+self.regulatory_transcription_factor_idx+1]  # gene product
-                    regulatory_min = self.genotype[nucleotide_idx+self.regulatory_min_idx+1]
-                    regulatory_max = self.genotype[nucleotide_idx+self.regulatory_max_idx+1]
+                    regulatory_v1 = self.genotype[nucleotide_idx+self.regulatory_v1_idx+1]
+                    regulatory_v2 = self.genotype[nucleotide_idx+self.regulatory_v2_idx+1]
                     transcription_factor = self.genotype[nucleotide_idx+self.transcription_factor_idx+1]
                     transcription_factor_amount = self.genotype[nucleotide_idx+self.transcription_factor_amount_idx+1]
                     diffusion_site = self.genotype[nucleotide_idx+self.diffusion_site_idx+1]
-                    #print(nucleotide_idx)
-                    #print(regulatory_transcription_factor,regulatory_min,regulatory_max,transcription_factor,transcription_factor_amount,diffusion_site)
+
                     # begin: converts tfs values into labels #
-                    range_size = 1 / (self.structural_trs + self.regulatory_tfs)
+                    range_size = 1 / (len(self.structural_trs) + self.regulatory_tfs)
                     limits = [round(limit / 100, 2) for limit in range(0, 1 * 100, int(range_size * 100))]
                     for idx in range(0, len(limits)-1):
 
@@ -113,41 +135,45 @@ class Develop:
                             diffusion_site_label = len(limits)-1
                     # ends: converts diffusion sites values into labels #
 
-                    gene = [regulatory_transcription_factor_label, regulatory_min, regulatory_max,
+                    gene = [regulatory_transcription_factor_label, regulatory_v1, regulatory_v2,
                              transcription_factor_label, transcription_factor_amount, diffusion_site_label]
 
                     self.promotors.append(gene)
 
-                    nucleotide_idx += self.types_nucleotypes
+                    nucleotide_idx += self.types_nucleotides
             nucleotide_idx += 1
         self.promotors = np.array(self.promotors)
-        #pprint.pprint(self.promotors)
 
     def regulate(self):
         self.maternal_injection()
         self.growth()
 
     def growth(self):
-       # print('\ngrowth')
+
+        maximum_reached = False
         for t in range(0, self.dev_steps):
-           # print('\n> ----t ',t, '\n')
+
             # develops cells in order of age
             for idxc in range(0, len(self.cells)):
-                #print(' \n ---cell ', idxc, '\n')
+
                 cell = self.cells[idxc]
                 for tf in cell.transcription_factors:
-                   # print(' ', tf)
+
                     self.increase(tf, cell)
                     self.intra_diffusion(tf, cell)
                     self.inter_diffusion(tf, cell)
-                #    print(tf, [ '%.4f' % elem for elem in cell.transcription_factors[tf]], round(sum(cell.transcription_factors[tf]),2))
 
-               # print('\n place module')
                 self.place_module(cell)
 
-               # print('decay')
+                if self.quantity_modules == self.max_modules - 1:
+                    maximum_reached = True
+                    break
+
                 for tf in cell.transcription_factors:
                     self.decay(tf, cell)
+
+            if maximum_reached:
+                break
 
     def increase(self, tf, cell):
 
@@ -207,7 +233,7 @@ class Develop:
 
         # for each site: first right then left
         for ds in range(0, self.diffusion_sites_qt):
-            # print(' ds', ds)
+
             ds_left = ds - 1 if ds - 1 >= 0 else self.diffusion_sites_qt - 1
             ds_right = ds + 1 if ds + 1 <= self.diffusion_sites_qt - 1 else 0
 
@@ -227,51 +253,48 @@ class Develop:
 
     def place_module(self, cell):
 
-        tds_qt = (self.structural_trs + self.regulatory_tfs)
-        product_tfs = []
-        modules_types = [Brick, ActiveHinge]
-        for tf in range(tds_qt-len(modules_types)-1, tds_qt):
-            product_tfs.append(f'TF{tf+1}')
-      #  print(product_tfs)
-        concentration1 = sum(cell.transcription_factors[product_tfs[0]]) \
-            if cell.transcription_factors.get(product_tfs[0]) else 0  # B
+        product_concentrations = []
+        for idm in range(0, len(self.structural_trs)-1):
+            concentration = sum(cell.transcription_factors[self.product_tfs[idm]]) \
+                if cell.transcription_factors.get(self.product_tfs[idm]) else 0
+            product_concentrations.append(concentration)
 
-        concentration2 = sum(cell.transcription_factors[product_tfs[1]]) \
-            if cell.transcription_factors.get(product_tfs[1]) else 0  # A
-
-        concentration3 = sum(cell.transcription_factors[product_tfs[2]]) \
-            if cell.transcription_factors.get(product_tfs[2]) else 0  # rotation
-      #  print('conc rot', concentration3)
         # chooses tf with the highest concentration
-        product_concentrations = [concentration1, concentration2]
         idx_max = product_concentrations.index(max(product_concentrations))
 
-       # print('concent prod', [ '%.4f' % elem for elem in product_concentrations])
+        # rotation is at the end of the list
+        concentration_rotation = sum(cell.transcription_factors[self.product_tfs[-1]]) \
+            if cell.transcription_factors.get(self.product_tfs[-1]) else 0
+
         # if tf concentration above a threshold
         if product_concentrations[idx_max] > self.concentration_threshold:
 
             # grows in the free diffusion site with the highest concentration
             freeslots = np.array([c is None for c in cell.developed_module.children])
-            if type(cell.developed_module) == Brick:
-                freeslots = np.append(freeslots, [False]) # brick has no back
-            elif type(cell.developed_module) == ActiveHinge:
-                freeslots = np.append(freeslots, [False, False, False]) # joint has no back nor left or right
 
-         #   print('free in highest',freeslots )
-            if any(freeslots): # TODO: check also if substrate free
+            # TODO: do we rally need to add these false values at the end - confirm if useless and the remove
+            # note that the order of the items in freeslots follows the order of the children indexes
+            # and respects the convention defined in the module classes (core, brick, hinge),
+            # eg, the back is at the last index.
+            if type(cell.developed_module) == Brick:
+                freeslots = np.append(freeslots, [False])  # brick has no back
+            elif type(cell.developed_module) == ActiveHinge:
+                freeslots = np.append(freeslots, [False, False, False])  # joint has no back nor left or right
+
+            if any(freeslots):
 
                 true_indices = np.where(freeslots)[0]
-                values_at_true_indices = np.array(cell.transcription_factors[product_tfs[idx_max]])[true_indices]
+                values_at_true_indices = np.array(cell.transcription_factors[self.product_tfs[idx_max]])[true_indices]
                 max_value_index = np.argmax(values_at_true_indices)
                 position_of_max_value = true_indices[max_value_index]
                 slot = position_of_max_value
 
                 potential_module_coord, turtle_direction = self.calculate_coordinates(cell.developed_module, slot)
-                if potential_module_coord not in self.queried_substrate.keys() and self.quantity_modules < self.max_modules-1:
-                    module_type = modules_types[idx_max]
+                if potential_module_coord not in self.queried_substrate.keys():
+                    module_type = self.structural_trs[idx_max]
 
                     # rotates only joints and if defined by concentration
-                    orientation = 1 if concentration3 > 0.5 and module_type == ActiveHinge else 0
+                    orientation = 1 if concentration_rotation > 0.5 and module_type == ActiveHinge else 0
                     absolute_rotation = 0
                     if module_type == ActiveHinge and orientation == 1:
                         if type(cell.developed_module) == ActiveHinge and cell.developed_module._absolute_rotation == 1:
@@ -284,7 +307,6 @@ class Develop:
                     if module_type == Brick and type(cell.developed_module) == ActiveHinge and cell.developed_module._absolute_rotation == 1:
                         orientation = 1
 
-                 #   print(orientation, absolute_rotation)
                     new_module = module_type(orientation * (math.pi / 2.0))
                     self.quantity_modules += 1
                     new_module._id = str(self.quantity_modules)
@@ -298,18 +320,13 @@ class Develop:
                     self.queried_substrate[potential_module_coord] = new_module
 
                     self.new_cell(cell, new_module, slot)
-            #     else:
-            #         print('intersecting or full!', potential_module_coord)
-            # else:
-            #     print('no slots!')
 
     def new_cell(self, source_cell, new_module, slot):
-      #  print('new')
+
         new_cell = Cell()
 
         # share concentrations in diffusion sites
         for tf in source_cell.transcription_factors:
-            #  print('old cell', tf, source_cell.transcription_factors[tf], sum(source_cell.transcription_factors[tf]))
 
             new_cell.transcription_factors[tf] = [0, 0, 0, 0]
 
@@ -328,9 +345,6 @@ class Develop:
                     source_cell.transcription_factors[tf][slot] = half_concentration
                     new_cell.transcription_factors[tf][Core.BACK] = half_concentration
 
-              #  print('new cell', tf, new_cell.transcription_factors[tf], sum(new_cell.transcription_factors[tf]))
-
-       # print('\n mod', new_module, 'at',slot)
         self.express_promoters(new_cell)
         self.cells.append(new_cell)
         new_cell.developed_module = new_module
@@ -340,7 +354,7 @@ class Develop:
 
         # injects maternal tf into single cell embryo and starts development of the first cell
         # the tf injected is regulatory tf of the first gene in the genetic string
-        # the amount inject is the minimum for the regulatory tf to regulate its regulated product
+        # the amount injected is the minimum for the regulatory tf to regulate its regulated product
         first_gene_idx = 0
         tf_label_idx = 0
         min_value_idx = 1
@@ -352,7 +366,7 @@ class Develop:
         # distributes injection among diffusion sites
         first_cell.transcription_factors[mother_tf_label] = \
             [mother_tf_injection/self.diffusion_sites_qt] * self.diffusion_sites_qt
-       # print('\n head', mother_tf_label, mother_tf_injection)
+
         self.express_promoters(first_cell)
         self.cells.append(first_cell)
         first_cell.developed_module = self.place_head(first_cell)
@@ -361,11 +375,11 @@ class Develop:
 
         for promotor in self.promotors:
 
-            regulatory_min_val = min(float(promotor[self.regulatory_min_idx]),
-                                     float(promotor[self.regulatory_max_idx]))
-            regulatory_max_val = max(float(promotor[self.regulatory_min_idx]),
-                                     float(promotor[self.regulatory_max_idx]))
-           # print(promotor[self.regulatory_transcription_factor_idx])
+            regulatory_min_val = min(float(promotor[self.regulatory_v1_idx]),
+                                     float(promotor[self.regulatory_v2_idx]))
+            regulatory_max_val = max(float(promotor[self.regulatory_v1_idx]),
+                                     float(promotor[self.regulatory_v2_idx]))
+
             # expresses a tf if its regulatory tf is present and within a range
             if new_cell.transcription_factors.get(promotor[self.regulatory_transcription_factor_idx]) \
                  and sum(new_cell.transcription_factors[promotor[self.regulatory_transcription_factor_idx]]) \
@@ -381,9 +395,6 @@ class Develop:
                     new_cell.transcription_factors[promotor[self.transcription_factor_idx]] = [0] * self.diffusion_sites_qt
                     new_cell.transcription_factors[promotor[self.transcription_factor_idx]] \
                     [int(promotor[self.diffusion_site_idx])] = float(promotor[self.transcription_factor_amount_idx])
-
-        # for t in new_cell.transcription_factors:
-        #     print(t, new_cell.transcription_factors[t])
 
     def place_head(self, new_cell):
 

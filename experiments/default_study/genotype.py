@@ -22,8 +22,8 @@ from revolve2.genotypes.cppnwin.modular_robot.brain_genotype_cpg_v1 import (
     random_v1 as brain_cpg_random,
 )
 
-from revolve2.genotypes.cppnwin.modular_robot.body_genotype_v2 import Develop as grn_develop
-from revolve2.genotypes.cppnwin.modular_robot.body_genotype_v2 import (random_v1 as grn_random)
+from revolve2.genotypes.cppnwin.modular_robot.geno_body_GRN_v1 import GRN
+from revolve2.genotypes.cppnwin.modular_robot.geno_body_GRN_v1 import (random_v1 as grn_random)
 
 # TODO: mentions to cppnwin are obsolete. using GRNs now.
 
@@ -220,10 +220,10 @@ def crossover(
     )
 
 
-def develop(genotype: Genotype, querying_seed: int, max_modules: int, substrate_radius: str, env_condition: list,
+def develop(genotype: Genotype, querying_seed: int, max_modules: int, tfs, substrate_radius: str, env_condition: list,
             n_env_conditions: int, plastic_body: int, plastic_brain: int) -> ModularRobot:
 
-    body, queried_substrate = grn_develop(max_modules, genotype.body, querying_seed,
+    body, queried_substrate = GRN(max_modules, tfs, genotype.body, querying_seed,
                                                env_condition, n_env_conditions, plastic_body).develop()
 
     brain = brain_cpg_develop(genotype.brain, body, env_condition, n_env_conditions, plastic_brain)
