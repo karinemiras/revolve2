@@ -21,7 +21,7 @@ import pprint
 import numpy as np
 from ast import literal_eval
 
-from revolve2.runners.isaacgym import LocalRunner  as LocalRunnerI
+from revolve2.runners.isaacgym import LocalRunner as LocalRunnerI
 
 
 from body_spider import *
@@ -146,7 +146,6 @@ class Simulator:
                                                            substrate_radius, env_conditions[env_conditions_id],
                                                             len(env_conditions), plastic_body, plastic_brain,
                                                             )
-                    print(len(genotype.body.genotype))
                     render = Render()
                     img_path = f'{path}/currentinsim.png'
                     render.render_robot(phenotype.body.core, img_path)

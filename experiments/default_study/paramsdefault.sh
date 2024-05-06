@@ -52,7 +52,7 @@ delay_setup_script=10
 num_terminals=2
 
 # gens for boxplots, snapshots, videos (by default the last gen)
-#generations="1,$num_generations"
+#generations="0,$num_generations"
 generations="$num_generations"
 
 # max gen to filter lineplots  (by default the last gen)

@@ -30,7 +30,6 @@ experiments = experiments_name
 inner_metrics = ['mean', 'max']
 include_max = True
 merge_lines = True
-by_run = True
 gens_boxes = generations
 clrs = ['#009900',
         '#EE8610',
@@ -45,7 +44,8 @@ measures = {
    # 'novelty': ['Novelty', 0, 1],
     'seasonal_dominated': ['Seasonal Dominated', 0, 1],
     'age': ['Age', 0, 1],
-    'speed_y': ['Speed (cm/s)', 0, 1],
+    #'speed_y': ['Speed (cm/s)', 0, 1],
+    'speed_y': ['Displacement (m)', 0, 1],  # TODO: name speed_y is obsolete
     'relative_speed_y': ['Relative speed (cm/s)', 0, 1],
     'displacement': ['Total displacement (m)', 0, 1],
     'average_z': ['Z', 0, 1],

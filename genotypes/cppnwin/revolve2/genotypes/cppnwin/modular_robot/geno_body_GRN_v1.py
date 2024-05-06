@@ -86,13 +86,25 @@ class GRN:
         self.develop_body()
         self.phenotype_body.finalize()
 
-        return self.phenotype_body, {}
+        return self.phenotype_body, self.queried_substrate
 
     def develop_body(self):
         self.gene_parser()
         self.regulate()
 
-        return self.phenotype_body
+    def develop_knockout(self, knockouts):
+
+        self.random = random.Random(self.querying_seed)
+        self.quantity_nodes = 0
+        self.gene_parser()
+
+        if knockouts is not None:
+            self.promotors = self.promotors[np.logical_not(np.isin(np.arange(self.promotors.shape[0]), knockouts))]
+
+        self.regulate()
+        self.phenotype_body.finalize()
+
+        return self.phenotype_body, self.queried_substrate, self.promotors
 
     # parses genotype to discover promotor sites and compose genes
     def gene_parser(self):

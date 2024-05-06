@@ -224,11 +224,20 @@ def develop(genotype: Genotype, querying_seed: int, max_modules: int, tfs, subst
             n_env_conditions: int, plastic_body: int, plastic_brain: int) -> ModularRobot:
 
     body, queried_substrate = GRN(max_modules, tfs, genotype.body, querying_seed,
-                                               env_condition, n_env_conditions, plastic_body).develop()
+                                  env_condition, n_env_conditions, plastic_body).develop()
 
     brain = brain_cpg_develop(genotype.brain, body, env_condition, n_env_conditions, plastic_brain)
-
     return ModularRobot(body, brain), queried_substrate
+
+
+def develop_knockout(genotype: Genotype, querying_seed: int, max_modules: int, tfs, substrate_radius: str, env_condition: list,
+                     n_env_conditions: int, plastic_body: int, plastic_brain: int, knockout: list) -> ModularRobot:
+
+    body, queried_substrate, promotors = GRN(max_modules, tfs, genotype.body, querying_seed,
+                                             env_condition, n_env_conditions, plastic_body).develop_knockout(knockout)
+
+    brain = brain_cpg_develop(genotype.brain, body, env_condition, n_env_conditions, plastic_brain)
+    return ModularRobot(body, brain), queried_substrate, promotors
 
 
 def _multineat_rng_from_random(rng: Random) -> multineat.RNG:

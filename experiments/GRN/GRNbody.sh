@@ -12,8 +12,6 @@ outputs_path="/home/ripper8/projects/working_data"
 # exps order is the same for all three vars
 # exps names should not be fully contained in each other
 
-
-
 study="dispbody"
 experiments="reg2m2,reg4m2,reg2m4"
 tfs="reg2m2,reg4m2,reg2m4"
@@ -52,9 +50,7 @@ delay_setup_script=300
 num_terminals=2
 
 # gens for boxplots, snapshots, videos (by default the last gen)
-#generations="1,$num_generations"
 generations="$num_generations"
-generations="0"
 
 # max gen to filter lineplots  (by default the last gen)
 final_gen="$num_generations"
