@@ -27,6 +27,7 @@ from revolve2.runners.isaacgym import LocalRunner as LocalRunnerI
 
 from body_spider import *
 
+#/buildAgent/work/99bede84aa0a52c2/source/gpubroadphase/src/PxgAABBManager.cpp (1048) : invalid parameter : The application needs to increase PxgDynamicsMemoryConfig::foundLostAggregatePairsCapacity to 299692735 , otherwise, the simulation will miss interactions
 
 class Simulator:
     _controller: ActorController
@@ -56,21 +57,11 @@ class Simulator:
         # 'gens' selects best from chosen generations
         self.bests_type = 'gens'
         self.ranking = ['best', 'worst']
+        self.header = False
 
         path = f'{self.mainpath}/{self.study}/analysis/knockouts/'
         if not os.path.exists(path):
             os.makedirs(path)
-
-        self.pfile = f'{self.mainpath}/{self.study}/analysis/knockouts/knockouts_measures.csv'
-        header = ['experiment_name', 'run', 'gen', 'ranking', 'individual_id', 'geno_size', 'n_promotors', 'knockout', 'distance',
-                  'birth'  ,  'displacement'  ,  'speed_y'   , 'speed_x'  ,  'average_z'   , 'head_balance' ,   'hinge_count',    'brick_count',
-                  'hinge_ratio' ,   'hinge_horizontal'  ,  'hinge_vertical' ,   'modules_count'  ,  'hinge_prop'  ,  'brick_prop',
-                  'branching_count'  ,  'branching_prop'   , 'extensiveness'  ,  'extremities' ,   'extremities_prop',
-                  'extensiveness_prop'   , 'width'  ,  'height'   , 'coverage'  ,  'proportion',    'symmetry'  ,  'relative_speed_y'
-                  ]
-        with open(self.pfile, 'w') as file:
-            file.write(','.join(map(str, header)))
-            file.write('\n')
 
         for ids, experiment_name in enumerate(self.experiments_name):
             print('\n',experiment_name)
@@ -154,10 +145,6 @@ class Simulator:
 
                     num_lines = self.bests * len(env_conditions)
                     for idx, r in enumerate(rows[0:num_lines]):
-
-                        phenotypes = []
-                        data_part1 = []
-
                         env_conditions_id = r.DbEAOptimizerGeneration.env_conditions_id
                         # print(f'\n  rk:{idx+1} ' \
                         #          f' id:{r.DbEAOptimizerIndividual.individual_id} ' \
@@ -176,58 +163,20 @@ class Simulator:
                         geno_size = len(genotype.body.genotype)
                         knockout = None
                         knockstring = 'o'
-                        distance = 0
 
                         original_phenotype, original_substrate, promotors = \
                             develop_knockout(genotype, genotype.mapping_seed, max_modules, tfs,
                                              substrate_radius, env_conditions[env_conditions_id],
                                              len(env_conditions), plastic_body, plastic_brain,
                                              knockout)
-                        n_promotors = len(promotors)
 
-                        # original phenotype is added to lists
-                        phenotypes.append(original_phenotype)
-                        data_part1.append([experiment_name, run, gen, ranking, r.DbEAOptimizerIndividual.individual_id,
-                                           geno_size, n_promotors, knockstring, distance])
-
-                        # every individual promoter and all sequential pairs
-                        singles = [[i] for i in range(n_promotors)]
-                        pairs = [[singles[i][0], singles[i + 1][0]] for i in range(len(singles) - 1)]
-                        pairs.append([singles[len(singles) - 1][0], singles[0][0]])
-                        knockouts = singles + pairs
-
-                        # all phenotype variations are added to list
-                        for knockout in knockouts:
-                            knockstring = '.'.join([str(item) for item in knockout])
-                            knockout_phenotype, knockout_substrate, promotors = \
-                                develop_knockout(genotype, genotype.mapping_seed, max_modules, tfs,
-                                                 substrate_radius,
-                                                 env_conditions[env_conditions_id],
-                                                 len(env_conditions), plastic_body, plastic_brain,
-                                                 knockout)
-
+                        async def analyze(phenotype, experiment_name, run, gen, individual_id, knockout, geno_size, promotors, ranking, distance):
                             # render = Render()
-                            # img_path = f'{self.mainpath}/{self.study}/analysis/knockouts/{experiment_name}_{run}_{gen}_{individual_id}_{knockstring}.png'
+                            # img_path = f'{self.mainpath}/{self.study}/analysis/knockouts/{experiment_name}_{run}_{gen}_{individual_id}_{knockout}.png'
                             # render.render_robot(phenotype.body.core, img_path)
 
-                            distance = self.measure_distance(original_substrate, knockout_substrate)
-
-                            phenotypes.append(knockout_phenotype)
-                            data_part1.append([experiment_name, run, gen, ranking, r.DbEAOptimizerIndividual.individual_id,
-                                               geno_size, n_promotors, knockstring, distance])
-
-                        batch = Batch(
-                            simulation_time=simulation_time,
-                            sampling_frequency=sampling_frequency,
-                            control_frequency=control_frequency,
-                            control=self._control,
-                        )
-                        self._controllers = []
-                        for phenotype in phenotypes:
-
-                            actor,  controller = phenotype.make_actor_and_controller()
+                            actor,  self._controller = phenotype.make_actor_and_controller()
                             bounding_box = actor.calc_aabb()
-                            self._controllers.append(controller)
 
                             env = Environment()
                             x_rotation_degrees = float(env_conditions[env_conditions_id][2])
@@ -244,36 +193,76 @@ class Simulator:
                                         ]
                                     ),
                                     Quaternion.from_eulers([robot_rotation, 0, 0]),
-                                    [0.0 for _ in  controller.get_dof_targets()],
+                                    [0.0 for _ in  self._controller.get_dof_targets()],
                                 )
                             )
+
+                            batch = Batch(
+                                 simulation_time=simulation_time,
+                                 sampling_frequency=sampling_frequency,
+                                 control_frequency=control_frequency,
+                                 control=self._control,
+                             )
                             batch.environments.append(env)
 
-                        runner = LocalRunnerI(LocalRunnerI.SimParams(),
-                            headless=True,
-                            env_conditions=env_conditions[env_conditions_id],
-                            real_time=False,)
-                        states = await runner.run_batch(batch)
+                            runner = LocalRunnerI(LocalRunnerI.SimParams(),
+                                headless=True,
+                                env_conditions=env_conditions[env_conditions_id],
+                                real_time=False,)
+                            states = None
+                            states = await runner.run_batch(batch)
 
-                        for i, phenotype in enumerate(phenotypes):
-                            m = Measure(states=states, genotype_idx=i, phenotype=phenotype,
-                                        generation=gen, simulation_time=simulation_time)
+                            m = Measure(states=states, genotype_idx=0, phenotype=phenotype,
+                                        generation=0, simulation_time=simulation_time)
                             #pprint.pprint(m.measure_all_non_relative())
                             measures = m.measure_all_non_relative()
 
-                            with open(self.pfile, 'a') as file:
-                                file.write(','.join(map(str, data_part1[i])))
-                            with open(self.pfile, 'a') as file:
-                                for measure in measures:
-                                    file.write(',' + str(measures[measure]))
-                            with open(self.pfile, 'a') as file:
+                            pfile = f'{self.mainpath}/{self.study}/analysis/knockouts/knockouts.csv'
+                            if not self.header:
+                                header = ['experiment_name', 'run', 'gen', 'ranking', 'individual_id', 'knockout',
+                                          'geno_size', 'promotors', 'distance'] + list(measures.keys())
+                                with open(pfile, 'w') as file:
+                                    file.write(','.join(map(str, header)))
+                                    file.write('\n')
+                                self.header = True
+
+                            with open(pfile, 'a') as file:
+                                file.write(','.join(map(str, [experiment_name, run, gen, ranking, individual_id,
+                                                              knockout, geno_size, promotors, distance] +
+                                                              list(measures.values())
+                                                        )))
                                 file.write('\n')
 
+                        #print('\noriginal')
+                        distance = 0
+                        await analyze(original_phenotype, experiment_name, run, gen, r.DbEAOptimizerIndividual.individual_id,
+                                      knockstring, geno_size, len(promotors), ranking, distance)
+
+                        #print('\nknockouts')
+                        singles = [[i] for i in range(len(promotors))]
+                        pairs = [[singles[i][0], singles[i + 1][0]] for i in range(len(singles) - 1)]
+                        pairs.append([singles[len(singles) - 1][0], singles[0][0]])
+                        # every individual promoter and all sequential pairs
+                        knockouts = singles + pairs
+
+                        for knockout in knockouts:
+                            #print(knockout)
+                            knockstring = '.'.join([str(item) for item in knockout])
+                            knockout_phenotype, knockout_substrate, promotors = \
+                                develop_knockout(genotype, genotype.mapping_seed, max_modules, tfs,
+                                                 substrate_radius,
+                                                 env_conditions[env_conditions_id],
+                                                 len(env_conditions), plastic_body, plastic_brain,
+                                                 knockout)
+
+                            distance = self.measure_distance(original_substrate, knockout_substrate)
+
+                            await analyze(knockout_phenotype, experiment_name, run, gen, r.DbEAOptimizerIndividual.individual_id,
+                                          knockstring, geno_size, len(promotors), ranking, distance)
 
     def _control(self, dt: float, control: ActorControl) -> None:
-        for control_i, controller in enumerate(self._controllers):
-            controller.step(dt)
-            control.set_dof_targets(control_i, 0, controller.get_dof_targets())
+        self._controller.step(dt)
+        control.set_dof_targets(0, 0, self._controller.get_dof_targets())
 
     def measure_distance(self, original_substrate, knockout_substrate):
 
