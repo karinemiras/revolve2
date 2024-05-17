@@ -21,6 +21,7 @@ import pprint
 import numpy as np
 import os
 from ast import literal_eval
+import math
 
 from revolve2.runners.isaacgym import LocalRunner as LocalRunnerI
 
@@ -47,7 +48,7 @@ class Simulator:
         self.experiments_name = args.experiments.split(',')
         self.tfs = list(args.tfs.split(','))
         self.runs = args.watchruns.split(',')
-        self.generations = [0, 25, 100] # list(map(int, args.generations.split(',')))
+        self.generations = [0, 50]
         test_robots = []
         self.mainpath = args.mainpath
 
@@ -178,28 +179,28 @@ class Simulator:
                         knockstring = 'o'
                         distance = 0
 
-                        original_phenotype, original_substrate, promotors = \
+                        original_phenotype, original_substrate, genes = \
                             develop_knockout(genotype, genotype.mapping_seed, max_modules, tfs,
                                              substrate_radius, env_conditions[env_conditions_id],
                                              len(env_conditions), plastic_body, plastic_brain,
                                              knockout)
-                        n_promotors = len(promotors)
+                        n_genes = len(genes)
 
                         # original phenotype is added to lists
                         phenotypes.append(original_phenotype)
                         data_part1.append([experiment_name, run, gen, ranking, r.DbEAOptimizerIndividual.individual_id,
-                                           geno_size, n_promotors, knockstring, distance])
+                                           geno_size, n_genes, knockstring, distance])
 
-                        # every individual promoter and all sequential pairs
-                        singles = [[i] for i in range(n_promotors)]
-                        pairs = [[singles[i][0], singles[i + 1][0]] for i in range(len(singles) - 1)]
-                        pairs.append([singles[len(singles) - 1][0], singles[0][0]])
+                        # every individual gene and all pairs
+                        singles = [[i] for i in range(n_genes)]
+                        pairs = [[singles[i][0], singles[j][0]] for i in range(len(singles)) for j in
+                                 range(i + 1, len(singles))]
                         knockouts = singles + pairs
 
                         # all phenotype variations are added to list
                         for knockout in knockouts:
                             knockstring = '.'.join([str(item) for item in knockout])
-                            knockout_phenotype, knockout_substrate, promotors = \
+                            knockout_phenotype, knockout_substrate, genes = \
                                 develop_knockout(genotype, genotype.mapping_seed, max_modules, tfs,
                                                  substrate_radius,
                                                  env_conditions[env_conditions_id],
@@ -214,61 +215,66 @@ class Simulator:
 
                             phenotypes.append(knockout_phenotype)
                             data_part1.append([experiment_name, run, gen, ranking, r.DbEAOptimizerIndividual.individual_id,
-                                               geno_size, n_promotors, knockstring, distance])
+                                               geno_size, n_genes, knockstring, distance])
 
-                        batch = Batch(
-                            simulation_time=simulation_time,
-                            sampling_frequency=sampling_frequency,
-                            control_frequency=control_frequency,
-                            control=self._control,
-                        )
-                        self._controllers = []
-                        for phenotype in phenotypes:
+                        batch_size = 200
+                        num_batches = math.ceil(len(phenotypes)/batch_size)
+                        for batch_index in range(0, num_batches):
 
-                            actor,  controller = phenotype.make_actor_and_controller()
-                            bounding_box = actor.calc_aabb()
-                            self._controllers.append(controller)
+                            batch_phenotypes = phenotypes[batch_index*batch_size:(batch_index+1)*batch_size]
 
-                            env = Environment()
-                            x_rotation_degrees = float(env_conditions[env_conditions_id][2])
-                            robot_rotation = x_rotation_degrees * np.pi / 180
-
-                            env.actors.append(
-                                PosedActor(
-                                    actor,
-                                    Vector3(
-                                        [
-                                            0.0,
-                                            0.0,
-                                            (bounding_box.size.z / 2.0 - bounding_box.offset.z),
-                                        ]
-                                    ),
-                                    Quaternion.from_eulers([robot_rotation, 0, 0]),
-                                    [0.0 for _ in  controller.get_dof_targets()],
-                                )
+                            batch = Batch(
+                                simulation_time=simulation_time,
+                                sampling_frequency=sampling_frequency,
+                                control_frequency=control_frequency,
+                                control=self._control,
                             )
-                            batch.environments.append(env)
+                            self._controllers = []
+                            for phenotype in batch_phenotypes:
 
-                        runner = LocalRunnerI(LocalRunnerI.SimParams(),
-                            headless=True,
-                            env_conditions=env_conditions[env_conditions_id],
-                            real_time=False,)
-                        states = await runner.run_batch(batch)
+                                actor,  controller = phenotype.make_actor_and_controller()
+                                bounding_box = actor.calc_aabb()
+                                self._controllers.append(controller)
 
-                        for i, phenotype in enumerate(phenotypes):
-                            m = Measure(states=states, genotype_idx=i, phenotype=phenotype,
-                                        generation=gen, simulation_time=simulation_time)
-                            #pprint.pprint(m.measure_all_non_relative())
-                            measures = m.measure_all_non_relative()
+                                env = Environment()
+                                x_rotation_degrees = float(env_conditions[env_conditions_id][2])
+                                robot_rotation = x_rotation_degrees * np.pi / 180
 
-                            with open(self.pfile, 'a') as file:
-                                file.write(','.join(map(str, data_part1[i])))
-                            with open(self.pfile, 'a') as file:
-                                for measure in measures:
-                                    file.write(',' + str(measures[measure]))
-                            with open(self.pfile, 'a') as file:
-                                file.write('\n')
+                                env.actors.append(
+                                    PosedActor(
+                                        actor,
+                                        Vector3(
+                                            [
+                                                0.0,
+                                                0.0,
+                                                (bounding_box.size.z / 2.0 - bounding_box.offset.z),
+                                            ]
+                                        ),
+                                        Quaternion.from_eulers([robot_rotation, 0, 0]),
+                                        [0.0 for _ in  controller.get_dof_targets()],
+                                    )
+                                )
+                                batch.environments.append(env)
 
+                            runner = LocalRunnerI(LocalRunnerI.SimParams(),
+                                headless=True,
+                                env_conditions=env_conditions[env_conditions_id],
+                                real_time=False,)
+                            states = await runner.run_batch(batch)
+
+                            for i, phenotype in enumerate(batch_phenotypes):
+                                m = Measure(states=states, genotype_idx=i, phenotype=phenotype,
+                                            generation=gen, simulation_time=simulation_time)
+                                #pprint.pprint(m.measure_all_non_relative())
+                                measures = m.measure_all_non_relative()
+
+                                with open(self.pfile, 'a') as file:
+                                    file.write(','.join(map(str, data_part1[i])))
+                                with open(self.pfile, 'a') as file:
+                                    for measure in measures:
+                                        file.write(',' + str(measures[measure]))
+                                with open(self.pfile, 'a') as file:
+                                    file.write('\n')
 
     def _control(self, dt: float, control: ActorControl) -> None:
         for control_i, controller in enumerate(self._controllers):

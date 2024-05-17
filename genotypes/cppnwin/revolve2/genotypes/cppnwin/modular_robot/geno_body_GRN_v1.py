@@ -15,8 +15,6 @@ def random_v1(
     genotype = [round(rng.uniform(0, 1), 2) for _ in range(genome_size)]
     return Genotype(genotype)
 
-# V1: simple maternal injection
-
 
 class GRN:
 
@@ -62,7 +60,6 @@ class GRN:
         elif tfs == 'reg4m2':  # more regulatory, number of regulatory tfs is double the number of modules tfs
             self.regulatory_tfs = 4
             self.structural_trs = two_modules
-
         elif tfs == 'reg2m4':  # more modules, number of modules tfs is double the number of regulatory tfs
             self.regulatory_tfs = 2
             self.structural_trs = four_modules

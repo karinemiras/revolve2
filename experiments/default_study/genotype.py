@@ -22,8 +22,8 @@ from revolve2.genotypes.cppnwin.modular_robot.brain_genotype_cpg_v1 import (
     random_v1 as brain_cpg_random,
 )
 
-from revolve2.genotypes.cppnwin.modular_robot.geno_body_GRN_v1 import GRN
-from revolve2.genotypes.cppnwin.modular_robot.geno_body_GRN_v1 import (random_v1 as grn_random)
+from revolve2.genotypes.cppnwin.modular_robot.geno_body_GRN_v2 import GRN
+from revolve2.genotypes.cppnwin.modular_robot.geno_body_GRN_v2 import (random_v1 as grn_random)
 
 # TODO: mentions to cppnwin are obsolete. using GRNs now.
 
