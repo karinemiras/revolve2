@@ -78,6 +78,7 @@ class Measure:
 
         if self._states is None:
             self._measures['speed_y'] = -math.inf
+            self._measures['disp_y'] = -math.inf
             self._measures['speed_x'] = -math.inf
             self._measures['average_z'] = -math.inf
             self._measures['displacement'] = -math.inf
@@ -102,6 +103,7 @@ class Measure:
         if abs(displacement_x) > 3 or abs(displacement_y) > 3:
             print('suspicious displacement gets minus inf')
             self._measures['speed_y'] = -math.inf
+            self._measures['disp_y'] = -math.inf
             self._measures['speed_x'] = -math.inf
         else:
 
@@ -117,13 +119,11 @@ class Measure:
             clean_numbers = [number for number in dists if number not in outliers]
             disp = sum(clean_numbers)
 
-            # TODO: rename speed_y to out_displacement - it is the sum of displacement disregarding outliers
+            # it is the sum of displacement disregarding outliers
             # these outliers regard unrealistic exploitative behavior, eg, jumping or spinning too fast
-            self._measures['speed_y'] = float(disp)
+            self._measures['disp_y'] = float(disp)
 
-            ######
-
-            # self._measures['speed_y'] = float((displacement_y/self._simulation_time)*100)
+            self._measures['speed_y'] = float((displacement_y/self._simulation_time)*100)
             self._measures['speed_x'] = float((displacement_x/self._simulation_time)*100)
 
         # average z

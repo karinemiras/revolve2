@@ -30,6 +30,7 @@ class FloatSerializer(Serializer[float]):
                          birth=f['birth'],
                          speed_y=f['speed_y'],
                          speed_x=f['speed_x'],
+                         disp_y=f['disp_y'],
                          average_z=f['average_z'],
                          head_balance=f['head_balance'],
                          modules_count=f['modules_count'],
@@ -80,6 +81,7 @@ class FloatSerializer(Serializer[float]):
             # TODO: do this dynamically using measures_names
             measures['birth'] = items[i].birth
             measures['speed_y'] = items[i].speed_y
+            measures['disp_y'] = items[i].disp_y
             measures['speed_x'] = items[i].speed_x
             measures['average_z'] = items[i].average_z
             measures['head_balance'] = items[i].head_balance
@@ -120,6 +122,7 @@ class DbFloat(DbBase):
     )
     birth = sqlalchemy.Column(sqlalchemy.Float, nullable=True)
     speed_y = sqlalchemy.Column(sqlalchemy.Float, nullable=True)
+    disp_y = sqlalchemy.Column(sqlalchemy.Float, nullable=True)
     speed_x = sqlalchemy.Column(sqlalchemy.Float, nullable=True)
     relative_speed_y = sqlalchemy.Column(sqlalchemy.Float, nullable=True)
     displacement = sqlalchemy.Column(sqlalchemy.Float, nullable=True)

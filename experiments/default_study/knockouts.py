@@ -48,7 +48,7 @@ class Simulator:
         self.experiments_name = args.experiments.split(',')
         self.tfs = list(args.tfs.split(','))
         self.runs = args.watchruns.split(',')
-        self.generations = [0, 50]
+        self.generations = [0, 50, 100]
         test_robots = []
         self.mainpath = args.mainpath
 
@@ -62,8 +62,8 @@ class Simulator:
         if not os.path.exists(path):
             os.makedirs(path)
 
-        self.pfile = f'{self.mainpath}/{self.study}/analysis/knockouts/knockouts_measures.csv'
-        header = ['experiment_name', 'run', 'gen', 'ranking', 'individual_id', 'geno_size', 'n_promotors', 'knockout', 'distance',
+        self.pfile = f'{self.mainpath}/{self.study}/analysis/knockouts/knockouts_measures_.csv'
+        header = ['experiment_name', 'run', 'gen', 'ranking', 'individual_id', 'geno_size', 'n_genes', 'knockout', 'distance',
                   'birth'  ,  'displacement'  ,  'speed_y'   , 'speed_x'  ,  'average_z'   , 'head_balance' ,   'hinge_count',    'brick_count',
                   'hinge_ratio' ,   'hinge_horizontal'  ,  'hinge_vertical' ,   'modules_count'  ,  'hinge_prop'  ,  'brick_prop',
                   'branching_count'  ,  'branching_prop'   , 'extensiveness'  ,  'extremities' ,   'extremities_prop',
@@ -207,9 +207,9 @@ class Simulator:
                                                  len(env_conditions), plastic_body, plastic_brain,
                                                  knockout)
 
-                            # render = Render()
-                            # img_path = f'{self.mainpath}/{self.study}/analysis/knockouts/{experiment_name}_{run}_{gen}_{individual_id}_{knockstring}.png'
-                            # render.render_robot(phenotype.body.core, img_path)
+                            # # render = Render()
+                            # # img_path = f'{self.mainpath}/{self.study}/analysis/knockouts/{experiment_name}_{run}_{gen}_{individual_id}_{knockstring}.png'
+                            # # render.render_robot(phenotype.body.core, img_path)
 
                             distance = self.measure_distance(original_substrate, knockout_substrate)
 
@@ -269,7 +269,7 @@ class Simulator:
                                 measures = m.measure_all_non_relative()
 
                                 with open(self.pfile, 'a') as file:
-                                    file.write(','.join(map(str, data_part1[i])))
+                                    file.write(','.join(map(str, data_part1[batch_index*batch_size+i])))
                                 with open(self.pfile, 'a') as file:
                                     for measure in measures:
                                         file.write(',' + str(measures[measure]))

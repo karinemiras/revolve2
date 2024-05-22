@@ -63,8 +63,8 @@ class Simulator:
                 path = f'{mainpath}/{self.study}'
 
                 fpath = f'{path}/{experiment_name}/run_{run}'
-                db = open_async_database_sqlite(fpath)
                 print('\n', fpath)
+                db = open_async_database_sqlite(fpath)
 
                 if self.bests_type == 'gens':
                     for gen in self.generations:
