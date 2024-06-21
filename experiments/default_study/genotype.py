@@ -27,6 +27,7 @@ from revolve2.genotypes.cppnwin.modular_robot.geno_body_GRN_v2 import (random_v1
 
 # TODO: mentions to cppnwin are obsolete. using GRNs now.
 
+
 def _make_multineat_params_cppn() -> multineat.Parameters:
     multineat_params = multineat.Parameters()
 

@@ -72,7 +72,7 @@ async def main(parser) -> None:
                                                    DbEAOptimizerGeneration.individual_id.asc(),
                                                    DbEAOptimizerGeneration.env_conditions_id.asc())
                         else:
-                            query = query.order_by(DbFloat.speed_y.desc())
+                            query = query.order_by(DbFloat.disp_y.desc())
 
                         rows = ((await session.execute(query)).all())
 
@@ -91,7 +91,7 @@ async def main(parser) -> None:
                                                                    len(env_conditions), plastic_body, plastic_brain
                             )
                             render = Render()
-                            fit = r.DbFloat.speed_y
+                            fit = r.DbFloat.disp_y
                             fit = round(fit, 2) if fit is not None and fit is not -math.inf else 'none'
                             img_path = f'{path_gen}/env{r.DbEAOptimizerGeneration.env_conditions_id}/' \
                                        f'{idx}_{fit}_{r.DbEAOptimizerIndividual.individual_id}.png'

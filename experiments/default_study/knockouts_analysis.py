@@ -7,14 +7,15 @@ import plotly.offline as offline
 import plotly.graph_objects as go
 import pandas as pd
 from scipy import stats
-
+import inspect
 import sys
+import matplotlib.pyplot as plt
+from scipy.stats import pearsonr
 
 warnings.filterwarnings("ignore")
 pd.set_option('display.float_format', lambda x: '{:.3f}'.format(x) if abs(x) > 0.001 else '{:.0f}'.format(x * 1000))
 pd.set_option('display.float_format', lambda x: '%.10f' % x)
 pd.set_option('display.max_columns', None)
-
 
 parser = argparse.ArgumentParser()
 parser.add_argument("study")
@@ -25,38 +26,46 @@ parser.add_argument("generations")
 parser.add_argument("mainpath")
 args = parser.parse_args()
 
-study = 'dispbodygenov1' #args.study
+study = args.study
 experiments_name = args.experiments.split(',')
 tfs = list(args.tfs.split(','))
 runs = args.watchruns.split(',')
 generations = [0, 25, 100]
 mainpath = args.mainpath
-
+clrs = ['#009900',
+        '#EE8610',
+        '#434699',
+        '#95fc7a',
+        '#221210',
+        '#87ac65']
 
 def load():
 
     fixed_columns = ['experiment_name', 'run', 'gen', 'ranking', 'individual_id']
-    traits_columns = ['speed_y','extremities_prop'] #TODO fix disp_y
-    other_columns = ['geno_size', 'n_promotors', 'knockout', 'distance'] #TODO: change n_promotors name
+    traits_columns = ['disp_y', 'speed_y', 'extremities_prop']
+    other_columns = ['geno_size', 'n_genes', 'knockout', 'distance']
 
-    origin_file = f'{mainpath}/{study}/analysis/knockouts/knockouts_measures.csv'
-
-    df = pd.read_csv(origin_file)
-
+    path = f'{mainpath}/{study}/analysis/knockouts'
+    origin_file = f'{path}/knockouts_measures.csv'
 
     original = 'o'
     df = pd.read_csv(origin_file)
 
+    df_o = df[(df['knockout'] == 'o')]
+    df_o = df_o.filter(items=['experiment_name', 'run', 'gen', 'ranking', 'geno_size', 'n_genes', 'disp_y'])
+    keys = ['experiment_name', 'run', 'gen', 'ranking']
+
+
+    sys.exit()
     # df = df[
     #     ( df['experiment_name'] == 'reg2m2')# &
-    #                  & (df['run'] == 10)
-    #                  &  (df['gen'] == 100)
+    #                  & (df['run'] == 1)
+    #                  &  (df['gen'] == 0)
     #                 & (df['ranking'] == 'best')
     #             #    & (df['individual_id'] == 28 )
     #     ]
 
     df = df.filter(items=fixed_columns+traits_columns+other_columns)
-    #print(df)
 
     for trait in traits_columns:
         pivot_df = df.pivot_table(index=fixed_columns,

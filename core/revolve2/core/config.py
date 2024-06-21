@@ -102,7 +102,7 @@ class Config():
         parser.add_argument(
             "--fitness_measure",
             required=False,
-            default="speed_y",
+            default="disp_y",
             type=str,
         )
 

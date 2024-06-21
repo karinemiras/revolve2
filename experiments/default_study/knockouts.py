@@ -52,7 +52,7 @@ class Simulator:
         test_robots = []
         self.mainpath = args.mainpath
 
-        self.bests = 5
+        self.bests = 1
         # 'all' selects best from all individuals
         # 'gens' selects best from chosen generations
         self.bests_type = 'gens'
@@ -62,9 +62,9 @@ class Simulator:
         if not os.path.exists(path):
             os.makedirs(path)
 
-        self.pfile = f'{self.mainpath}/{self.study}/analysis/knockouts/knockouts_measures_.csv'
+        self.pfile = f'{self.mainpath}/{self.study}/analysis/knockouts/knockouts_measures.csv'
         header = ['experiment_name', 'run', 'gen', 'ranking', 'individual_id', 'geno_size', 'n_genes', 'knockout', 'distance',
-                  'birth'  ,  'displacement'  ,  'speed_y'   , 'speed_x'  ,  'average_z'   , 'head_balance' ,   'hinge_count',    'brick_count',
+                  'birth'  ,  'displacement'  , 'disp_y', 'speed_y'   , 'speed_x'  ,  'average_z'   , 'head_balance' ,   'hinge_count',    'brick_count',
                   'hinge_ratio' ,   'hinge_horizontal'  ,  'hinge_vertical' ,   'modules_count'  ,  'hinge_prop'  ,  'brick_prop',
                   'branching_count'  ,  'branching_prop'   , 'extensiveness'  ,  'extremities' ,   'extremities_prop',
                   'extensiveness_prop'   , 'width'  ,  'height'   , 'coverage'  ,  'proportion',    'symmetry'  ,  'relative_speed_y'
@@ -74,7 +74,7 @@ class Simulator:
             file.write('\n')
 
         for ids, experiment_name in enumerate(self.experiments_name):
-            print('\n',experiment_name)
+            print('\n', experiment_name)
             for run in self.runs:
                 print('run: ', run)
 
@@ -141,7 +141,7 @@ class Simulator:
                                                    DbEAOptimizerGeneration.individual_id.asc(),
                                                    DbEAOptimizerGeneration.env_conditions_id.asc())
                         else:
-                            query = query.order_by(DbFloat.speed_y.desc())
+                            query = query.order_by(DbFloat.disp_y.desc())
                     else:
                         if len(rows) > 1:
                             query = query.order_by(
@@ -149,7 +149,7 @@ class Simulator:
                                                    DbEAOptimizerGeneration.individual_id.asc(),
                                                    DbEAOptimizerGeneration.env_conditions_id.asc())
                         else:
-                            query = query.order_by(DbFloat.speed_y.asc())
+                            query = query.order_by(DbFloat.disp_y.asc())
 
                     rows = ((await session.execute(query)).all())
 
@@ -167,6 +167,7 @@ class Simulator:
                         #          f' cond:{env_conditions_id} ' \
                         #          f' dom:{r.DbEAOptimizerGeneration.seasonal_dominated} ' \
                         #          f' speed_y:{r.DbFloat.speed_y} ' \
+                        #          f' disp_y:{r.DbFloat.disp_y} ' \
                         #       )
 
                         genotype = (
@@ -217,7 +218,7 @@ class Simulator:
                             data_part1.append([experiment_name, run, gen, ranking, r.DbEAOptimizerIndividual.individual_id,
                                                geno_size, n_genes, knockstring, distance])
 
-                        batch_size = 200
+                        batch_size = 100
                         num_batches = math.ceil(len(phenotypes)/batch_size)
                         for batch_index in range(0, num_batches):
 

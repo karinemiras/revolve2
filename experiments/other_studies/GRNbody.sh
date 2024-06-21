@@ -12,17 +12,17 @@ outputs_path="/home/ripper8/projects/working_data"
 # exps order is the same for all three vars
 # exps names should not be fully contained in each other
 
-study="GRNknockouts"
-experiments="reg2m2"
-tfs="reg2m2"
+study="GRNv2knockouts"
+experiments="reg2m2,reg10m2"
+tfs="reg2m2,reg10m2"
 
 # conditions have effect only for isaac
 # conditions: friction_dynamicfriction_yrotation_idleparam_idleparam
-seasons_conditions="1.0_1.0_0_0_0"
+seasons_conditions="1.0_1.0_0_0_0,1.0_1.0_0_0_0"
 
 ####
 
-nruns=15
+nruns=30
 
 runs=""
 for i in $(seq 1 $nruns);

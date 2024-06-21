@@ -45,7 +45,7 @@ measures = {
     'seasonal_dominated': ['Seasonal Dominated', 0, 1],
     'age': ['Age', 0, 1],
     'speed_y': ['Speed (cm/s)', 0, 1],
-    'disp_y': ['Displacement (m/s)', 0, 100],
+    'disp_y': ['Displacement (m)', 0, 100],
     'relative_speed_y': ['Relative speed (cm/s)', 0, 1],
     'displacement': ['Total displacement (m)', 0, 1],
     'average_z': ['Z', 0, 1],
@@ -135,6 +135,10 @@ def plot_boxes(df_inner):
     for gen_boxes in gens_boxes:
 
         df_inner2 = df_inner[(df_inner['generation_index'] == gen_boxes)]
+        #TODO: move this to otherstudies as an alterne copy. also include the tiny heads exclusion
+        # df_inner2 = df_inner2[(df_inner2['experiment'] == "reg2m2")
+        #                      | ((df_inner2['experiment'] == "reg10m2")
+        #                         & (~df_inner2['run'].isin([13, 17, 23, 29, 18,  6,26, 16]) ) )]
 
         plt.clf()
         tests_combinations = [(experiments[i], experiments[j]) \

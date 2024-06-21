@@ -77,11 +77,11 @@ class Measure:
     def _displacement(self):
 
         if self._states is None:
-            self._measures['speed_y'] = -math.inf
+            self._measures['displacement'] = -math.inf
             self._measures['disp_y'] = -math.inf
+            self._measures['speed_y'] = -math.inf
             self._measures['speed_x'] = -math.inf
             self._measures['average_z'] = -math.inf
-            self._measures['displacement'] = -math.inf
             return
 
         begin_state = self._states.environment_results[self._genotype_idx].environment_states[0].actor_states[0]

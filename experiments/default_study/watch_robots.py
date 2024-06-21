@@ -120,7 +120,7 @@ class Simulator:
                                            DbEAOptimizerGeneration.individual_id.asc(),
                                            DbEAOptimizerGeneration.env_conditions_id.asc())
                 else:
-                    query = query.order_by(DbFloat.speed_y.desc())
+                    query = query.order_by(DbFloat.disp_y.desc())
 
                 rows = ((await session.execute(query)).all())
 
@@ -130,10 +130,11 @@ class Simulator:
                     print(f'\n  rk:{idx+1} ' \
                               f'  id:{r.DbEAOptimizerIndividual.individual_id} ' \
                                                     f' birth:{r.DbFloat.birth} ' \
-                           f' gen:{r.DbEAOptimizerGeneration.generation_index} ' \
+                             f' gen:{r.DbEAOptimizerGeneration.generation_index} ' \
                              f' cond:{env_conditions_id} ' \
                              f' dom:{r.DbEAOptimizerGeneration.seasonal_dominated} ' \
                              f' speed_y:{r.DbFloat.speed_y} ' \
+                             f' disp_y:{r.DbFloat.disp_y} ' \
                           )
 
                     genotype = (
@@ -190,6 +191,7 @@ class Simulator:
                     m = Measure(states=states, genotype_idx=0, phenotype=phenotype,
                                 generation=0, simulation_time=simulation_time)
                     pprint.pprint(m.measure_all_non_relative())
+                   # print(m.measure_all_non_relative().keys())
 
     def _control(self, dt: float, control: ActorControl) -> None:
         self._controller.step(dt)

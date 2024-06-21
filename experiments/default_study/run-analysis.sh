@@ -14,12 +14,12 @@ fi
 
 source $params_file
 
-
 comparison='basic_plots'
 #python experiments/${study_path}/consolidate.py $study $experiments $runs $final_gen $comparison $outputs_path;
 #python experiments/${study_path}/plot_static.py $study $experiments $runs $generations $comparison $outputs_path;
 #python experiments/${study_path}/snapshots_bests.py $study $experiments $tfs $runs $generations $outputs_path;
 #python experiments/${study_path}/bests_snap_2d.py $study $experiments $runs $generations $outputs_path;
+#python experiments/${study_path}/genosize.py $study $experiments $tfs $runs $generations $outputs_path;
 
-#screen -d -m -S knocks -L -Logfile ${outputs_path}/${study}/knocks.log python experiments/${study_path}/knockouts.py $study $experiments $tfs $runs $generations $outputs_path;
+#python experiments/${study_path}/knockouts.py $study $experiments $tfs $runs $generations $outputs_path;
 python experiments/${study_path}/knockouts_analysis.py $study $experiments $tfs $runs $generations $outputs_path;

@@ -47,10 +47,10 @@ class GRN:
 
         self.promoter_threshold = 0.8
         self.concentration_decay = 0.005
-        self.structural_trs = None
+        self.structural_tfs = None
 
         two_modules = [Brick, ActiveHinge, 'rotation']
-        four_modules = [Brick, ActiveHinge, Brick, ActiveHinge, 'rotation']
+        ten_modules = [Brick, ActiveHinge] * 5 + ['rotation']
 
         # if u increase number of reg tfs without increasing modules tf or geno size,
         # too many only-head robots are sampled
@@ -58,17 +58,17 @@ class GRN:
 
         if tfs == 'reg2m2':  # balanced, number of regulatory tfs equals number of modules tfs
             self.regulatory_tfs = 2
-            self.structural_trs = two_modules
-        elif tfs == 'reg4m2':  # more regulatory, number of regulatory tfs is double the number of modules tfs
-            self.regulatory_tfs = 4
-            self.structural_trs = two_modules
-        elif tfs == 'reg2m4':  # more modules, number of modules tfs is double the number of regulatory tfs
+            self.structural_tfs = two_modules
+        elif tfs == 'reg10m2':  # more regulatory, number of regulatory tfs much greater than the number of modules tfs
+            self.regulatory_tfs = 10
+            self.structural_tfs = two_modules
+        elif tfs == 'reg2m10':  # more modules, number of modules tfs much greater than the number of regulatory tfs
             self.regulatory_tfs = 2
-            self.structural_trs = four_modules
+            self.structural_tfs = ten_modules
 
-        # structural_trs use initial indexes and regulatory tfs uses final indexes
+        # structural_tfs use initial indexes and regulatory tfs uses final indexes
         self.product_tfs = []
-        for tf in range(1, len(self.structural_trs)+1):
+        for tf in range(1, len(self.structural_tfs)+1):
             self.product_tfs.append(f'TF{tf}')
 
         self.increase_scaling = 100
@@ -121,8 +121,11 @@ class GRN:
                     diffusion_site = self.genotype[nucleotide_idx+self.diffusion_site_idx+1]
 
                     # begin: converts tfs values into labels #
-                    range_size = 1 / (len(self.structural_trs) + self.regulatory_tfs)
-                    limits = [round(limit / 100, 2) for limit in range(0, 1 * 100, int(range_size * 100))]
+                    total = len(self.structural_tfs) + self.regulatory_tfs
+                    range_size = 1 / total
+                    limits = np.linspace(0, 1 - range_size, total)
+                    limits = [round(limit, 2) for limit in limits]
+
                     for idx in range(0, len(limits)-1):
 
                         if regulatory_transcription_factor >= limits[idx] and regulatory_transcription_factor < limits[idx+1]:
@@ -299,7 +302,7 @@ class GRN:
     def place_module(self, cell):
 
         product_concentrations = []
-        for idm in range(0, len(self.structural_trs)-1):
+        for idm in range(0, len(self.structural_tfs)-1):
             concentration = sum(cell.transcription_factors[self.product_tfs[idm]]) \
                 if cell.transcription_factors.get(self.product_tfs[idm]) else 0
             product_concentrations.append(concentration)
@@ -336,7 +339,7 @@ class GRN:
 
                 potential_module_coord, turtle_direction = self.calculate_coordinates(cell.developed_module, slot)
                 if potential_module_coord not in self.queried_substrate.keys():
-                    module_type = self.structural_trs[idx_max]
+                    module_type = self.structural_tfs[idx_max]
 
                     # rotates only joints and if defined by concentration
                     orientation = 1 if concentration_rotation > 0.5 and module_type == ActiveHinge else 0
