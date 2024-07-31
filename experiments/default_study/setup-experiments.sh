@@ -125,7 +125,7 @@ while true
         idx=$( echo ${experiments[@]/${exp}//} | cut -d/ -f1 | wc -w | tr -d ' ' )
 
         # nice -n19 python3  experiments/${study}/optimize.py
-        screen -d -m -S _${study}_${free_screens[$p]}_${to_d} -L -Logfile ${outputs_path}/${study}/${exp}_${run}".log" \
+       screen -d -m -S _${study}_${free_screens[$p]}_${to_d} -L -Logfile ${outputs_path}/${study}/${exp}_${run}".log" \
                python3  experiments/${study_path}/optimize.py --mainpath ${outputs_path} \
                --experiment_name ${exp} --seasons_conditions ${seasons_conditions[$idx]} --run ${run} --study=${study} \
                --num_generations ${num_generations} --population_size ${population_size} --offspring_size ${offspring_size} \

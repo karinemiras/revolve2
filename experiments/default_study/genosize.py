@@ -56,7 +56,7 @@ class Simulator:
         if not os.path.exists(path):
             os.makedirs(path)
 
-        self.pfile = f'{self.mainpath}/{self.study}/analysis/knockouts/genosize_.csv'
+        self.pfile = f'{self.mainpath}/{self.study}/analysis/knockouts/genosize.csv'
         header = ['experiment_name', 'run', 'gen', 'individual_id', 'geno_size', 'disp_y' ]
         with open(self.pfile, 'w') as file:
             file.write(','.join(map(str, header)))
@@ -163,7 +163,7 @@ def analyze():
     def q75(x):
         return x.quantile(0.75)
 
-    origin_file = f'{mainpath}/{study}/analysis/knockouts/genosize_.csv'
+    origin_file = f'{mainpath}/{study}/analysis/knockouts/genosize.csv'
     df = pd.read_csv(origin_file)
 
     metric = 'mean'
@@ -198,7 +198,7 @@ def analyze():
     plt.close(fig)
     plt.rcParams.update(font)
 
-    with open(f'{mainpath}/{study}/analysis/knockouts/geno_size.txt', 'w') as f:
+    with open(f'{mainpath}/{study}/analysis/knockouts/geno_size_statistics.txt', 'w') as f:
         f.write("")
 
     for idx_experiment, experiment in enumerate(experiments_name):
@@ -214,7 +214,7 @@ def analyze():
 
             correlation, p_value = pearsonr(df_filt['geno_size'], df_filt['disp_y'])
 
-            with open(f'{mainpath}/{study}/analysis/knockouts/geno_size.txt', 'a') as f:
+            with open(f'{mainpath}/{study}/analysis/knockouts/geno_size_statistics.txt', 'a') as f:
                 f.write(f"\n run {run} pearson: {correlation}  "
                         f"P-value: {p_value:.4f} "
                         f"avggeno {np.mean(np.array(df_filt['geno_size']))} "
@@ -231,7 +231,7 @@ def analyze():
             # model = sm.OLS(Y, X).fit()
             # print(model.summary())
 
-        with open(f'{mainpath}/{study}/analysis/knockouts/geno_size.txt', 'a') as f:
+        with open(f'{mainpath}/{study}/analysis/knockouts/geno_size_statistics.txt', 'a') as f:
             correlations = np.array(correlations)
             fitness = np.array(fitness)
             genotypes = np.array(genotypes)
@@ -306,7 +306,7 @@ def analyze():
 if __name__ == "__main__":
     import asyncio
 
-    #asyncio.run(main())
+    asyncio.run(main())
 
     analyze()
 

@@ -12,9 +12,10 @@ outputs_path="/home/ripper8/projects/working_data"
 # exps order is the same for all three vars
 # exps names should not be fully contained in each other
 
-study="GRNv2knockouts"
+study="GRNv3knockouts"
 experiments="reg2m2,reg10m2"
 tfs="reg2m2,reg10m2"
+
 
 # conditions have effect only for isaac
 # conditions: friction_dynamicfriction_yrotation_idleparam_idleparam
