@@ -4,6 +4,7 @@ import pprint
 import math
 import argparse
 import sys
+import numpy as np
 
 
 async def main(parser) -> None:
@@ -28,6 +29,7 @@ async def main(parser) -> None:
 
             for env in envs:
                 horizontal = []
+                fit_horizontal = []
                 print(env)
                 for run in runs:
                     print('  run: ', run)
@@ -38,6 +40,7 @@ async def main(parser) -> None:
                     lst.sort(key=lambda x: int(x.split('_')[0]))
                     lst = lst[0:bests]
                     print(lst)
+                    fit_horizontal.append(lst[0]) # best of each run
                     for_concats = [cv2.imread(f'{path_in}/{robot}') for robot in lst]
                     heights = [o.shape[0] for o in for_concats]
                     max_height = max(heights)
@@ -57,8 +60,12 @@ async def main(parser) -> None:
                     horizontal.append(concats)
                     #concats[np.where((concats == [0, 0, 0]).all(axis=2))] = [255, 255, 255]
 
-                widths = [o.shape[1] for o in horizontal]
+                # sort by best runs
+                sorted_indices = np.argsort(fit_horizontal)[::-1]
+                print(sorted_indices)
+                horizontal = [horizontal[i] for i in sorted_indices]
 
+                widths = [o.shape[1] for o in horizontal]
                 max_width = max(widths)
                 for idx, img in enumerate(horizontal):
                     if horizontal[idx].shape[1] < max_width:

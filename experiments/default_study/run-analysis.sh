@@ -21,4 +21,5 @@ comparison='basic_plots'
 #python experiments/${study_path}/bests_snap_2d.py $study $experiments $runs $generations $outputs_path;
 #python experiments/${study_path}/genosize.py $study $experiments $tfs $runs $generations $outputs_path;
 #python experiments/${study_path}/knockouts.py $study $experiments $tfs $runs $generations $outputs_path;
-python experiments/${study_path}/knockouts_analysis.py $study $experiments $tfs $runs $generations $outputs_path;
+#python experiments/${study_path}/knockouts_treat.py $study $experiments $tfs $runs $generations $outputs_path;
+python experiments/${study_path}/complexity_shape.py $study $experiments $tfs $runs $generations $outputs_path;

@@ -52,11 +52,11 @@ class Simulator:
         self.runs = args.watchruns.split(',')
         self.mainpath = args.mainpath
 
-        path = f'{self.mainpath}/{self.study}/analysis/knockouts/'
+        path = f'{self.mainpath}/{self.study}/analysis/geno/'
         if not os.path.exists(path):
             os.makedirs(path)
 
-        self.pfile = f'{self.mainpath}/{self.study}/analysis/knockouts/genosize.csv'
+        self.pfile = f'{self.mainpath}/{self.study}/analysis/geno/genosize.csv'
         header = ['experiment_name', 'run', 'gen', 'individual_id', 'geno_size', 'disp_y' ]
         with open(self.pfile, 'w') as file:
             file.write(','.join(map(str, header)))
@@ -163,7 +163,7 @@ def analyze():
     def q75(x):
         return x.quantile(0.75)
 
-    origin_file = f'{mainpath}/{study}/analysis/knockouts/genosize.csv'
+    origin_file = f'{mainpath}/{study}/analysis/geno/genosize.csv'
     df = pd.read_csv(origin_file)
 
     metric = 'mean'
@@ -193,12 +193,12 @@ def analyze():
                         data[f'geno_size_mean_q25'],
                         data[f'geno_size_mean_q75'], alpha=0.3, facecolor=clrs[idx_experiment])
     ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.1), fancybox=True, shadow=True, ncol=5, fontsize=10)
-    plt.savefig(f'{mainpath}/{study}/analysis/knockouts/geno_size_{experiment}.png', bbox_inches='tight')
+    plt.savefig(f'{mainpath}/{study}/analysis/geno/geno_size_{experiment}.png', bbox_inches='tight')
     plt.clf()
     plt.close(fig)
     plt.rcParams.update(font)
 
-    with open(f'{mainpath}/{study}/analysis/knockouts/geno_size_statistics.txt', 'w') as f:
+    with open(f'{mainpath}/{study}/analysis/geno/geno_size_statistics.txt', 'w') as f:
         f.write("")
 
     for idx_experiment, experiment in enumerate(experiments_name):
@@ -214,7 +214,7 @@ def analyze():
 
             correlation, p_value = pearsonr(df_filt['geno_size'], df_filt['disp_y'])
 
-            with open(f'{mainpath}/{study}/analysis/knockouts/geno_size_statistics.txt', 'a') as f:
+            with open(f'{mainpath}/{study}/analysis/geno/geno_size_statistics.txt', 'a') as f:
                 f.write(f"\n run {run} pearson: {correlation}  "
                         f"P-value: {p_value:.4f} "
                         f"avggeno {np.mean(np.array(df_filt['geno_size']))} "
@@ -231,7 +231,7 @@ def analyze():
             # model = sm.OLS(Y, X).fit()
             # print(model.summary())
 
-        with open(f'{mainpath}/{study}/analysis/knockouts/geno_size_statistics.txt', 'a') as f:
+        with open(f'{mainpath}/{study}/analysis/geno/geno_size_statistics.txt', 'a') as f:
             correlations = np.array(correlations)
             fitness = np.array(fitness)
             genotypes = np.array(genotypes)
@@ -298,7 +298,7 @@ def analyze():
                              ha='center', fontsize=12)
 
             plt.tight_layout()
-            plt.savefig(f'{mainpath}/{study}/analysis/knockouts/geno_fit_{experiment}.png', bbox_inches='tight')
+            plt.savefig(f'{mainpath}/{study}/analysis/geno/geno_fit_{experiment}.png', bbox_inches='tight')
 
             f.write("\n")
 
