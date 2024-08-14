@@ -18,6 +18,7 @@ async def main(parser) -> None:
     mainpath = args.mainpath
 
     bests = 1
+    sort = True
     path_out = f'{mainpath}/{study}/analysis/snapshots'
 
     for gen in generations:
@@ -61,9 +62,12 @@ async def main(parser) -> None:
                     #concats[np.where((concats == [0, 0, 0]).all(axis=2))] = [255, 255, 255]
 
                 # sort by best runs
-                sorted_indices = np.argsort(fit_horizontal)[::-1]
-                print(sorted_indices)
-                horizontal = [horizontal[i] for i in sorted_indices]
+                sort_aux = ''
+                if sort:
+                    sorted_indices = np.argsort(fit_horizontal)[::-1]
+                    print(sorted_indices)
+                    horizontal = [horizontal[i] for i in sorted_indices]
+                    sort_aux = 'sort'
 
                 widths = [o.shape[1] for o in horizontal]
                 max_width = max(widths)
@@ -79,7 +83,7 @@ async def main(parser) -> None:
                 vertical = cv2.vconcat(horizontal)
                 #vertical[np.where((vertical == [0, 0, 0]).all(axis=2))] = [255, 255, 255]
 
-                cv2.imwrite(f'{path_out}/bests_{experiment_name}_{env}_gen{gen}.png', vertical)
+                cv2.imwrite(f'{path_out}/bests{sort_aux}_{experiment_name}_{env}_gen{gen}.png', vertical)
 
 
 if __name__ == "__main__":

@@ -5,16 +5,8 @@ import numpy as np
 
 import plotly.graph_objs as go
 import plotly.offline as offline
-
-#import plotly.graph_objects as go
 import pandas as pd
 from scipy import stats
-
-warnings.filterwarnings("ignore")
-pd.set_option('display.float_format', lambda x: '{:.3f}'.format(x) if abs(x) > 0.001 else '{:.0f}'.format(x * 1000))
-pd.set_option('display.float_format', lambda x: '%.10f' % x)
-pd.set_option('display.max_columns', None)
-pd.set_option('display.max_rows', 1000)
 
 parser = argparse.ArgumentParser()
 parser.add_argument("study")
@@ -29,34 +21,25 @@ study = args.study
 experiments_name = args.experiments.split(',')
 tfs = list(args.tfs.split(','))
 runs = args.watchruns.split(',')
-generations = [0, 25, 100]
+generations = [0, 100]
 mainpath = args.mainpath
-clrs = ['#009900',
-        '#EE8610',
-        '#434699',
-        '#95fc7a',
-        '#221210',
-        '#87ac65']
 
-path = f'{mainpath}/{study}/analysis/knockouts'
-traits = ['disp_y', 'extremities_prop', 'distance']
+path = f'{mainpath}/{study}/analysis/knockouts/data'
 
 
-def calculate():
+def calculate_general():
     origin_file = f'{path}/knockouts_measures.csv'
     df_ori = pd.read_csv(origin_file)
-    original = 'o'  # without knockout
+    original = 'o'  # original phenotype, without knockout
 
-    keys = ['experiment_name', 'run', 'gen', 'ranking', 'individual_id', 'geno_size']
-    traits = ['disp_y', 'extremities_prop', 'distance', 'symmetry', 'proportion', 'coverage', 'extensiveness_prop',
-              'hinge_prop', 'modules_count', 'head_balance']
+    keys = ['experiment_name', 'run', 'gen', 'ranking', 'individual_id']
+    traits = ['disp_y', 'distance', 'symmetry', 'extremities_prop']
     others = ['knockout']
     df = df_ori.filter(items=keys + others + traits)
 
-    # df = df[
-    #     ( ( df['experiment_name'] == 'reg2m2') & (df['run'] == 1) &  (df['gen'] == 0 )  ) ]
+    # df = df[   ( ( df['experiment_name'] == 'reg2m2') & (df['run'] == 1) &  (df['gen'] == 0 )  ) ] # quick test
 
-    df = df[((df['gen'] == 0) | (df['gen'] == 100))]
+    df = df[((df['gen'] == generations[0]) | (df['gen'] == generations[-1]))]
 
     for trait in traits:
         # sends trait values of each knockout to columns
@@ -99,6 +82,7 @@ def calculate():
         df_delta['neutral'] = count_neutral
         df_delta['negative'] = count_negative
         df_delta['total'] = count_positive + count_neutral + count_negative
+        df_delta['epistasis'] = count_positive + count_negative
 
         df_delta['positive'] = df_delta['positive'] / df_delta['total']
         df_delta['neutral'] = df_delta['neutral'] / df_delta['total']
@@ -112,94 +96,12 @@ def calculate():
         df_delta['avg_positive'] = positive_avg
         df_delta['avg_negative'] = negative_avg
 
-        df_exp = df_delta.reset_index()[keys + ['positive', 'neutral', 'negative', 'avg_positive', 'avg_negative']]
+        df_exp = df_delta.reset_index()[keys+['neutral', 'positive', 'negative', 'epistasis', 'avg_positive', 'avg_negative']]
         df_exp.to_csv(f'{path}/effects_{trait}.csv')
 
         print(trait)
-#
-# def plot():
-#     clrs = ['#009900',
-#             '#EE8610',
-#             '#434699',
-#             '#95fc7a',
-#             '#221210',
-#             '#87ac65']
-#
-#     metrics = ['positive', 'avg_positive', 'negative', 'avg_negative']
-#
-#     keys = ['experiment_name', 'gen', 'ranking']
-#
-#     dfs_trait = {}
-#     for trait in traits:
-#         print('>>>>>', trait)
-#         dfs_trait[trait] = pd.read_csv(f'effects_{trait}.csv')
-#
-#
-#     # boxes
-#
-#     import seaborn as sb
-#     from statannot import add_stat_annotation
-#     from scipy.stats import mannwhitneyu
-#     from scipy.stats import wilcoxon, ttest_ind
-#     import warnings
-#
-#     warnings.filterwarnings('ignore')
-#
-#     # Set IPython to display all outputs
-#     InteractiveShell.ast_node_interactivity = "all"
-#
-#     for trait in traits:
-#         print('>>>>>>', trait)
-#
-#         df_trait = dfs_trait[trait]
-#         f_trait = df_trait[(df_trait['ranking'] == 'best')]
-#
-#         group_columns = ['experiment_name', 'ranking']
-#         unique_groups = df_trait[group_columns].drop_duplicates()
-#         filtered_dfs = {}
-#
-#         for _, group in unique_groups.iterrows():
-#             print(group)
-#             # Filter rows based on the group
-#             filter_condition = (df_trait[group_columns] == group).all(axis=1)
-#             filtered_df = df_trait[filter_condition]
-#             group_key = tuple(group)
-#             filtered_dfs[group_key] = filtered_df
-#
-#             fig, axes = plt.subplots(1, 4, figsize=(15, 5))
-#             sb.set(rc={"axes.titlesize": 23, "axes.labelsize": 23, 'ytick.labelsize': 21, 'xtick.labelsize': 21})
-#             sb.set_style("whitegrid")
-#
-#             for idx, metric in enumerate(metrics):
-#                 ax = axes[idx]
-#
-#                 filtered_clean = filtered_df
-#                 if metric in ['avg_positive', 'avg_negative']:
-#                     filtered_clean = filtered_df[pd.notna(filtered_df[metric])]
-#
-#                 group1_data = filtered_clean[filtered_clean['gen'] == 0][f'{metric}']
-#                 group2_data = filtered_clean[filtered_clean['gen'] == 100][f'{metric}']
-#
-#                 # _, p_value = wilcoxon(group1_data, group2_data)
-#                 _, p_value = mannwhitneyu(group1_data, group2_data, alternative='two-sided')
-#                 print(f"\nMetric: {metric}, p-value: {round(p_value, 4)}")
-#
-#                 if p_value < 0.01:
-#                     # display(filtered_clean[[metric, 'experiment_name',  'run',  'gen' ]])
-#                     #  ax.text(0.5, max(filtered_clean[f'{metric}'].max()) + 0.1, f'p={p_value:.2f}', ha='center', va='bottom', fontsize=12)
-#
-#                     sb.boxplot(x='gen', y=f'{metric}', data=filtered_clean,
-#                                palette=clrs, width=0.4, showmeans=True, linewidth=2, fliersize=6,
-#                                meanprops={"marker": "o", "markerfacecolor": "yellow", "markersize": "12"}, ax=ax)
-#
-#                     ax.tick_params(axis='x', labelrotation=10)
-#
-#                 ax.set_xlabel('')
-#                 ax.set_ylabel(f'{metric}')
-#
-#             plt.tight_layout()
-#             plt.show()
 
-calculate()
-#plot()
+
+calculate_general()
+
 
