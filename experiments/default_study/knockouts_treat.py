@@ -20,7 +20,6 @@ args = parser.parse_args()
 study = args.study
 experiments_name = args.experiments.split(',')
 tfs = list(args.tfs.split(','))
-runs = args.watchruns.split(',')
 generations = [0, 100]
 mainpath = args.mainpath
 
@@ -81,7 +80,7 @@ def calculate_general():
         df_delta['positive'] = count_positive
         df_delta['neutral'] = count_neutral
         df_delta['negative'] = count_negative
-        df_delta['total'] = count_positive + count_neutral + count_negative
+        df_delta['total'] = count_positive + count_neutral + count_negative  # obsolete: remove
         df_delta['epistasis'] = count_positive + count_negative
 
         df_delta['positive'] = df_delta['positive'] / df_delta['total']

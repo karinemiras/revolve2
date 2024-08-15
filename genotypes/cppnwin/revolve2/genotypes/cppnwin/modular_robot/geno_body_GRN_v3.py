@@ -150,13 +150,25 @@ class GRN:
                     # ends: converts diffusion sites values into labels #
 
                     gene = [regulatory_transcription_factor_label, regulatory_v1, regulatory_v2,
-                             transcription_factor_label, transcription_factor_amount, diffusion_site_label]
+                            transcription_factor_label, transcription_factor_amount, diffusion_site_label]
 
                     self.genes.append(gene)
 
                     nucleotide_idx += self.types_nucleotides
             nucleotide_idx += 1
         self.genes = np.array(self.genes)
+
+        # parses genotype to discover promoter sites and compose genes
+
+    def net_parser(self):
+
+        connections = []
+        self.gene_parser()
+        for id_regulated, gene_regulated in enumerate(self.genes):
+            for id_regulator, gene_regulator in enumerate(self.genes):
+                if gene_regulated[self.regulatory_transcription_factor_idx] == gene_regulator[self.transcription_factor_idx]:
+                    connections.append((id_regulator, id_regulated))
+        return connections
 
     def regulate(self):
         self.maternal_injection()

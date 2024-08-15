@@ -76,7 +76,7 @@ class Simulator:
 
         for ids, experiment_name in enumerate(self.experiments_name):
             print('\n', experiment_name)
-            for run in self.runs:
+            for run in self.runs[ids]:
                 print('\nrun: ', run)
 
                 path = f'{self.mainpath}/{self.study}'
@@ -183,7 +183,6 @@ class Simulator:
                     coordinates = list(original_substrate.keys())
 
                     def plot_and_save_boundary(coordinates):
-                        fig, ax = plt.subplots()
 
                         # Create squares centered at each coordinate
                         squares = [
@@ -215,26 +214,29 @@ class Simulator:
                         num_turns = count_90_degree_turns(boundary_coords)
                         #print(f"Number of 90-degree turns: {num_turns}")
 
-                        # Plot the squares with grey lines
-                        for square in squares:
-                            x, y = square.exterior.xy
-                            ax.plot(x, y, 'black', lw=1)
-
-                        # Plot the boundary with a thicker red line
-                        boundary_polygon = mpl_polygon(boundary_coords, edgecolor='red', facecolor='none',
-                                                       linewidth=4)
-                        ax.add_patch(boundary_polygon)
-
-                        # Set limits and aspect
-                        x_min, y_min = np.min(boundary_coords, axis=0) - 1
-                        x_max, y_max = np.max(boundary_coords, axis=0) + 1
-                        ax.set_xlim(x_min, x_max)
-                        ax.set_ylim(y_min, y_max)
-                        ax.set_aspect('equal')
-
-                        ax.grid(False)#, color='lightgrey', linewidth=0.5)
-
                         if gen == 100 and idx == 0:
+
+                            fig, ax = plt.subplots()
+
+                            # Plot the squares with grey lines
+                            for square in squares:
+                                x, y = square.exterior.xy
+                                ax.plot(x, y, 'black', lw=1)
+
+                            # Plot the boundary with a thicker red line
+                            boundary_polygon = mpl_polygon(boundary_coords, edgecolor='red', facecolor='none',
+                                                           linewidth=4)
+                            ax.add_patch(boundary_polygon)
+
+                            # Set limits and aspect
+                            x_min, y_min = np.min(boundary_coords, axis=0) - 1
+                            x_max, y_max = np.max(boundary_coords, axis=0) + 1
+                            ax.set_xlim(x_min, x_max)
+                            ax.set_ylim(y_min, y_max)
+                            ax.set_aspect('equal')
+
+                            ax.grid(False)#, color='lightgrey', linewidth=0.5)
+
                             plt.savefig(
                                 f'{self.path}/{experiment_name}_{run}_{gen}_{r.DbEAOptimizerIndividual.individual_id}_{num_turns}.png',
                                 format='png')
