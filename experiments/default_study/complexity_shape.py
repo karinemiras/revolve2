@@ -67,7 +67,7 @@ class Simulator:
             os.makedirs(self.path)
 
         self.pfile = f'{self.path}/complexity.csv'
-        header = ['experiment_name', 'run', 'gen', 'individual_id', 'disp_y', 'geno_size',
+        header = ['experiment_name', 'run', 'gen', 'individual_id', 'disp_y',
                   'complexity_env', 'complexity_branch', 'symmetry', 'extremities_prop']
 
         with open(self.pfile, 'w') as file:
@@ -157,7 +157,6 @@ class Simulator:
                             session, [r.DbEAOptimizerIndividual.genotype_id]
                         )
                     )[0]
-                    geno_size = len(genotype.body.genotype)
 
                     original_phenotype, original_substrate = \
                         develop(genotype, genotype.mapping_seed, max_modules, tfs,
@@ -249,7 +248,7 @@ class Simulator:
                     with open(f'{self.path}/complexity.csv', 'a') as f:
                         f.write(
                             f"{experiment_name},{run},{gen},"
-                            f"{r.DbEAOptimizerIndividual.individual_id},{r.DbFloat.disp_y},{geno_size},{num_turns},{avg_children},{r.DbFloat.symmetry},{r.DbFloat.extremities_prop}\n")
+                            f"{r.DbEAOptimizerIndividual.individual_id},{r.DbFloat.disp_y},{num_turns},{avg_children},{r.DbFloat.symmetry},{r.DbFloat.extremities_prop}\n")
 
 
 async def main() -> None:

@@ -18,7 +18,7 @@ async def main(parser) -> None:
     mainpath = args.mainpath
 
     bests = 1
-    sort = True
+    sort = False
     path_out = f'{mainpath}/{study}/analysis/snapshots'
 
     for gen in generations:

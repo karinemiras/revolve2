@@ -23,7 +23,7 @@ async def main(parser) -> None:
     generations = list(map(int, args.generations.split(',')))
     tfs = list(args.tfs.split(','))
     mainpath = args.mainpath
-    numberrobots = 100
+    numberrobots = 10
 
     for idsy, experiment_name in enumerate(experiments_name):
         print(experiment_name)

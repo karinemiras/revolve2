@@ -13,7 +13,7 @@ from sqlalchemy.future import select
 from revolve2.core.optimization.ea.generic_ea import DbEAOptimizerGeneration, DbEAOptimizerIndividual, DbEAOptimizer, DbEnvconditions
 from genotype import GenotypeSerializer, develop
 from optimizer import DbOptimizerState
-import sys
+import sys, time
 from revolve2.core.modular_robot.render.render import Render
 from revolve2.core.modular_robot import Measure
 from revolve2.core.database.serializers import DbFloat
@@ -43,9 +43,9 @@ class Simulator:
         args = parser.parse_args()
 
         self.study = args.study
-        self.experiments_name = args.experiments.split(',')
-        self.tfs = list(args.tfs.split(','))
-        self.runs = args.watchruns.split(',')
+        self.experiments_name = ["reg10m2"] # args.experiments.split(',')
+        self.tfs = ["reg10m2"] #list(args.tfs.split(','))
+        self.runs = [19]# args.watchruns.split(',')
         self.generations = list(map(int, args.generations.split(',')))
         test_robots = []
         mainpath = args.mainpath
@@ -174,7 +174,7 @@ class Simulator:
                     )
 
                     batch = Batch(
-                         simulation_time=simulation_time,
+                         simulation_time=1000,#simulation_time,
                          sampling_frequency=sampling_frequency,
                          control_frequency=control_frequency,
                          control=self._control,

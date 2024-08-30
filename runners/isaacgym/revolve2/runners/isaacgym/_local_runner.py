@@ -4,7 +4,7 @@ import os
 import tempfile
 from dataclasses import dataclass
 from typing import List, Optional
-
+import time as _time
 import colored
 import numpy as np
 from isaacgym import gymapi
@@ -114,23 +114,23 @@ class LocalRunner(Runner):
                 gymenv = self.GymEnv(env, [])
                 gymenvs.append(gymenv)
 
-                # add platform to env
+
+
+                ##3 add platform to env for pictures
+                platform = 1
                 if int(platform) == 1:
-                    sizex = 6.0
-                    sizey = 2.0
-                    sizez = 1.0
+                    sizex = 5.0
+                    sizey = 5.0
+                    sizez = 0.001
                     platform_height_adjust = sizez/2.0
                     platform_asset = self._gym.create_box(self._sim, sizex, sizey, sizez)
                     pose = gymapi.Transform()
-                    pose.p = gymapi.Vec3(0,  0,   platform_height_adjust, )
+                    pose.p = gymapi.Vec3(0,  0,   platform_height_adjust)
                     pose.r = gymapi.Quat(0, 0, 0, 1)
                     plat1_handle = self._gym.create_actor(env, platform_asset, pose, "plat", env_index, 1)
-                    pose = gymapi.Transform()
-                    pose.p = gymapi.Vec3(0, sizey, platform_height_adjust, )
-                    pose.r = gymapi.Quat(0, 0, 0, 1)
-                    plat2_handle = self._gym.create_actor(env, platform_asset, pose, "plat2", env_index, 1)
-                    self._gym.set_rigid_body_color(env, plat1_handle, 0, gymapi.MESH_VISUAL, gymapi.Vec3(0.1, 0.1, 0.1))
-                    self._gym.set_rigid_body_color(env, plat2_handle, 0, gymapi.MESH_VISUAL, gymapi.Vec3(0, 1, 0))
+                    self._gym.set_rigid_body_color(env, plat1_handle, 0, gymapi.MESH_VISUAL, gymapi.Vec3(1, 1, 1))
+                ###
+
 
                 for actor_index, posed_actor in enumerate(env_descr.actors):
                     # sadly isaac gym can only read robot descriptions from a file,
@@ -174,8 +174,10 @@ class LocalRunner(Runner):
 
                     # create an aggregate for this robot
                     # disabling self collision to both improve performance and improve stability
+
                     num_bodies = self._gym.get_asset_rigid_body_count(actor_asset)
                     num_shapes = self._gym.get_asset_rigid_shape_count(actor_asset)
+
                     enable_self_collision = False
                     self._gym.begin_aggregate(
                         env, num_bodies, num_shapes, enable_self_collision
@@ -189,7 +191,9 @@ class LocalRunner(Runner):
                         env_index,
                         0,
                     )
-                    self._gym.set_rigid_body_color(env, actor_handle, 0, gymapi.MESH_VISUAL, gymapi.Vec3(1, 0, 0))
+                    self._gym.set_rigid_body_color(env, actor_handle, 0, gymapi.MESH_VISUAL, gymapi.Vec3(0, 0.5, 0))
+                    for rigid_body in range(1, num_bodies):
+                        self._gym.set_rigid_body_color(env, actor_handle, rigid_body, gymapi.MESH_VISUAL, gymapi.Vec3(0.6, 0.4, 0.2))
 
                     gymenv.actors.append(actor_handle)
 
@@ -277,8 +281,8 @@ class LocalRunner(Runner):
             while (
                 time := self._gym.get_sim_time(self._sim)
             ) < self._batch.simulation_time:
-                import time as _time
-                # _time.sleep(1)
+
+              #  _time.sleep(0.1)
                 # do control if it is time
                 if time >= last_control_time + control_step:
                     last_control_time = math.floor(time / control_step) * control_step
@@ -294,9 +298,10 @@ class LocalRunner(Runner):
                             .actor
                         )
 
-                        self.set_actor_dof_position_targets(
-                            env_handle, actor_handle, actor, targets
-                        )
+                        if time < 0.001: ## for pictures
+                            self.set_actor_dof_position_targets(
+                                env_handle, actor_handle, actor, targets
+                            )
 
                 # sample state if it is time
                 if time >= last_sample_time + sample_step:

@@ -169,40 +169,43 @@ class Canvas:
 	def draw_controller(self, mod_id):
 		"""Draw a controller (yellow) in the middle of the canvas"""
 		self.context.rectangle(Canvas.x_pos, Canvas.y_pos, 1, 1)
-		self.context.set_source_rgb(255, 255, 0)
+		#self.context.set_source_rgb(255, 255, 0)
+		self.context.set_source_rgb(0, 0.5, 0)
 		self.context.fill_preserve()
 		self.context.set_source_rgb(0, 0, 0)
 		self.context.set_line_width(0.01)
 		self.context.stroke()
-		self.sign_id(mod_id)
+		#self.sign_id(mod_id)
 		Canvas.movement_stack.append([Canvas.x_pos, Canvas.y_pos, Canvas.orientation, Canvas.rotating_orientation])
 
 	def draw_hinge(self, mod_id):
-		"""Draw a hinge (blue) on the previous object"""
+		"""Draw a hinge  on the previous object"""
 
 		self.context.rectangle(Canvas.x_pos, Canvas.y_pos, 1, 1)
-		if (Canvas.rotating_orientation == 0):
-			self.context.set_source_rgb(1.0, 0.4, 0.4)
-		else:
-			self.context.set_source_rgb(1, 0, 0)
+		# if (Canvas.rotating_orientation == 0):
+		# 	self.context.set_source_rgb(1.0, 0.4, 0.4)
+		# else:
+		# 	self.context.set_source_rgb(1, 0, 0)
+		self.context.set_source_rgb(0.6, 0.4, 0.2)
 		self.context.fill_preserve()
 		self.context.set_source_rgb(0, 0, 0)
 		self.context.set_line_width(0.01)
 		self.context.stroke()
 		self.calculate_orientation()
-		self.sign_id(mod_id)
+		#self.sign_id(mod_id)
 		Canvas.movement_stack.append([Canvas.x_pos, Canvas.y_pos, Canvas.orientation, Canvas.rotating_orientation])
 
 	def draw_module(self, mod_id):
-		"""Draw a module (red) on the previous object"""
+		"""Draw a module  on the previous object"""
 		self.context.rectangle(Canvas.x_pos, Canvas.y_pos, 1, 1)
-		self.context.set_source_rgb(0, 0, 1)
+		#self.context.set_source_rgb(0, 0, 1)
+		self.context.set_source_rgb(0.6, 0.4, 0.2)
 		self.context.fill_preserve()
 		self.context.set_source_rgb(0, 0, 0)
 		self.context.set_line_width(0.01)
 		self.context.stroke()
 		self.calculate_orientation()
-		self.sign_id(mod_id)
+		#self.sign_id(mod_id)
 		Canvas.movement_stack.append([Canvas.x_pos, Canvas.y_pos, Canvas.orientation, Canvas.rotating_orientation])
 
 	def calculate_sensor_rectangle_position(self):
@@ -279,7 +282,7 @@ class Canvas:
 	def draw_connector_to_parent(self):
 		"""Draw a circle between child and parent"""
 		x, y = self.calculate_connector_to_parent_position()
-		self.context.arc(x, y, 0.1, 0, math.pi*2)
+		self.context.arc(x, y, 0.03, 0, math.pi*2)
 		self.context.set_source_rgb(0, 0, 0)
 		self.context.fill_preserve()
 		self.context.set_source_rgb(0, 0, 0)

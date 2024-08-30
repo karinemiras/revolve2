@@ -11,7 +11,7 @@ from sqlalchemy.ext.asyncio.session import AsyncSession
 from revolve2.core.database import open_async_database_sqlite
 from sqlalchemy.future import select
 from revolve2.core.optimization.ea.generic_ea import DbEAOptimizerGeneration, DbEAOptimizerIndividual, DbEAOptimizer, DbEnvconditions
-from genotype import GenotypeSerializer
+from genotype import GenotypeSerializer, develop_knockout
 from revolve2.genotypes.cppnwin.modular_robot.geno_body_GRN_v3 import GRN
 from optimizer import DbOptimizerState
 import sys
@@ -43,15 +43,15 @@ class Complexity:
         self.experiments_name = args.experiments.split(',')
         self.tfs = list(args.tfs.split(','))
         self.runs = args.watchruns.split(',')
-        self.generations = [100]
+        self.generations = list(range(0, 101))
         test_robots = []
         self.mainpath = args.mainpath
 
-        self.bests = 1
+        self.bests = 100
         # 'all' selects best from all individuals
         # 'gens' selects best from chosen generations
         self.bests_type = 'gens'
-        self.ranking = ['best', 'worst']
+        self.ranking = ['best'] #obsolete var
 
         self.path = f'{self.mainpath}/{self.study}/analysis/complexity/'
 
@@ -61,7 +61,7 @@ class Complexity:
             os.makedirs(f'{self.path}/comp_nets/')
 
         self.pfile = f'{self.path}/complexity_net.csv'
-        header = ['experiment_name', 'run', 'gen', 'ranking', 'individual_id', 'complexity_net']
+        header = ['experiment_name', 'run', 'gen', 'individual_id', 'complexity_net', 'geno_size', 'n_genes']
         with open(self.pfile, 'w') as file:
             file.write(','.join(map(str, header)))
             file.write('\n')
@@ -159,12 +159,16 @@ class Complexity:
                             )
                         )[0]
 
-                        connections = GRN(max_modules, tfs, genotype.body, genotype.mapping_seed,
-                            env_conditions[env_conditions_id], len(env_conditions), plastic_body).net_parser()
-                        num_connections = len (connections)
+                        geno_size = len(genotype.body.genotype)
 
+                        grn = GRN(max_modules, tfs, genotype.body, genotype.mapping_seed,
+                                    env_conditions[env_conditions_id], len(env_conditions), plastic_body)
 
-                        if num_connections <= 50:
+                        connections = grn.net_parser()
+                        num_connections = len(connections)
+                        n_genes = len(grn.genes)
+
+                        if num_connections <= 50 and gen == 100:
 
                             G = nx.DiGraph()
 
@@ -197,11 +201,12 @@ class Complexity:
                             plt.axis('off')  # Turn off the axis
 
                             plt.savefig(f'{self.path}/comp_nets/{experiment_name}_{run}_{gen}_{r.DbEAOptimizerIndividual.individual_id}_{num_connections}.png')
+                            plt.close()
 
                         with open(f'{self.pfile}', 'a') as f:
                             f.write(
-                                f"{experiment_name},{run},{gen},{ranking},"
-                                f"{r.DbEAOptimizerIndividual.individual_id},{num_connections}\n")
+                                f"{experiment_name},{run},{gen},"
+                                f"{r.DbEAOptimizerIndividual.individual_id},{num_connections},{geno_size},{n_genes}\n")
 
 
 asyncio.run(Complexity().run())

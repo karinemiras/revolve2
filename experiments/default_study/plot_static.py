@@ -31,8 +31,8 @@ inner_metrics = ['mean', 'max']
 include_max = False
 merge_lines = True
 gens_boxes = generations
-clrs = ['#009900',
-        '#EE8610',
+clrs = ['#ADD8E6',
+        '#F6B970',
         '#434699',
         '#95fc7a',
         '#221210',
@@ -60,7 +60,7 @@ measures = {
     'branching_prop': ['Branching prop', 0, 1],
     'extremities': ['Extremities', 0, 1],
     'extensiveness': ['Extensiveness', 0, 1],
-    'extremities_prop': ['Extremities prop', 0, 1],
+    'extremities_prop': ['Limbs', 0, 1],
     'extensiveness_prop': ['Extensiveness prop', 0, 1],
     'width': ['Width', 0, 1],
     'height': ['Height', 0, 1],
@@ -89,18 +89,40 @@ def plot_lines(df_outer):
         font = {'font.size': 20}
         plt.rcParams.update(font)
         fig, ax = plt.subplots()
+        ax.spines['top'].set_color('grey')
 
         plt.xlabel('')
         plt.ylabel(f'{measures[measure][0]}')
+        ax.grid(False)
+        ax.spines['top'].set_color('grey')
+        ax.spines['top'].set_linewidth(0.5)
+        ax.spines['right'].set_color('grey')
+        ax.spines['right'].set_linewidth(0.5)
+        ax.spines['bottom'].set_color('grey')
+        ax.spines['bottom'].set_linewidth(0.5)
+        ax.spines['left'].set_color('grey')
+        ax.spines['left'].set_linewidth(0.5)
+        ax.tick_params(axis='x', which='both', bottom=False, top=False, labelbottom=True)
+        ax.tick_params(axis='y', which='both', left=False, right=False, labelleft=True)
+
         for idx_experiment, experiment in enumerate(experiments):
             data = df_outer[(df_outer['experiment'] == experiment)]
 
             ax.plot(data['generation_index'], data[f'{measure}_{inner_metrics[0]}_median'],
-                    label=f'{experiment}_{inner_metrics[0]}', c=clrs[idx_experiment])
+                    label=f'{experiment}_{inner_metrics[0]}', c=clrs[idx_experiment], linewidth=3)
+
             ax.fill_between(data['generation_index'],
                             data[f'{measure}_{inner_metrics[0]}_q25'],
                             data[f'{measure}_{inner_metrics[0]}_q75'],
-                            alpha=0.3, facecolor=clrs[idx_experiment])
+                            alpha=0.4, facecolor=clrs[idx_experiment])
+
+            ax.plot(data['generation_index'],
+                    data[f'{measure}_{inner_metrics[0]}_q25'],
+                    linestyle='-', color=clrs[idx_experiment], alpha=0.5, linewidth=1.5)  # Contour line for Q1
+
+            ax.plot(data['generation_index'],
+                    data[f'{measure}_{inner_metrics[0]}_q75'],
+                    linestyle='-', color=clrs[idx_experiment], alpha=0.5, linewidth=1.5)  # Contour line for Q3
 
             if include_max:
                 ax.plot(data['generation_index'], data[f'{measure}_{inner_metrics[1]}_median'],
