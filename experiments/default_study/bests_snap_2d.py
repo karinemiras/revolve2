@@ -40,9 +40,15 @@ async def main(parser) -> None:
                     lst = os.listdir(path_in)
                     lst.sort(key=lambda x: int(x.split('_')[0]))
                     lst = lst[0:bests]
-                    print(lst)
+                    print('',lst)
                     fit_horizontal.append(lst[0]) # best of each run
                     for_concats = [cv2.imread(f'{path_in}/{robot}') for robot in lst]
+                    for l in lst:
+                        fit = l.split("_")[1]
+                        id = l.split("_")[2]
+                        with open(f'{mainpath}/{study}/analysis/snapshots/bests.txt', 'a') as f:
+                            f.write(f'{experiment_name} {run} {gen} {id}: {fit}\n')
+
                     heights = [o.shape[0] for o in for_concats]
                     max_height = max(heights)
                     margin = 100
@@ -84,6 +90,7 @@ async def main(parser) -> None:
                 #vertical[np.where((vertical == [0, 0, 0]).all(axis=2))] = [255, 255, 255]
 
                 cv2.imwrite(f'{path_out}/bests{sort_aux}_{experiment_name}_{env}_gen{gen}.png', vertical)
+
 
 
 if __name__ == "__main__":

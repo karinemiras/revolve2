@@ -3,12 +3,13 @@ import pandas
 import matplotlib.pyplot as plt
 import seaborn as sb
 from statannot import add_stat_annotation
-from scipy.stats import wilcoxon, ttest_ind
-import pprint
+
+from scipy.stats import  ttest_ind
+from scipy.stats import mannwhitneyu
 import os
-import sys
-from scipy import stats
-import numpy as np
+import warnings
+warnings.filterwarnings("ignore", message="Passing `palette` without assigning `hue` is deprecated and will be removed in v0.14.0")
+
 
 parser = argparse.ArgumentParser()
 parser.add_argument("study")
@@ -32,11 +33,12 @@ include_max = False
 merge_lines = True
 gens_boxes = generations
 clrs = ['#ADD8E6',
-        '#F6B970',
-        '#434699',
-        '#95fc7a',
-        '#221210',
-        '#87ac65']
+        '#F6B970' ]
+#,
+        # '#434699',
+        # '#95fc7a',
+        # '#221210',
+        # '#87ac65']
 path = f'{mainpath}/{study}'
 
 measures = {
@@ -188,12 +190,14 @@ def plot_boxes(df_inner):
             #     print('stat test fail',error)
 
             # Calculate Wilcoxon test statistics for each box pair
-            print(tests_combinations)
+            print('\n\n',measure, tests_combinations)
             for pair in tests_combinations:
 
                 group1_data = df_inner2[df_inner2['experiment'] == pair[0]][f'{measure}_{inner_metrics[0]}']
                 group2_data = df_inner2[df_inner2['experiment'] == pair[1]][f'{measure}_{inner_metrics[0]}']
-                _, p_value = wilcoxon(group1_data, group2_data)
+                _, p_value = mannwhitneyu(group1_data, group2_data, alternative='two-sided')
+
+                print(group1_data.median(),group2_data.median(),p_value)
 
                 # Add text annotation for p-value
                 x_pos = tests_combinations.index(pair)

@@ -116,7 +116,7 @@ class LocalRunner(Runner):
 
 
 
-                ##3 add platform to env for pictures
+                ## add platform to env for pictures
                 platform = 1
                 if int(platform) == 1:
                     sizex = 5.0
@@ -282,7 +282,7 @@ class LocalRunner(Runner):
                 time := self._gym.get_sim_time(self._sim)
             ) < self._batch.simulation_time:
 
-              #  _time.sleep(0.1)
+
                 # do control if it is time
                 if time >= last_control_time + control_step:
                     last_control_time = math.floor(time / control_step) * control_step
@@ -298,7 +298,7 @@ class LocalRunner(Runner):
                             .actor
                         )
 
-                        if time < 0.001: ## for pictures
+                        if time < 0.1: ## for pictures
                             self.set_actor_dof_position_targets(
                                 env_handle, actor_handle, actor, targets
                             )

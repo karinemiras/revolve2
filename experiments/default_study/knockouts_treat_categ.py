@@ -29,18 +29,17 @@ path = f'{mainpath}/{study}/analysis/knockouts/data'
 def positive_and_zero(a, b):
     return ((a > 0) & (b == 0)) | ((a == 0) & (b > 0))
 
-
 def negative_and_zero(a, b):
     return ((a < 0) & (b == 0)) | ((a == 0) & (b < 0))
-
 
 def positive_positive(a, b):
     return (a > 0) & (b > 0)
 
-
 def negative_negative(a, b):
     return (a < 0) & (b < 0)
 
+def positive_negative(a, b):
+    return ((a > 0) & (b < 0)) | ((a < 0) & (b > 0))
 
 def calculate_general():
     origin_file = f'{path}/knockouts_measures.csv'
@@ -49,6 +48,9 @@ def calculate_general():
 
     keys = ['experiment_name', 'run', 'gen', 'ranking', 'individual_id']
     traits = ['disp_y', 'distance', 'symmetry', 'extremities_prop']
+    traits = ['proportion', 'coverage', 'extensiveness_prop', 'branching_prop', 'brick_prop', 'modules_count',
+             'hinge_ratio', 'hinge_prop', 'head_balance']
+
     others = ['knockout']
     df = df_ori.filter(items=keys + others + traits)
 
@@ -85,7 +87,7 @@ def calculate_general():
                 (df_delta[mx] == 0) & (df_delta[my] == 0) & (df_delta[mxy] > 0),
                 (df_delta[mx] == 0) & (df_delta[my] == 0) & (df_delta[mxy] < 0)
             ]
-            df_delta[f'{mx}categ{my}'] = np.select(buffering_conditions, ['buffering', 'buffering'],
+            df_delta[f'{mx}categ{my}'] = np.select(buffering_conditions, ['buffering'] * len(buffering_conditions),
                                                    default=df_delta[f'{mx}categ{my}'])
 
             # Condition 2: 'suppression'
@@ -130,13 +132,20 @@ def calculate_general():
                                                    default=df_delta[f'{mx}categ{my}'])
 
             # Condition 5: 'masking'
+
+            # partial masking
+            # masking_conditions = [
+            #     (positive_negative(df_delta[mx], df_delta[my]) & ( df_delta[mxy] > 0)),
+            #     (positive_negative(df_delta[mx], df_delta[my]) & ( df_delta[mxy] < 0))
+            # ]
+            
+            # complete masking
             masking_conditions = [
-                (((df_delta[mx] > 0) & (df_delta[my] < 0)) | ((df_delta[mx] < 0) & (df_delta[my] > 0))) & (
-                            df_delta[mxy] > 0),
-                (((df_delta[mx] > 0) & (df_delta[my] < 0)) | ((df_delta[mx] < 0) & (df_delta[my] > 0))) & (
-                            df_delta[mxy] < 0)
+                 (positive_negative(df_delta[mx], df_delta[my]) & (df_delta[mxy] == df_delta[mx]) ),
+                 (positive_negative(df_delta[mx], df_delta[my]) & (df_delta[mxy] == df_delta[my]) )
             ]
-            df_delta[f'{mx}categ{my}'] = np.select(masking_conditions, ['masking', 'masking'],
+
+            df_delta[f'{mx}categ{my}'] = np.select(masking_conditions, ['masking'] * len(masking_conditions),
                                                    default=df_delta[f'{mx}categ{my}'])
 
             # Condition 6: 'inversion'

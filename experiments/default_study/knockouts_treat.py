@@ -33,6 +33,8 @@ def calculate_general():
 
     keys = ['experiment_name', 'run', 'gen', 'ranking', 'individual_id']
     traits = ['disp_y', 'distance', 'symmetry', 'extremities_prop']
+
+    traits = [ 'proportion', 'coverage', 'extensiveness_prop', 'branching_prop', 'brick_prop', 'modules_count', 'hinge_ratio', 'hinge_prop', 'head_balance']
     others = ['knockout']
     df = df_ori.filter(items=keys + others + traits)
 

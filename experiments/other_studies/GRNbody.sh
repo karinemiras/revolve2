@@ -13,8 +13,8 @@ outputs_path="/home/ripper8/projects/working_data"
 # exps names should not be fully contained in each other
 
 study="GRNv3knockouts"
-experiments="reg2m2,reg10m2"
-tfs="reg2m2,reg10m2"
+experiments="reg2m2"
+tfs="reg10m2,reg2m2"
 
 
 # conditions have effect only for isaac
@@ -54,7 +54,7 @@ num_terminals=2
 generations="$num_generations"
 
 # max gen to filter lineplots  (by default the last gen)
-final_gen="$num_generations"
+final_gen="0,$num_generations"
 
 mutation_prob=0.9
 
