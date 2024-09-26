@@ -158,17 +158,20 @@ class GRN:
             nucleotide_idx += 1
         self.genes = np.array(self.genes)
 
-        # parses genotype to discover promoter sites and compose genes
-
     def net_parser(self):
 
         connections = []
+        numbers_regulators = []
         self.gene_parser()
         for id_regulated, gene_regulated in enumerate(self.genes):
+            number_regulators = 0
             for id_regulator, gene_regulator in enumerate(self.genes):
-                if gene_regulated[self.regulatory_transcription_factor_idx] == gene_regulator[self.transcription_factor_idx]:
+                if gene_regulated[self.regulatory_transcription_factor_idx] == gene_regulator[
+                    self.transcription_factor_idx]:
                     connections.append((id_regulator, id_regulated))
-        return connections
+                    number_regulators += 1
+            numbers_regulators.append(number_regulators)
+        return connections, numbers_regulators
 
     def regulate(self):
         self.maternal_injection()

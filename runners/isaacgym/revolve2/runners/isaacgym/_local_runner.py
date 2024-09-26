@@ -116,8 +116,8 @@ class LocalRunner(Runner):
 
 
 
-                ## add platform to env for pictures
-                platform = 1
+                ##   platform=1: only for pictures
+                platform = 0
                 if int(platform) == 1:
                     sizex = 5.0
                     sizey = 5.0
@@ -298,10 +298,17 @@ class LocalRunner(Runner):
                             .actor
                         )
 
-                        if time < 0.1: ## for pictures
-                            self.set_actor_dof_position_targets(
-                                env_handle, actor_handle, actor, targets
-                            )
+                        ## only for pictures
+                        # if time < 0.1:
+                        #     self.set_actor_dof_position_targets(
+                        #         env_handle, actor_handle, actor, targets
+                        #     )
+
+
+
+                        self.set_actor_dof_position_targets(
+                                env_handle, actor_handle, actor, targets  )
+
 
                 # sample state if it is time
                 if time >= last_sample_time + sample_step:

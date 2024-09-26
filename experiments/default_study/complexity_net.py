@@ -51,7 +51,7 @@ class Complexity:
         # 'all' selects best from all individuals
         # 'gens' selects best from chosen generations
         self.bests_type = 'gens'
-        self.ranking = ['best'] #obsolete var
+        self.ranking = ['best'] # obsolete var
 
         self.path = f'{self.mainpath}/{self.study}/analysis/complexity/'
 
@@ -61,7 +61,7 @@ class Complexity:
             os.makedirs(f'{self.path}/comp_nets/')
 
         self.pfile = f'{self.path}/complexity_net.csv'
-        header = ['experiment_name', 'run', 'gen', 'individual_id', 'complexity_net', 'geno_size', 'n_genes']
+        header = ['experiment_name', 'run', 'gen', 'individual_id', 'complexity_net', 'zero_regulators', 'geno_size', 'n_genes']
         with open(self.pfile, 'w') as file:
             file.write(','.join(map(str, header)))
             file.write('\n')
@@ -164,7 +164,9 @@ class Complexity:
                         grn = GRN(max_modules, tfs, genotype.body, genotype.mapping_seed,
                                     env_conditions[env_conditions_id], len(env_conditions), plastic_body)
 
-                        connections = grn.net_parser()
+                        connections, numbers_regulators = grn.net_parser()
+                        zero_regulators = numbers_regulators.count(0)
+
                         num_connections = len(connections)
                         n_genes = len(grn.genes)
 
@@ -206,7 +208,7 @@ class Complexity:
                         with open(f'{self.pfile}', 'a') as f:
                             f.write(
                                 f"{experiment_name},{run},{gen},"
-                                f"{r.DbEAOptimizerIndividual.individual_id},{num_connections},{geno_size},{n_genes}\n")
+                                f"{r.DbEAOptimizerIndividual.individual_id},{num_connections}, {zero_regulators},{geno_size},{n_genes}\n")
 
 
 asyncio.run(Complexity().run())

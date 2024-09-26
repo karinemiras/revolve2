@@ -12,8 +12,8 @@ outputs_path="/home/ripper8/projects/working_data"
 # exps order is the same for all three vars
 # exps names should not be fully contained in each other
 
-study="GRNv3knockouts"
-experiments="reg2m2"
+study="GRNv3knockoutsLong"
+experiments="reg10m2,reg2m2"
 tfs="reg10m2,reg2m2"
 
 
@@ -35,7 +35,7 @@ runs=${runs::-1}
 watchruns=$runs
 
 # use num_generations>=50 for more interesting results
-num_generations="100"
+num_generations="200"
 
 # use population_size>=100 for more interesting results
 population_size="100"
@@ -54,7 +54,7 @@ num_terminals=2
 generations="$num_generations"
 
 # max gen to filter lineplots  (by default the last gen)
-final_gen="0,$num_generations"
+final_gen="$num_generations"
 
 mutation_prob=0.9
 
