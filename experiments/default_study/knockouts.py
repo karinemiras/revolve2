@@ -48,7 +48,7 @@ class Simulator:
         self.experiments_name = args.experiments.split(',')
         self.tfs = list(args.tfs.split(','))
         self.runs = args.watchruns.split(',')
-        self.generations = [0, 50, 100]
+        self.generations = [0, 100]
         test_robots = []
         self.mainpath = args.mainpath
 

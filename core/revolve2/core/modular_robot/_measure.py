@@ -84,6 +84,8 @@ class Measure:
             self._measures['average_z'] = -math.inf
             return
 
+        # isaac gym returns positions in meters from a reference,
+        # so calculated displacements are in meters
         begin_state = self._states.environment_results[self._genotype_idx].environment_states[0].actor_states[0]
         end_state = self._states.environment_results[self._genotype_idx].environment_states[-1].actor_states[0]
 

@@ -12,7 +12,7 @@ outputs_path="/home/ripper8/projects/working_data"
 # exps order is the same for all three vars
 # exps names should not be fully contained in each other
 
-study="GRNv3knockoutsLong"
+study="GRNv3knockouts"
 experiments="reg10m2,reg2m2"
 tfs="reg10m2,reg2m2"
 
@@ -35,7 +35,7 @@ runs=${runs::-1}
 watchruns=$runs
 
 # use num_generations>=50 for more interesting results
-num_generations="200"
+num_generations="100"
 
 # use population_size>=100 for more interesting results
 population_size="100"
