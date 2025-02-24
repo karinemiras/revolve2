@@ -115,8 +115,7 @@ class LocalRunner(Runner):
                 gymenvs.append(gymenv)
 
 
-
-                ##   platform=1: only for pictures
+                ##   ONLY FOR PICTURES - add platform for visual effect: platform=1
                 platform = 0
                 if int(platform) == 1:
                     sizex = 5.0
@@ -278,6 +277,7 @@ class LocalRunner(Runner):
             # VISUAL DEBUG2: set to false if you wanna use spacebar to start sim (and possibly the step by step)
             do_physics_step = True
 
+
             while (
                 time := self._gym.get_sim_time(self._sim)
             ) < self._batch.simulation_time:
@@ -285,6 +285,7 @@ class LocalRunner(Runner):
 
                 # do control if it is time
                 if time >= last_control_time + control_step:
+                    print(time)
                     last_control_time = math.floor(time / control_step) * control_step
                     control = ActorControl()
                     self._batch.control(control_step, control)
@@ -298,12 +299,11 @@ class LocalRunner(Runner):
                             .actor
                         )
 
-                        ## only for pictures
+                        ## ONLY FOR PICTURES: freeze motion after a while
                         # if time < 0.1:
                         #     self.set_actor_dof_position_targets(
                         #         env_handle, actor_handle, actor, targets
                         #     )
-
 
 
                         self.set_actor_dof_position_targets(
