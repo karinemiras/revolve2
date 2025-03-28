@@ -47,12 +47,12 @@ measures = {
     'seasonal_dominated': ['Seasonal Dominated', 0, 1],
     'age': ['Age', 0, 1],
     'speed_y': ['Speed (cm/s)', 0, 1],
-    'disp_y': ['Fitness', 0, 100], #Displacement (m)
+    'disp_y': ['fitness (displacement)', 0, 100], #Fitness
     'relative_speed_y': ['Relative speed (cm/s)', 0, 1],
     'displacement': ['Total displacement (m)', 0, 1],
     'average_z': ['Z', 0, 1],
     'head_balance': ['Balance', 0, 1],
-    'modules_count': ['Size', 0, 1],
+    'modules_count': ['size', 0, 1], #Size
     'hinge_count': ['Hinge count', 0, 1],
     'brick_count': ['Brick count', 0, 1],
     'hinge_prop': ['Joints', 0, 1],

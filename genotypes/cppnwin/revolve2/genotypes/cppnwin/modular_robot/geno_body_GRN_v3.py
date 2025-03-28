@@ -56,13 +56,13 @@ class GRN:
         # too many only-head robots are sampled
         self.regulatory_tfs = tfs
 
-        if tfs == 'reg2m2':  # balanced, number of regulatory tfs equals number of modules tfs
+        if tfs == 'reg2m2':  # balanced, number of regulatory tfs similar to number of modules tfs
             self.regulatory_tfs = 2
             self.structural_tfs = two_modules
-        elif tfs == 'reg10m2':  # more regulatory, number of regulatory tfs much greater than the number of modules tfs
+        elif tfs == 'reg10m2':  # more regulatory, number of regulatory tfs greater than the number of modules tfs
             self.regulatory_tfs = 10
             self.structural_tfs = two_modules
-        elif tfs == 'reg2m10':  # more modules, number of modules tfs much greater than the number of regulatory tfs
+        elif tfs == 'reg2m10':  # more modules, number of modules tfs greater than the number of regulatory tfs
             self.regulatory_tfs = 2
             self.structural_tfs = ten_modules
 
@@ -113,10 +113,10 @@ class GRN:
             if self.genotype[nucleotide_idx] < self.promoter_threshold:
                 # if there are nucleotides enough to compose a gene
                 if (len(self.genotype)-1-nucleotide_idx) >= self.types_nucleotides:
-                    regulatory_transcription_factor = self.genotype[nucleotide_idx+self.regulatory_transcription_factor_idx+1]  # gene product
+                    regulatory_transcription_factor = self.genotype[nucleotide_idx+self.regulatory_transcription_factor_idx+1]
                     regulatory_v1 = self.genotype[nucleotide_idx+self.regulatory_v1_idx+1]
                     regulatory_v2 = self.genotype[nucleotide_idx+self.regulatory_v2_idx+1]
-                    transcription_factor = self.genotype[nucleotide_idx+self.transcription_factor_idx+1]
+                    transcription_factor = self.genotype[nucleotide_idx+self.transcription_factor_idx+1] # gene product
                     transcription_factor_amount = self.genotype[nucleotide_idx+self.transcription_factor_amount_idx+1]
                     diffusion_site = self.genotype[nucleotide_idx+self.diffusion_site_idx+1]
 
