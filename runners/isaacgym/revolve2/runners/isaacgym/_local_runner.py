@@ -277,7 +277,6 @@ class LocalRunner(Runner):
             # VISUAL DEBUG2: set to false if you wanna use spacebar to start sim (and possibly the step by step)
             do_physics_step = True
 
-
             while (
                 time := self._gym.get_sim_time(self._sim)
             ) < self._batch.simulation_time:
@@ -285,7 +284,7 @@ class LocalRunner(Runner):
 
                 # do control if it is time
                 if time >= last_control_time + control_step:
-                    print(time)
+
                     last_control_time = math.floor(time / control_step) * control_step
                     control = ActorControl()
                     self._batch.control(control_step, control)
@@ -468,6 +467,7 @@ class LocalRunner(Runner):
 
         # sadly we must run Isaac Gym in a subprocess, because it has some big memory leaks.
         result_queue: mp.Queue = mp.Queue()  # type: ignore # TODO
+
         process = mp.Process(
             target=self._run_batch_impl,
 
@@ -481,6 +481,7 @@ class LocalRunner(Runner):
             ),
         )
         process.start()
+
         environment_results = []
         # environment_results are sent seperately for every environment
         # because sending all at once is too big for the queue.

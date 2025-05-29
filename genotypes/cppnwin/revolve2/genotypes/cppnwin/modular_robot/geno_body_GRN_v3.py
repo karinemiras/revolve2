@@ -15,8 +15,6 @@ def random_v1(
     genotype = [round(rng.uniform(0, 1), 2) for _ in range(genome_size)]
     return Genotype(genotype)
 
-# V3: v2 + only original tfs increase
-
 
 class GRN:
 
@@ -54,7 +52,7 @@ class GRN:
 
         # if u increase number of reg tfs without increasing modules tf or geno size,
         # too many only-head robots are sampled
-        self.regulatory_tfs = tfs
+        self.regulatory_tfs = tfs #TO DO: remove this init
 
         if tfs == 'reg2m2':  # balanced, number of regulatory tfs similar to number of modules tfs
             self.regulatory_tfs = 2
@@ -77,6 +75,7 @@ class GRN:
         self.dev_steps = 100
         self.concentration_threshold = self.genotype[0]
         self.genotype = self.genotype[1:]
+        # TODO: evolve all params in the future?
 
     def develop(self):
 
@@ -177,6 +176,7 @@ class GRN:
         self.maternal_injection()
         self.growth()
 
+    # develop embryo from single cell
     def growth(self):
 
         maximum_reached = False
@@ -211,7 +211,7 @@ class GRN:
     # increase of originally expressed genes (meaning that gene products resulting from diffusion/split do not increase)
     def increase(self, cell):
 
-        # for all genes in the dna
+        # for all genes in the dna #TODO: easier to loop original_genes instead
         for idg, gene in enumerate(self.genes):
 
             # if that gene was originally expressed (during dna parse at cell split)
@@ -250,7 +250,7 @@ class GRN:
                         cell.developed_module._parent.cell.transcription_factors[tf] = [0] * self.diffusion_sites_qt
                         cell.developed_module._parent.cell.transcription_factors[tf][cell.developed_module.direction_from_parent] += self.inter_diffusion_rate
 
-            # concentrations of sites without slot are also shared with parent in the case of joint
+            # concentrations of sites without slot are also shared with single child in the case of joint
             elif ds in [Core.LEFT, Core.FRONT, Core.RIGHT] and type(cell.developed_module) == ActiveHinge:
 
                 if cell.developed_module.children[Core.FRONT] is not None \
@@ -266,6 +266,7 @@ class GRN:
             else:
 
                 # everyone shares with children
+                #TODO: this does not allow for children of active joint to receive diffusion: fix it
                 if cell.developed_module.children[ds] is not None \
                     and cell.transcription_factors[tf][ds] >= self.inter_diffusion_rate:
                     cell.transcription_factors[tf][ds] -= self.inter_diffusion_rate
@@ -305,6 +306,7 @@ class GRN:
 
         product_concentrations = []
         for idm in range(0, len(self.structural_tfs)-1):
+            # sum concentration of all diffusion sites
             concentration = sum(cell.transcription_factors[self.product_tfs[idm]]) \
                 if cell.transcription_factors.get(self.product_tfs[idm]) else 0
             product_concentrations.append(concentration)
@@ -379,6 +381,7 @@ class GRN:
         for tf in source_cell.transcription_factors:
 
             # in the case of joint, shares also concentrations of sites without slot
+            # ignoring those would waste a lot of gene product
             if type(source_cell.developed_module) == ActiveHinge:
                 sites = [Core.LEFT, Core.FRONT, Core.RIGHT]
                 conc = []
@@ -408,7 +411,7 @@ class GRN:
     # karines original injection
     def maternal_injection(self):
 
-        # injects maternal tf into single cell embryo and starts development of the first cell
+        # injects maternal tf into zygot and starts development of the first cell
         # the tf injected is regulatory tf of the first gene in the genetic string
         # the amount injected is the minimum for the regulatory tf to regulate its regulated product
         first_gene_idx = 0
@@ -426,30 +429,6 @@ class GRN:
         self.express_genes(first_cell)
         self.cells.append(first_cell)
         first_cell.developed_module = self.place_head(first_cell)
-
-    # anti bias injection
-    # def maternal_injection(self):
-    #
-    #     # injects maternal tf into single cell embryo and starts development of the first cell
-    #     # the tf injected is the first product tf in the string, or the first tf (if no product present)
-    #     first_tf_idx = 0
-    #     # TODO: do not inject nor grow if there are no genes (unlikely)
-    #     for igene, gene in enumerate(self.genes):
-    #         # TODO: hard coded tf1 and tf2! make dynamic!
-    #         if gene[self.transcription_factor_idx] in ["TF1", "TF2"]:
-    #             first_tf_idx = igene
-    #             break
-    #
-    #     mother_tf_label = self.genes[first_tf_idx][self.transcription_factor_idx]
-    #     mother_tf_injection = float(self.genes[first_tf_idx][self.transcription_factor_amount_idx])
-    #     first_cell = Cell()
-    #     # distributes injection among diffusion sites
-    #     first_cell.transcription_factors[mother_tf_label] = \
-    #         [mother_tf_injection / self.diffusion_sites_qt] * self.diffusion_sites_qt
-    #
-    #     self.express_genes(first_cell)
-    #     self.cells.append(first_cell)
-    #     first_cell.developed_module = self.place_head(first_cell)
 
     def express_genes(self, new_cell):
 

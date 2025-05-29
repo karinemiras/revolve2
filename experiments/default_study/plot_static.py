@@ -201,7 +201,7 @@ def plot_boxes(df_inner):
 
                 # Add text annotation for p-value
                 x_pos = tests_combinations.index(pair)
-                plot.text(x_pos, max(group1_data.max(), group2_data.max()) + 0.1, f'p={p_value:.2f}', ha='center')
+                plot.text(x_pos, max(group1_data.max(), group2_data.max()) + 0.1, f'p={p_value:.4f}', ha='center')
 
             # if measures[measure][1] != -math.inf and measures[measure][2] != -math.inf:
             #     plot.set_ylim(measures[measure][1], measures[measure][2])

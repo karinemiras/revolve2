@@ -28,7 +28,7 @@ def random_v1(
             multineat_params,
             output_activation_func,
             # 7,  # bias(always 1), x1, y1, z1, x2, y2, z2
-            6, # x1, y1, z1, x2, y2, z2
+            6, # x1, y1, z1, x2, y2, z2 # z is idle now that 3d is off
             1,  # weight
             num_initial_mutations,
         )
