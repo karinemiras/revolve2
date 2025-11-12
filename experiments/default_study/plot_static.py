@@ -29,7 +29,7 @@ mainpath = args.mainpath
 
 experiments = experiments_name
 inner_metrics = ['mean', 'max']
-include_max = False
+include_max = True
 merge_lines = True
 gens_boxes = generations
 clrs = ['#ADD8E6',
@@ -68,7 +68,8 @@ measures = {
     'height': ['Height', 0, 1],
     'coverage': ['Coverage', 0, 1],
     'proportion': ['Proportion', 0, 1],
-    'symmetry': ['Symmetry', 0, 1]}
+    'symmetry': ['Symmetry', 0, 1]
+}
 
 
 def plots():
@@ -126,13 +127,13 @@ def plot_lines(df_outer):
                     data[f'{measure}_{inner_metrics[0]}_q75'],
                     linestyle='-', color=clrs[idx_experiment], alpha=0.5, linewidth=1.5)  # Contour line for Q3
 
-            if include_max:
+            if include_max and measure == 'disp_y':
                 ax.plot(data['generation_index'], data[f'{measure}_{inner_metrics[1]}_median'],
                         'b--', label=f'{experiment}_{inner_metrics[1]}', c=clrs[idx_experiment])
-                ax.fill_between(data['generation_index'],
-                                data[f'{measure}_{inner_metrics[1]}_q25'],
-                                data[f'{measure}_{inner_metrics[1]}_q75'],
-                                alpha=0.3, facecolor=clrs[idx_experiment])
+               # ax.fill_between(data['generation_index'],
+                #                data[f'{measure}_{inner_metrics[1]}_q25'],
+                 #               data[f'{measure}_{inner_metrics[1]}_q75'],
+                  #              alpha=0.3, facecolor=clrs[idx_experiment])
 
             # if measures[measure][1] != -math.inf and measures[measure][2] != -math.inf:
             #     ax.set_ylim(measures[measure][1], measures[measure][2])

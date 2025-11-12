@@ -43,9 +43,9 @@ class Simulator:
         args = parser.parse_args()
 
         self.study = args.study
-        self.experiments_name = ["reg2m2"] # args.experiments.split(',')
-        self.tfs = ["reg2m2"] #list(args.tfs.split(','))
-        self.runs = [9] # args.watchruns.split(',')
+        self.experiments_name = ["reg10m2"] # args.experiments.split(',')
+        self.tfs = ["reg10m2"] #list(args.tfs.split(','))
+        self.runs = [13] # args.watchruns.split(',')
         self.generations = list(map(int, args.generations.split(',')))
         test_robots = []
         mainpath = args.mainpath
